@@ -1,11 +1,9 @@
 {
-
   "scripts": {
     "test": "npx hardhat test",
     "compile": "npx hardhat compile",
     "deploy": "npx hardhat run --network hardhat  scripts/deploy_main_net.ts"
   },
-
   "name": "alyx_nft_contract",
   "version": "1.0.0",
   "main": "index.js",
@@ -38,6 +36,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "dotenv": "^16.0.2",
     "eth-permit": "^0.2.3"
   }
 }
