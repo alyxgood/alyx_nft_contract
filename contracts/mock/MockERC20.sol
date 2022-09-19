@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 
-contract mockERC20 is ERC20Permit {
+contract MockERC20 is ERC20Permit {
 
     uint8 private decimals_;
 
