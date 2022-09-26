@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.9;
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+
 import "./baseContract.sol";
+import "./DBContract.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter public currentTokenId;
@@ -44,7 +49,23 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
         maxMintPerDayPerAddress = _maxMintPerDayPerAddress;
     }
 
-    function mintTo(NFTType _nftType, address _to, uint256 _numNFT) external {
+    function mintTo(NFTType _nftType, address _to, uint256 _numNFT, address _payment) external {
+        require(
+            DBContract(DB_CONTRACT).AU_TOKEN() == _payment ||
+            DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
+                'AlyxNft: unsupported payment.'
+        );
+        uint256 mintPrice = DBContract(DB_CONTRACT).mintPriceInAU();
+        if (DBContract(DB_CONTRACT).USDT_TOKEN() == _payment)
+            mintPrice = DBContract(DB_CONTRACT).mintPriceInUSDT();
+        uint256 mintPriceTotal = mintPrice * _numNFT;
+
+        require(
+            IERC20Upgradeable(_payment).allowance(_msgSender(), address(this)) >= mintPriceTotal,
+                'AlyxNft: insufficient allowance'
+        );
+        IERC20Upgradeable(_payment).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).recipient(), mintPriceTotal);
+
         for (uint256 index; index < _numNFT; index++) {
             uint256 tokenId = currentTokenId.current();
 
