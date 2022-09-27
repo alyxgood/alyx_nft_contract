@@ -23,6 +23,11 @@ contract DBContract is OwnableUpgradeable {
 
     address public TEAM_ADDR;
 
+    // mint price
+    uint256 public mintPriceInAU;
+    uint256 public mintPriceInUSDT;
+    address public recipient;
+
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
         AU_TOKEN =addr[1];
@@ -42,5 +47,15 @@ contract DBContract is OwnableUpgradeable {
 
     function __DBContract_init_unchained() public onlyInitializing {
     }
+
+    function setMintPrice(uint256 _mintPriceInAU, uint256 _mintPriceInUSDT) external onlyOwner {
+        mintPriceInAU = _mintPriceInAU;
+        mintPriceInUSDT = _mintPriceInUSDT;
+    }
+
+    function setRecipient(address _recipient) external onlyOwner {
+        recipient = _recipient;
+    }
+
 
 }
