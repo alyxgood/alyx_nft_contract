@@ -3,6 +3,7 @@ pragma solidity 0.8.9;
 
 import "./baseContract.sol";
 import "./DBContract.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -10,14 +11,21 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
+contract AlyxNft is ERC721EnumerableUpgradeable, baseContract, OwnableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
+    string public baseTokenURI;
     CountersUpgradeable.Counter public currentTokenId;
 
     uint256 private randomSeed;
+
+    address public recipient;
     uint256 public maxMintPerDayPerAddress;
+    // mint price
+    uint256 public mintPriceInAU;
+    uint256 public mintPriceInUSDT;
+
     mapping(uint256 => NFTInfo) public nftInfoOf;
     mapping(address => uint256) public lastMintTime;
 
@@ -40,9 +48,10 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
 
     function __KeyToken_init(uint256 _maxMintPerDayPerAddress) public initializer {
         __AlyxNft_init_unchained(_maxMintPerDayPerAddress);
-        __ERC721Enumerable_init();
-        __ERC721_init("AlyxNft","AlyxNft");
-        __baseContract_init();
+        ERC721EnumerableUpgradeable.__ERC721Enumerable_init();
+        ERC721Upgradeable.__ERC721_init("AlyxNft","AlyxNft");
+        baseContract.__baseContract_init();
+        OwnableUpgradeable.__Ownable_init();
     }
 
     function __AlyxNft_init_unchained(uint256 _maxMintPerDayPerAddress) private onlyInitializing {
@@ -63,16 +72,16 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
             DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
                 'AlyxNft: unsupported payment.'
         );
-        uint256 mintPrice = DBContract(DB_CONTRACT).mintPriceInAU();
+        uint256 mintPrice = mintPriceInAU;
         if (DBContract(DB_CONTRACT).USDT_TOKEN() == _payment)
-            mintPrice = DBContract(DB_CONTRACT).mintPriceInUSDT();
+            mintPrice = mintPriceInUSDT;
         uint256 mintPriceTotal = mintPrice * _numNFT;
 
         require(
             IERC20Upgradeable(_payment).allowance(_msgSender(), address(this)) >= mintPriceTotal,
                 'AlyxNft: insufficient allowance'
         );
-        IERC20Upgradeable(_payment).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).recipient(), mintPriceTotal);
+        IERC20Upgradeable(_payment).safeTransferFrom(_msgSender(), recipient, mintPriceTotal);
 
         for (uint256 index; index < _numNFT; index++) {
             uint256 tokenId = currentTokenId.current();
@@ -99,5 +108,24 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
     function _randomSeedGen() private returns (uint256 _randomSeed) {
         _randomSeed = uint256(keccak256(abi.encodePacked(randomSeed, block.timestamp, block.difficulty)));
         randomSeed = _randomSeed;
+    }
+
+    /// @dev Returns an URI for a given token ID
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseTokenURI;
+    }
+
+    /// @dev Sets the base token URI prefix.
+    function setBaseTokenURI(string memory _baseTokenURI) public onlyOwner {
+        baseTokenURI = _baseTokenURI;
+    }
+
+    function setMintPrice(uint256 _mintPriceInAU, uint256 _mintPriceInUSDT) external onlyOwner {
+        mintPriceInAU = _mintPriceInAU;
+        mintPriceInUSDT = _mintPriceInUSDT;
+    }
+
+    function setRecipient(address _recipient) external onlyOwner {
+        recipient = _recipient;
     }
 }
