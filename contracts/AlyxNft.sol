@@ -98,4 +98,9 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
         _randomSeed = uint256(keccak256(abi.encodePacked(randomSeed, block.timestamp, block.difficulty)));
         randomSeed = _randomSeed;
     }
+
+    /// @dev Returns an URI for a given token ID
+    function _baseURI() internal view virtual override returns (string memory) {
+        return DBContract(DB_CONTRACT).baseTokenURI();
+    }
 }
