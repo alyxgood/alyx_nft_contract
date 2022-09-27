@@ -19,6 +19,7 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
     uint256 private randomSeed;
     uint256 public maxMintPerDayPerAddress;
     mapping(uint256 => NFTInfo) public nftInfoOf;
+    mapping(address => uint256) public lastMintTime;
 
     enum NFTType {
         Boy,
@@ -50,6 +51,13 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
     }
 
     function mintTo(NFTType _nftType, address _to, uint256 _numNFT, address _payment) external {
+        require(
+            _numNFT <= maxMintPerDayPerAddress &&
+            block.timestamp - lastMintTime[_msgSender()] >= 1 days,
+                'AlyxNft: cannot mint more in a day.'
+        );
+        lastMintTime[_msgSender()] = block.timestamp;
+
         require(
             DBContract(DB_CONTRACT).AU_TOKEN() == _payment ||
             DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
