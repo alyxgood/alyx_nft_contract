@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "./baseContract.sol";
 import "./DBContract.sol";
-import "./interfaces/IAlyxNft.sol";
+import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
@@ -59,7 +59,7 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable, ERC721EnumerableUpgr
 
             uint256 charismaSingle;
             uint256 dexteritySingle;
-            (, charismaSingle, dexteritySingle, ,) = IAlyxNft(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            (, charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
             charisma += charismaSingle;
             dexterity += dexteritySingle;
         }

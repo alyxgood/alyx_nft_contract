@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "./baseContract.sol";
 import "./DBContract.sol";
-import "./interfaces/IAlyxNft.sol";
+import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract AlyxNft is IAlyxNft, ERC721EnumerableUpgradeable, baseContract {
+contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
@@ -36,7 +36,7 @@ contract AlyxNft is IAlyxNft, ERC721EnumerableUpgradeable, baseContract {
     function __KeyToken_init() public initializer {
         __AlyxNft_init_unchained();
         __ERC721Enumerable_init();
-        __ERC721_init("AlyxNft","AlyxNft");
+        __ERC721_init("AlyxNFT","AlyxNFT");
         __baseContract_init();
     }
 
@@ -48,14 +48,14 @@ contract AlyxNft is IAlyxNft, ERC721EnumerableUpgradeable, baseContract {
         require(
             _numNFT <= DBContract(DB_CONTRACT).maxMintPerDayPerAddress() &&
             block.timestamp - lastMintTime[_msgSender()] >= 1 days,
-                'AlyxNft: cannot mint more in a day.'
+                'AlyxNFT: cannot mint more in a day.'
         );
         lastMintTime[_msgSender()] = block.timestamp;
 
         require(
             DBContract(DB_CONTRACT).AU_TOKEN() == _payment ||
             DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
-                'AlyxNft: unsupported payment.'
+                'AlyxNFT: unsupported payment.'
         );
         uint256 mintPrice = DBContract(DB_CONTRACT).mintPriceInAU();
         if (DBContract(DB_CONTRACT).USDT_TOKEN() == _payment)
@@ -64,7 +64,7 @@ contract AlyxNft is IAlyxNft, ERC721EnumerableUpgradeable, baseContract {
 
         require(
             IERC20Upgradeable(_payment).allowance(_msgSender(), address(this)) >= mintPriceTotal,
-                'AlyxNft: insufficient allowance'
+                'AlyxNFT: insufficient allowance'
         );
         IERC20Upgradeable(_payment).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).recipient(), mintPriceTotal);
 
