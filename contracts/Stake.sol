@@ -68,6 +68,32 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable {
         miningPowerOf[_msgSender()].dexterity += dexterity;
     }
 
+    function unstake(uint256[] calldata nftIds) external updateReward(_msgSender()) {
+        uint256 charisma = 0;
+        uint256 dexterity = 0;
+        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).BALYX_NFT();
+
+        uint256 index;
+        for (index = 0; index < nftIds.length; index++) {
+            require(IERC721Upgradeable(bAlyxNFTAddress).ownerOf(nftIds[index]) == _msgSender(), 'Stake: not the owner.');
+        }
+
+        for (index = 0; index < nftIds.length; index++) {
+            IBNFT(bAlyxNFTAddress).burn(nftIds[index]);
+            IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), nftIds[index]);
+
+            uint256 charismaSingle;
+            uint256 dexteritySingle;
+            (, charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            charisma += charismaSingle;
+            dexterity += dexteritySingle;
+        }
+
+        miningPowerOf[_msgSender()].charisma -= charisma;
+        miningPowerOf[_msgSender()].dexterity -= dexterity;
+    }
+
     function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
