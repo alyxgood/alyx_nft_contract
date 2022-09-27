@@ -5,28 +5,27 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 // import "hardhat/console.sol";
 contract DBContract is OwnableUpgradeable {
 
+    /**************************************************************************
+     *****  Common fields  ****************************************************
+     **************************************************************************/
     address immutable public USDT_TOKEN;
-
     address immutable public AU_TOKEN;
-
     address immutable public BP_TOKEN;
-
     address immutable public KEY_TOKEN;
-
     address immutable public STAKING;
-
     address immutable public USER_INFO;
-
     address immutable public ALYX_NFT;
-
     address immutable public MARKET;
-
     address public TEAM_ADDR;
 
+    /**************************************************************************
+     *****  AlynNFT fields  ***************************************************
+     **************************************************************************/
     // mint price
     uint256 public mintPriceInAU;
     uint256 public mintPriceInUSDT;
     address public recipient;
+    uint256 public maxMintPerDayPerAddress;
 
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
@@ -55,6 +54,10 @@ contract DBContract is OwnableUpgradeable {
 
     function setRecipient(address _recipient) external onlyOwner {
         recipient = _recipient;
+    }
+
+    function setMaxMintPerDayPerAddress(uint256 _maxMintPerDayPerAddress) external onlyOwner {
+        maxMintPerDayPerAddress = _maxMintPerDayPerAddress;
     }
 
 

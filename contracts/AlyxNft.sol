@@ -17,7 +17,6 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
     CountersUpgradeable.Counter public currentTokenId;
 
     uint256 private randomSeed;
-    uint256 public maxMintPerDayPerAddress;
     mapping(uint256 => NFTInfo) public nftInfoOf;
     mapping(address => uint256) public lastMintTime;
 
@@ -38,21 +37,20 @@ contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
 
     }
 
-    function __KeyToken_init(uint256 _maxMintPerDayPerAddress) public initializer {
-        __AlyxNft_init_unchained(_maxMintPerDayPerAddress);
+    function __KeyToken_init() public initializer {
+        __AlyxNft_init_unchained();
         __ERC721Enumerable_init();
         __ERC721_init("AlyxNft","AlyxNft");
         __baseContract_init();
     }
 
-    function __AlyxNft_init_unchained(uint256 _maxMintPerDayPerAddress) private onlyInitializing {
+    function __AlyxNft_init_unchained() private onlyInitializing {
         _randomSeedGen();
-        maxMintPerDayPerAddress = _maxMintPerDayPerAddress;
     }
 
     function mintTo(NFTType _nftType, address _to, uint256 _numNFT, address _payment) external {
         require(
-            _numNFT <= maxMintPerDayPerAddress &&
+            _numNFT <= DBContract(DB_CONTRACT).maxMintPerDayPerAddress() &&
             block.timestamp - lastMintTime[_msgSender()] >= 1 days,
                 'AlyxNft: cannot mint more in a day.'
         );
