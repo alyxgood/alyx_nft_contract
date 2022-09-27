@@ -4,13 +4,13 @@ pragma solidity 0.8.9;
 import "./baseContract.sol";
 import "./DBContract.sol";
 import "./interfaces/IAlyxNFT.sol";
+import "./interfaces/IBNFT.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Stake is baseContract, IERC721ReceiverUpgradeable, ERC721EnumerableUpgradeable {
+contract Stake is baseContract, IERC721ReceiverUpgradeable {
 
     mapping(address => MiningPower) public miningPowerOf;
     mapping(address => uint256) public rewardOf;
@@ -28,8 +28,6 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable, ERC721EnumerableUpgr
     function __Stake_init() public initializer {
         __baseContract_init();
         __Stake_init_unchained();
-        __ERC721Enumerable_init();
-        __ERC721_init("Staked AlyxNft","sAlyxNft");
     }
 
     function __Stake_init_unchained() public onlyInitializing {
@@ -52,10 +50,12 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable, ERC721EnumerableUpgr
         uint256 charisma = 0;
         uint256 dexterity = 0;
         address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).BALYX_NFT();
 
         for (uint256 index; index < nftIds.length; index++) {
             IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(_msgSender(), address(this), nftIds[index]);
-            ERC721Upgradeable._safeMint(_msgSender(), nftIds[index]);
+            IERC721Upgradeable(alyxNFTAddress).approve(bAlyxNFTAddress, nftIds[index]);
+            IBNFT(bAlyxNFTAddress).mint(_msgSender(), nftIds[index]);
 
             uint256 charismaSingle;
             uint256 dexteritySingle;
