@@ -41,13 +41,13 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
     }
 
     modifier updateReward(address account) {
-        uint256 charisma = miningPowerOf[account].charisma;
-        uint256 dexterity = miningPowerOf[account].dexterity;
-
         uint256 lastUpdateTime = lastUpdateTimeOf[account];
         lastUpdateTimeOf[account] = block.timestamp;
 
+        uint256 charisma = miningPowerOf[account].charisma;
+        uint256 dexterity = miningPowerOf[account].dexterity;
         uint256 rewardRate = _rewardRate(charisma, dexterity);
+
         rewardOf[account] += rewardRate * (block.timestamp - lastUpdateTime);
 
         _;
