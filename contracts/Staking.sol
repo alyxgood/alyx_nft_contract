@@ -12,12 +12,16 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Stake is baseContract, IERC721ReceiverUpgradeable {
+contract Staking is baseContract, IERC721ReceiverUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     mapping(address => MiningPower) public miningPowerOf;
     mapping(address => uint256) public rewardOf;
     mapping(address => uint256) public lastUpdateTimeOf;
+
+    event Stake(address indexed account, uint256 tokenId);
+    event UnStake(address indexed account, uint256 tokenId);
+    event Claim(address indexed account, uint256 amount);
 
     struct MiningPower {
         uint256 charisma;
@@ -28,12 +32,12 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable {
 
     }
 
-    function __Stake_init() public initializer {
+    function __Staking_init() public initializer {
         __baseContract_init();
-        __Stake_init_unchained();
+        __Staking_init_unchained();
     }
 
-    function __Stake_init_unchained() public onlyInitializing {
+    function __Staking_init_unchained() public onlyInitializing {
     }
 
     modifier updateReward(address account) {
@@ -60,6 +64,8 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable {
             IERC721Upgradeable(alyxNFTAddress).approve(bAlyxNFTAddress, nftIds[index]);
             IBNFT(bAlyxNFTAddress).mint(_msgSender(), nftIds[index]);
 
+            emit Stake(_msgSender(), nftIds[index]);
+
             uint256 charismaSingle;
             uint256 dexteritySingle;
             (, charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
@@ -79,12 +85,14 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable {
 
         uint256 index;
         for (index = 0; index < nftIds.length; index++) {
-            require(IERC721Upgradeable(bAlyxNFTAddress).ownerOf(nftIds[index]) == _msgSender(), 'Stake: not the owner.');
+            require(IERC721Upgradeable(bAlyxNFTAddress).ownerOf(nftIds[index]) == _msgSender(), 'Staking: not the owner.');
         }
 
         for (index = 0; index < nftIds.length; index++) {
             IBNFT(bAlyxNFTAddress).burn(nftIds[index]);
             IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), nftIds[index]);
+
+            emit UnStake(_msgSender(), nftIds[index]);
 
             uint256 charismaSingle;
             uint256 dexteritySingle;
@@ -99,10 +107,12 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable {
 
     function claimReward() external updateReward(_msgSender()) {
         uint256 claimable = rewardOf[_msgSender()];
-        require(claimable > 0, 'Stake: cannot claim 0.');
+        require(claimable > 0, 'Staking: cannot claim 0.');
 
         rewardOf[_msgSender()] = 0;
         IERC20Upgradeable(DBContract(DB_CONTRACT).AU_TOKEN()).safeTransfer(_msgSender(), claimable);
+
+        emit Claim(_msgSender(), claimable);
     }
 
     function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {
