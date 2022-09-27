@@ -5,12 +5,15 @@ import "./baseContract.sol";
 import "./DBContract.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "./interfaces/IBNFT.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 contract Stake is baseContract, IERC721ReceiverUpgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     mapping(address => MiningPower) public miningPowerOf;
     mapping(address => uint256) public rewardOf;
@@ -92,6 +95,14 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable {
 
         miningPowerOf[_msgSender()].charisma -= charisma;
         miningPowerOf[_msgSender()].dexterity -= dexterity;
+    }
+
+    function claimReward() external updateReward(_msgSender()) {
+        uint256 claimable = rewardOf[_msgSender()];
+        require(claimable > 0, 'Stake: cannot claim 0.');
+
+        rewardOf[_msgSender()] = 0;
+        IERC20Upgradeable(DBContract(DB_CONTRACT).AU_TOKEN()).safeTransfer(_msgSender(), claimable);
     }
 
     function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {
