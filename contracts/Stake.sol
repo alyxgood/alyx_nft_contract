@@ -69,7 +69,7 @@ contract Stake is baseContract, IERC721ReceiverUpgradeable {
     }
 
     function _rewardRate(uint256 charisma, uint256 dexterity) private pure returns (uint256) {
-        uint256 rewardPerDay = ((0.007 ether) * charisma) + ((0.005 ether) * dexterity / 100);
+        uint256 rewardPerDay = ((0.007 ether) * charisma) + ((0.005 ether) * charisma * dexterity / 100);
 
         return rewardPerDay / 1 days;
     }
