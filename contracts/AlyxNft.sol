@@ -3,6 +3,7 @@ pragma solidity 0.8.9;
 
 import "./baseContract.sol";
 import "./DBContract.sol";
+import "./interfaces/IAlyxNft.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -10,20 +11,15 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract AlyxNft is ERC721EnumerableUpgradeable,baseContract {
+contract AlyxNft is IAlyxNft, ERC721EnumerableUpgradeable, baseContract {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter public currentTokenId;
 
     uint256 private randomSeed;
-    mapping(uint256 => NFTInfo) public nftInfoOf;
+    mapping(uint256 => NFTInfo) public override nftInfoOf;
     mapping(address => uint256) public lastMintTime;
-
-    enum NFTType {
-        Boy,
-        Girl
-    }
 
     struct NFTInfo {
         NFTType nftType;
