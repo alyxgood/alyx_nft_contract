@@ -5,14 +5,11 @@ import "./baseContract.sol";
 import "./DBContract.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter public currentTokenId;
@@ -21,6 +18,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
     mapping(uint256 => NFTInfo) public override nftInfoOf;
     mapping(address => uint256) public lastMintTime;
 
+    enum Attribute { charisma, dexterity, vitality, intellect }
     struct NFTInfo {
         NFTType nftType;
         uint256 charisma;
@@ -62,12 +60,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
             mintPrice = DBContract(DB_CONTRACT).mintPriceInUSDT();
         uint256 mintPriceTotal = mintPrice * _numNFT;
 
-        require(
-            IERC20Upgradeable(_payment).allowance(_msgSender(), address(this)) >= mintPriceTotal,
-                'AlyxNFT: insufficient allowance'
-        );
-        IERC20Upgradeable(_payment).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).recipient(), mintPriceTotal);
-
+        _pay(_payment, _msgSender(), mintPriceTotal);
         for (uint256 index; index < _numNFT; index++) {
             uint256 tokenId = currentTokenId.current();
 
@@ -81,6 +74,10 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
             });
             ERC721Upgradeable._safeMint(_to, tokenId);
         }
+    }
+
+    function upgrade(Attribute _attr, uint256 _point, address _payment) external {
+
     }
 
     function _attributesGen(address _minter) private returns (uint256 _vitality, uint256 _intellect) {
