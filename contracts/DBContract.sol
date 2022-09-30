@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.9;
+
+import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
+
 contract DBContract is OwnableUpgradeable {
 
     /**************************************************************************
@@ -28,6 +31,7 @@ contract DBContract is OwnableUpgradeable {
     address public recipient;
     uint256 public maxMintPerDayPerAddress;
     string public baseTokenURI;
+    uint256[][] public attributeLevelThreshold;
 
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
@@ -69,6 +73,32 @@ contract DBContract is OwnableUpgradeable {
 
     function setBaseTokenURI(string calldata _baseTokenURI) external onlyOwner {
         baseTokenURI = _baseTokenURI;
+    }
+
+    /**
+     * CA: [100, 500, 1000 ... ]
+     */
+    function setAttributeLevelThreshold(IAlyxNFT.Attribute _attr, uint256[] calldata _thresholds) external onlyOwner {
+        delete attributeLevelThreshold[uint256(_attr)];
+        for (uint256 index; index < _thresholds.length; index++) {
+            if (index > 0) {
+                require(_thresholds[index] > _thresholds[index - 1], 'DBContract: invalid thresholds.');
+            }
+            attributeLevelThreshold[uint256(_attr)][index] = _thresholds[index];
+        }
+    }
+
+    function calcLevel(IAlyxNFT.Attribute _attr, uint256 _point) external view returns (uint256 level, uint256 overflow) {
+        uint256 thresholdLength = attributeLevelThreshold[uint256(_attr)].length;
+        for (uint256 index; index < thresholdLength; index++) {
+            if (_point > attributeLevelThreshold[uint256(_attr)][index]) {
+                level = index + 1;
+                overflow = _point - attributeLevelThreshold[uint256(_attr)][index];
+            } else {
+                break;
+            }
+        }
+        return (level, overflow);
     }
 
 

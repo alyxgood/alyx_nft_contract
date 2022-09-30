@@ -68,7 +68,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
             uint256 charismaSingle;
             uint256 dexteritySingle;
-            (, charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            (charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
             charisma += charismaSingle;
             dexterity += dexteritySingle;
         }
@@ -96,7 +96,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
             uint256 charismaSingle;
             uint256 dexteritySingle;
-            (, charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            (charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
             charisma += charismaSingle;
             dexterity += dexteritySingle;
         }

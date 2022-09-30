@@ -8,11 +8,17 @@ interface IAlyxNFT {
         Girl
     }
 
+    enum Attribute {
+        charisma,
+        dexterity,
+        vitality,
+        intellect
+    }
+
     function nftInfoOf(uint256 tokenId)
         external
         view
         returns (
-            NFTType nftType,
             uint256 charisma,
             uint256 dexterity,
             uint256 vitality,

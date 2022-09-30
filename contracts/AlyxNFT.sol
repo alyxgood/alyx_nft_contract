@@ -5,6 +5,7 @@ import "./baseContract.sol";
 import "./DBContract.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
@@ -15,17 +16,8 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
     CountersUpgradeable.Counter public currentTokenId;
 
     uint256 private randomSeed;
-    mapping(uint256 => NFTInfo) public override nftInfoOf;
+    mapping(uint256 => uint256[]) public nftInfo;
     mapping(address => uint256) public lastMintTime;
-
-    enum Attribute { charisma, dexterity, vitality, intellect }
-    struct NFTInfo {
-        NFTType nftType;
-        uint256 charisma;
-        uint256 dexterity;
-        uint256 vitality;
-        uint256 intellect;
-    }
 
     constructor(address dbAddress) baseContract(dbAddress){
 
@@ -42,7 +34,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         _randomSeedGen();
     }
 
-    function mintTo(NFTType _nftType, address _to, uint256 _numNFT, address _payment) external {
+    function mintTo(address _to, uint256 _numNFT, address _payment) external {
         require(
             _numNFT <= DBContract(DB_CONTRACT).maxMintPerDayPerAddress() &&
             block.timestamp - lastMintTime[_msgSender()] >= 1 days,
@@ -65,19 +57,48 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
             uint256 tokenId = currentTokenId.current();
 
             (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
-            nftInfoOf[tokenId] = NFTInfo({
-                nftType: _nftType,
-                vitality: vitality,
-                intellect: intellect,
-                dexterity: 0,
-                charisma: 0
-            });
+            nftInfo[tokenId] = [ vitality, intellect, 0, 0];
             ERC721Upgradeable._safeMint(_to, tokenId);
         }
     }
 
-    function upgrade(Attribute _attr, uint256 _point, address _payment) external {
+    function upgrade(Attribute _attr, uint256 tokenId, uint256 _point, address _payment) external {
+        uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
+        uint256 amount = _point * (10 ** decimal);
+        _pay(_payment, _msgSender(), amount);
 
+        if (Attribute.charisma == _attr) {
+            require(
+                _payment == DBContract(DB_CONTRACT).USDT_TOKEN() ||
+                _payment == DBContract(DB_CONTRACT).AU_TOKEN(),
+                    'AlyxNFT: unsupported payment.'
+            );
+        } else {
+            uint256 preAttrIndex = uint256(_attr) - 1;
+            (uint256 preAttrLevel,) = DBContract(DB_CONTRACT).calcLevel(Attribute(preAttrIndex), nftInfo[tokenId][preAttrIndex]);
+            (uint256 curAttrLevelAfterUpgrade, uint256 curAttrLevelOverflowAfterUpgrade) = DBContract(DB_CONTRACT).calcLevel(_attr, _point + nftInfo[tokenId][uint256(_attr)]);
+            require(
+                preAttrLevel > curAttrLevelAfterUpgrade ||
+                (preAttrLevel == curAttrLevelAfterUpgrade && curAttrLevelOverflowAfterUpgrade == 0),
+                    'AlyxNFT: level overflow.'
+            );
+
+            require(_payment == DBContract(DB_CONTRACT).BP_TOKEN(), 'AlyxNFT: unsupported payment.');
+        }
+
+        nftInfo[tokenId][uint256(_attr)] += _point;
+    }
+
+    function nftInfoOf(uint256 tokenId) external view override returns (
+        uint256 charisma,
+        uint256 dexterity,
+        uint256 vitality,
+        uint256 intellect
+    ) {
+        charisma = nftInfo[tokenId][uint256(Attribute.charisma)];
+        dexterity = nftInfo[tokenId][uint256(Attribute.dexterity)];
+        vitality = nftInfo[tokenId][uint256(Attribute.vitality)];
+        intellect = nftInfo[tokenId][uint256(Attribute.intellect)];
     }
 
     function _attributesGen(address _minter) private returns (uint256 _vitality, uint256 _intellect) {
