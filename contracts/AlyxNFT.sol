@@ -63,10 +63,6 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
     }
 
     function upgrade(Attribute _attr, uint256 tokenId, uint256 _point, address _payment) external {
-        uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
-        uint256 amount = _point * (10 ** decimal);
-        _pay(_payment, _msgSender(), amount);
-
         if (Attribute.charisma == _attr) {
             require(
                 _payment == DBContract(DB_CONTRACT).USDT_TOKEN() ||
@@ -85,6 +81,10 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
 
             require(_payment == DBContract(DB_CONTRACT).BP_TOKEN(), 'AlyxNFT: unsupported payment.');
         }
+
+        uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
+        uint256 amount = _point * (10 ** decimal);
+        _pay(_payment, _msgSender(), amount);
 
         nftInfo[tokenId][uint256(_attr)] += _point;
     }
