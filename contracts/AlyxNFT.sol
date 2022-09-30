@@ -63,6 +63,13 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
     }
 
     function upgrade(Attribute _attr, uint256 tokenId, uint256 _point, address _payment) external {
+        // avoid upgrade while staking
+        require(
+            tx.origin == _msgSender() &&
+            ERC721Upgradeable.ownerOf(tokenId) == _msgSender(),
+                'AlyxNFT: not the owner'
+        );
+
         if (Attribute.charisma == _attr) {
             require(
                 _payment == DBContract(DB_CONTRACT).USDT_TOKEN() ||
