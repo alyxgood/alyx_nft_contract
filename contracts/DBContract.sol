@@ -18,7 +18,8 @@ contract DBContract is OwnableUpgradeable {
     address immutable public STAKING;
     address immutable public USER_INFO;
     address immutable public ALYX_NFT;
-    address immutable public BALYX_NFT;
+    address immutable public STAKING_ALYX_NFT;
+    address immutable public LISTED_ALYX_NFT;
     address immutable public MARKET;
     address public TEAM_ADDR;
 
@@ -40,10 +41,11 @@ contract DBContract is OwnableUpgradeable {
         KEY_TOKEN =addr[3];
         STAKING = addr[4];
         ALYX_NFT = addr[5];
-        BALYX_NFT = addr[6];
-        MARKET = addr[7];
-        USER_INFO = addr[8];
-        TEAM_ADDR = addr[9];
+        STAKING_ALYX_NFT = addr[6];
+        LISTED_ALYX_NFT = addr[7];
+        MARKET = addr[8];
+        USER_INFO = addr[9];
+        TEAM_ADDR = addr[10];
     }
 
     function __BoosterToken_init() public initializer {

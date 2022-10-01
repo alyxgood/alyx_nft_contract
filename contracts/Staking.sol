@@ -57,7 +57,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         uint256 charisma = 0;
         uint256 dexterity = 0;
         address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
-        address bAlyxNFTAddress = DBContract(DB_CONTRACT).BALYX_NFT();
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).STAKING_ALYX_NFT();
 
         for (uint256 index; index < nftIds.length; index++) {
             IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(_msgSender(), address(this), nftIds[index]);
@@ -81,7 +81,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         uint256 charisma = 0;
         uint256 dexterity = 0;
         address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
-        address bAlyxNFTAddress = DBContract(DB_CONTRACT).BALYX_NFT();
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).STAKING_ALYX_NFT();
 
         uint256 index;
         for (index = 0; index < nftIds.length; index++) {
