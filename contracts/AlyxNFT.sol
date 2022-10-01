@@ -96,16 +96,8 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         nftInfo[tokenId][uint256(_attr)] += _point;
     }
 
-    function nftInfoOf(uint256 tokenId) external view override returns (
-        uint256 charisma,
-        uint256 dexterity,
-        uint256 vitality,
-        uint256 intellect
-    ) {
-        charisma = nftInfo[tokenId][uint256(Attribute.charisma)];
-        dexterity = nftInfo[tokenId][uint256(Attribute.dexterity)];
-        vitality = nftInfo[tokenId][uint256(Attribute.vitality)];
-        intellect = nftInfo[tokenId][uint256(Attribute.intellect)];
+    function nftInfoOf(uint256 _tokenId) external view override returns (uint256[] memory _nftInfo) {
+        return nftInfo[_tokenId];
     }
 
     function _attributesGen(address _minter) private returns (uint256 _vitality, uint256 _intellect) {

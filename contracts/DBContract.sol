@@ -34,6 +34,13 @@ contract DBContract is OwnableUpgradeable {
     string public baseTokenURI;
     uint256[][] public attributeLevelThreshold;
 
+    /**************************************************************************
+     *****  Market fields  ****************************************************
+     **************************************************************************/
+    bool public enableTokenWl;
+    address[] public acceptTokens;
+    uint256 public sellingLevelLimit;
+
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
         AU_TOKEN =addr[1];
@@ -90,6 +97,33 @@ contract DBContract is OwnableUpgradeable {
         }
     }
 
+    /**************************************************************************
+     *****  Market Manager  ***************************************************
+     **************************************************************************/
+    function setAcceptToken(address _acceptToken) external onlyOwner {
+        uint256 wlLength = acceptTokens.length;
+        for (uint256 index; index < wlLength; index++) {
+            if (_acceptToken == acceptTokens[index]) return;
+        }
+
+        acceptTokens.push(_acceptToken);
+    }
+
+    function removeAcceptToken(uint256 _index) external onlyOwner {
+        uint256 wlLength = acceptTokens.length;
+        if (_index < acceptTokens.length - 1)
+            acceptTokens[_index] = acceptTokens[wlLength - 1];
+        acceptTokens.pop();
+    }
+
+    function setSellingLevelLimit(uint256 _sellingLevelLimit) external onlyOwner {
+        sellingLevelLimit = _sellingLevelLimit;
+    }
+
+
+    /**************************************************************************
+     *****  public view  ******************************************************
+     **************************************************************************/
     function calcLevel(IAlyxNFT.Attribute _attr, uint256 _point) external view returns (uint256 level, uint256 overflow) {
         uint256 thresholdLength = attributeLevelThreshold[uint256(_attr)].length;
         for (uint256 index; index < thresholdLength; index++) {
@@ -103,5 +137,17 @@ contract DBContract is OwnableUpgradeable {
         return (level, overflow);
     }
 
+    function acceptTokenLength() external view returns (uint256) {
+        return acceptTokens.length;
+    }
+
+    function isAcceptToken(address _token) external view returns (bool) {
+        uint256 wlLength = acceptTokens.length;
+        for (uint256 index; index < wlLength; index++) {
+            if (_token == acceptTokens[index]) return true;
+        }
+
+        return false;
+    }
 
 }

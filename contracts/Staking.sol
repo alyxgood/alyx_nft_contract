@@ -66,11 +66,9 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
             emit Stake(_msgSender(), nftIds[index]);
 
-            uint256 charismaSingle;
-            uint256 dexteritySingle;
-            (charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
-            charisma += charismaSingle;
-            dexterity += dexteritySingle;
+            uint256[] memory nftInfo = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            charisma += nftInfo[uint256(IAlyxNFT.Attribute.charisma)];
+            dexterity += nftInfo[uint256(IAlyxNFT.Attribute.dexterity)];
         }
 
         miningPowerOf[_msgSender()].charisma += charisma;
@@ -94,11 +92,9 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
             emit UnStake(_msgSender(), nftIds[index]);
 
-            uint256 charismaSingle;
-            uint256 dexteritySingle;
-            (charismaSingle, dexteritySingle, ,) = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
-            charisma += charismaSingle;
-            dexterity += dexteritySingle;
+            uint256[] memory nftInfo = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            charisma += nftInfo[uint256(IAlyxNFT.Attribute.charisma)];
+            dexterity += nftInfo[uint256(IAlyxNFT.Attribute.dexterity)];
         }
 
         miningPowerOf[_msgSender()].charisma -= charisma;
