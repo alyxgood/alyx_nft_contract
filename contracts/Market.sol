@@ -15,6 +15,7 @@ contract Market is baseContract {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     ListInfo[] public listNFTs;
+    mapping(uint256 => uint256) public listIndexByTokenId;
 
     struct ListInfo {
         address seller;
@@ -60,6 +61,51 @@ contract Market is baseContract {
             acceptToken: _acceptToken,
             priceInAcceptToken: _priceInAcceptToken
         }));
+        listIndexByTokenId[_tokenId] = listNFTs.length - 1;
+    }
+
+    function cancelList(uint256 _listIndex, uint256 _tokenId) external {
+        uint256 listNFTNum = listNFTs.length;
+        require(listNFTNum > _listIndex, 'Market: index overflow.');
+
+        ListInfo memory listInfo = listNFTs[_listIndex];
+        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
+
+        require(listInfo.tokenId == _tokenId, 'Market: token id mismatch.');
+        require(listInfo.seller == _msgSender(), 'Market: seller mismatch.');
+        require(IERC721Upgradeable(bAlyxNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
+
+        if (_listIndex < listNFTNum - 1) {
+            listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
+            listIndexByTokenId[listNFTs[_listIndex].tokenId] = _listIndex;
+        }
+        listNFTs.pop();
+        delete listIndexByTokenId[listNFTNum - 1];
+
+        IBNFT(bAlyxNFTAddress).burn(_tokenId);
+        IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
+    }
+
+    function takeNFT(uint256 _listIndex, uint256 _tokenId) external {
+        uint256 listNFTNum = listNFTs.length;
+        require(listNFTNum > _listIndex, 'Market: index overflow.');
+        ListInfo memory listInfo = listNFTs[_listIndex];
+        require(listInfo.tokenId == _tokenId, 'Market: already sold.');
+
+        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
+        IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), listInfo.seller, listInfo.priceInAcceptToken);
+
+        if (_listIndex < listNFTNum - 1) {
+            listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
+            listIndexByTokenId[listNFTs[_listIndex].tokenId] = _listIndex;
+        }
+        listNFTs.pop();
+        delete listIndexByTokenId[listNFTNum - 1];
+
+        IBNFT(bAlyxNFTAddress).burn(_tokenId);
+        IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
     }
 
     function onSellNum() external view returns (uint256) {
