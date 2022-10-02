@@ -33,6 +33,7 @@ contract DBContract is OwnableUpgradeable {
     uint256 public maxMintPerDayPerAddress;
     string public baseTokenURI;
     uint256[][] public attributeLevelThreshold;
+    uint256 public mintLimitPerDay;
 
     /**************************************************************************
      *****  Market fields  ****************************************************
@@ -82,6 +83,10 @@ contract DBContract is OwnableUpgradeable {
 
     function setBaseTokenURI(string calldata _baseTokenURI) external onlyOwner {
         baseTokenURI = _baseTokenURI;
+    }
+
+    function setMintLimitPerDay(uint256 _mintLimitPerDay) external onlyOwner {
+        mintLimitPerDay = _mintLimitPerDay;
     }
 
     /**

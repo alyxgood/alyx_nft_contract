@@ -17,7 +17,12 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
 
     uint256 private randomSeed;
     mapping(uint256 => uint256[]) public nftInfo;
-    mapping(address => uint256) public lastMintTime;
+    mapping(address => MintInfo) public mintInfoOf;
+
+    struct MintInfo {
+        uint128 lastMintTime;
+        uint128 mintNumInDuration;
+    }
 
     constructor(address dbAddress) baseContract(dbAddress){
 
@@ -34,13 +39,17 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         _randomSeedGen();
     }
 
-    function mintTo(address _to, uint256 _numNFT, address _payment) external {
+    function mint(uint256 _tokenId, address _payment) external {
+        MintInfo memory mintInfo = mintInfoOf[_msgSender()];
+        if (block.timestamp - mintInfo.lastMintTime >= 1 days) {
+            mintInfo.mintNumInDuration = 0;
+        }
         require(
-            _numNFT <= DBContract(DB_CONTRACT).maxMintPerDayPerAddress() &&
-            block.timestamp - lastMintTime[_msgSender()] >= 1 days,
+            mintInfo.mintNumInDuration < DBContract(DB_CONTRACT).mintLimitPerDay(),
                 'AlyxNFT: cannot mint more in a day.'
         );
-        lastMintTime[_msgSender()] = block.timestamp;
+        mintInfoOf[_msgSender()].lastMintTime = uint128(block.timestamp);
+        mintInfoOf[_msgSender()].mintNumInDuration = mintInfo.mintNumInDuration + 1;
 
         require(
             DBContract(DB_CONTRACT).LYNK_TOKEN() == _payment ||
@@ -50,16 +59,12 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         uint256 mintPrice = DBContract(DB_CONTRACT).mintPriceInAU();
         if (DBContract(DB_CONTRACT).USDT_TOKEN() == _payment)
             mintPrice = DBContract(DB_CONTRACT).mintPriceInUSDT();
-        uint256 mintPriceTotal = mintPrice * _numNFT;
 
-        _pay(_payment, _msgSender(), mintPriceTotal);
-        for (uint256 index; index < _numNFT; index++) {
-            uint256 tokenId = currentTokenId.current();
+        _pay(_payment, _msgSender(), mintPrice);
 
-            (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
-            nftInfo[tokenId] = [ vitality, intellect, 0, 0];
-            ERC721Upgradeable._safeMint(_to, tokenId);
-        }
+        (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
+        nftInfo[_tokenId] = [ vitality, intellect, 0, 0];
+        ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
     }
 
     function upgrade(Attribute _attr, uint256 tokenId, uint256 _point, address _payment) external {
