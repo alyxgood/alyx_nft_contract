@@ -12,7 +12,7 @@ contract DBContract is OwnableUpgradeable {
      *****  Common fields  ****************************************************
      **************************************************************************/
     address immutable public USDT_TOKEN;
-    address immutable public AU_TOKEN;
+    address immutable public LYNK_TOKEN;
     address immutable public BP_TOKEN;
     address immutable public KEY_TOKEN;
     address immutable public STAKING;
@@ -43,7 +43,7 @@ contract DBContract is OwnableUpgradeable {
 
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
-        AU_TOKEN =addr[1];
+        LYNK_TOKEN =addr[1];
         BP_TOKEN = addr[2];
         KEY_TOKEN =addr[3];
         STAKING = addr[4];

@@ -43,7 +43,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         lastMintTime[_msgSender()] = block.timestamp;
 
         require(
-            DBContract(DB_CONTRACT).AU_TOKEN() == _payment ||
+            DBContract(DB_CONTRACT).LYNK_TOKEN() == _payment ||
             DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
                 'AlyxNFT: unsupported payment.'
         );
@@ -73,7 +73,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         if (Attribute.charisma == _attr) {
             require(
                 _payment == DBContract(DB_CONTRACT).USDT_TOKEN() ||
-                _payment == DBContract(DB_CONTRACT).AU_TOKEN(),
+                _payment == DBContract(DB_CONTRACT).LYNK_TOKEN(),
                     'AlyxNFT: unsupported payment.'
             );
         } else {
