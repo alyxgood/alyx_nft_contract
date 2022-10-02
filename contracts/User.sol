@@ -7,18 +7,36 @@ import "./baseContract.sol";
 
 contract User is baseContract {
 
-    struct USER_INFO {
-        uint8 level;
-        uint256 addr;
-        uint256 communityRev;
-        uint256 directRev;
-        uint256 stakeRev;
+    enum Level {
+        elite,
+        epic,
+        master,
+        legendary,
+        mythic,
+        divine
     }
 
-    mapping(address => USER_INFO) public userInfo;
-    // address -> address
-    mapping(address => address) public parent;
+    mapping(address => RefInfo) public refInfo;
+    mapping(address => UserInfo) public userInfo;
 
+    struct RefInfo {
+        uint32 eliteNum;
+        uint32 epicNum;
+        uint32 masterNum;
+        uint32 legendaryNum;
+        uint32 mythicNum;
+        uint32 divineNum;
+    }
+
+    struct UserInfo {
+        uint8 level;
+        uint256 refAddress;
+        uint256 stakeRev;
+        uint256 directRev;
+        uint256 communityRev;
+        uint256 contributionRev;
+        uint256 achievementRev;
+    }
 
     constructor(address dbAddress) baseContract(dbAddress){
 
