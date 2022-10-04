@@ -49,6 +49,11 @@ contract DBContract is OwnableUpgradeable {
     uint256[] public directRequirements;
     uint256[] public performanceRequirements;
 
+    /**************************************************************************
+     *****  APToken fields  ***************************************************
+     **************************************************************************/
+    uint256[][] public sellingPackages;
+
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
         LYNK_TOKEN =addr[1];
@@ -157,6 +162,18 @@ contract DBContract is OwnableUpgradeable {
     }
 
     /**************************************************************************
+     *****  APToken Manager  **************************************************
+     **************************************************************************/
+    function setSellingPackage(uint256[][] calldata _packages) external onlyOwner {
+        delete sellingPackages;
+
+        for (uint256 index; index < _packages.length; index++) {
+            require(_packages[index].length == 3, 'DBContract: length mismatch.');
+            sellingPackages[index] = _packages[index];
+        }
+    }
+
+    /**************************************************************************
      *****  public view  ******************************************************
      **************************************************************************/
     function calcLevel(IAlyxNFT.Attribute _attr, uint256 _point) external view returns (uint256 level, uint256 overflow) {
@@ -183,6 +200,12 @@ contract DBContract is OwnableUpgradeable {
         }
 
         return false;
+    }
+
+    function packageByIndex(uint256 _index) external view returns (uint256[] memory) {
+        require(_index < sellingPackages.length, 'DBContract: index out of bounds.');
+
+        return sellingPackages[_index];
     }
 
 }
