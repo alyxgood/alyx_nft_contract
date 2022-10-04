@@ -2,6 +2,7 @@
 pragma solidity 0.8.9;
 
 import "./baseContract.sol";
+import "./interfaces/IUser.sol";
 import "./interfaces/IBNFT.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -87,7 +88,7 @@ contract Market is baseContract {
         IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
     }
 
-    function takeNFT(uint256 _listIndex, uint256 _tokenId) external {
+    function takeNFT(uint256 _listIndex, uint256 _tokenId, address _ref) external {
         uint256 listNFTNum = listNFTs.length;
         require(listNFTNum > _listIndex, 'Market: index overflow.');
         ListInfo memory listInfo = listNFTs[_listIndex];
@@ -106,6 +107,8 @@ contract Market is baseContract {
 
         IBNFT(bAlyxNFTAddress).burn(_tokenId);
         IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
+
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByBuyNFT(_ref, _msgSender());
     }
 
     function onSellNum() external view returns (uint256) {
