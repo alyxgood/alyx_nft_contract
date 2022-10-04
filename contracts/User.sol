@@ -34,6 +34,19 @@ contract User is IUser, baseContract {
     function __User_init_unchained() public onlyInitializing {
     }
 
+    function refByBuyAPToken(address _refAddr, address _userAddr) external {
+        require(DBContract(DB_CONTRACT).BP_TOKEN() == _msgSender(), 'User: caller not the AP Token.');
+
+        if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
+            userInfoOf[_userAddr].refAddress = _refAddr;
+
+            for (uint256 index; index <= uint256(userInfoOf[_userAddr].level); index++) {
+                userInfoOf[_refAddr].refInfoOf[index] += 1;
+            }
+            auditLevel(_refAddr);
+        }
+    }
+
     function refByMint(address _refAddr, address _userAddr) external {
         require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
 

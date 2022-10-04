@@ -2,6 +2,7 @@
 pragma solidity 0.8.9;
 
 import "../baseContract.sol";
+import "../interfaces/IUser.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 // Uncomment this line to use console.log
@@ -21,12 +22,14 @@ contract APToken is ERC20PermitUpgradeable, baseContract {
 
     }
 
-    function mint(uint256 _indexPackage) external {
+    function mint(uint256 _indexPackage, address _ref) external {
         uint256[] memory package = DBContract(DB_CONTRACT).packageByIndex(_indexPackage);
         require(package.length == 3, 'APToken: unrecognized package.');
 
         _pay(address(uint160(package[0])), _msgSender(), package[1]);
         _mint(_msgSender(), package[2]);
+
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByBuyAPToken(_ref, _msgSender());
     }
 
 }
