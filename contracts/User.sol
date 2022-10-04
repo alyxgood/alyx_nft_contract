@@ -41,7 +41,9 @@ contract User is IUser, baseContract {
         if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
             userInfoOf[_userAddr].refAddress = _refAddr;
 
-            userInfoOf[_refAddr].refInfoOf[uint256(Level.elite)] += 1;
+            for (uint256 index; index <= uint256(userInfoOf[_userAddr].level); index++) {
+                userInfoOf[_refAddr].refInfoOf[index] += 1;
+            }
             auditLevel(_refAddr);
         }
     }
