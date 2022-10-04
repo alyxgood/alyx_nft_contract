@@ -34,15 +34,15 @@ contract User is IUser, baseContract {
     function __User_init_unchained() public onlyInitializing {
     }
 
-    function refByMint(address refAddr, address userAddr) external {
+    function refByMint(address _refAddr, address _userAddr) external {
         require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
 
         // only new guy refable
-        if (userInfoOf[userAddr].refAddress == address(0) && refAddr != address(0)) {
-            userInfoOf[userAddr].refAddress = refAddr;
+        if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
+            userInfoOf[_userAddr].refAddress = _refAddr;
 
-            userInfoOf[refAddr].refInfoOf[uint256(Level.elite)] += 1;
-            auditLevel(refAddr);
+            userInfoOf[_refAddr].refInfoOf[uint256(Level.elite)] += 1;
+            auditLevel(_refAddr);
         }
     }
 
