@@ -38,27 +38,31 @@ contract User is IUser, baseContract {
         require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
 
         // only new guy refable
-        if (userInfoOf[userAddr].refAddress == address(0)) {
+        if (userInfoOf[userAddr].refAddress == address(0) && refAddr != address(0)) {
             userInfoOf[userAddr].refAddress = refAddr;
+
             userInfoOf[refAddr].refInfoOf[uint256(Level.elite)] += 1;
+            auditLevel(refAddr);
         }
     }
 
     function auditLevel(address _userAddr) public {
-        uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
-        if (curLevelIndex < uint256(type(Level).max)) {
-            uint256 nextLevelIndex = curLevelIndex + 1;
-            uint256 directRequire = DBContract(DB_CONTRACT).directRequirements(nextLevelIndex);
-            uint256 performanceRequire = DBContract(DB_CONTRACT).performanceRequirements(nextLevelIndex);
-            if (
-                userInfoOf[_userAddr].performance >= performanceRequire &&
-                userInfoOf[_userAddr].refInfoOf[curLevelIndex] >= directRequire
-            ) {
-                userInfoOf[_userAddr].level = Level(nextLevelIndex);
+        if (_userAddr != address(0)) {
+            uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
+            if (curLevelIndex < uint256(type(Level).max)) {
+                uint256 nextLevelIndex = curLevelIndex + 1;
+                uint256 directRequire = DBContract(DB_CONTRACT).directRequirements(nextLevelIndex);
+                uint256 performanceRequire = DBContract(DB_CONTRACT).performanceRequirements(nextLevelIndex);
+                if (
+                    userInfoOf[_userAddr].performance >= performanceRequire &&
+                    userInfoOf[_userAddr].refInfoOf[curLevelIndex] >= directRequire
+                ) {
+                    userInfoOf[_userAddr].level = Level(nextLevelIndex);
 
-                address refAddress = userInfoOf[_userAddr].refAddress;
-                userInfoOf[refAddress].refInfoOf[nextLevelIndex] += 1;
-                auditLevel(refAddress);
+                    address refAddress = userInfoOf[_userAddr].refAddress;
+                    userInfoOf[refAddress].refInfoOf[nextLevelIndex] += 1;
+                    auditLevel(refAddress);
+                }
             }
         }
     }
