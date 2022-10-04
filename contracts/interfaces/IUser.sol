@@ -13,5 +13,6 @@ interface IUser {
     }
 
     function refByMint(address refAddr, address userAddr) external;
+    function refByUpgrade(address _refAddr, address _userAddr, uint256 _performance) external;
 
 }

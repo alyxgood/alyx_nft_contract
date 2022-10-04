@@ -70,11 +70,11 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         IUser(DBContract(DB_CONTRACT).USER_INFO()).refByMint(_ref, _msgSender());
     }
 
-    function upgrade(Attribute _attr, uint256 tokenId, uint256 _point, address _payment) external {
+    function upgrade(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment, address _ref) external {
         // avoid upgrade while staking
         require(
             tx.origin == _msgSender() &&
-            ERC721Upgradeable.ownerOf(tokenId) == _msgSender(),
+            ERC721Upgradeable.ownerOf(_tokenId) == _msgSender(),
                 'AlyxNFT: not the owner'
         );
 
@@ -86,8 +86,8 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
             );
         } else {
             uint256 preAttrIndex = uint256(_attr) - 1;
-            (uint256 preAttrLevel,) = DBContract(DB_CONTRACT).calcLevel(Attribute(preAttrIndex), nftInfo[tokenId][preAttrIndex]);
-            (uint256 curAttrLevelAfterUpgrade, uint256 curAttrLevelOverflowAfterUpgrade) = DBContract(DB_CONTRACT).calcLevel(_attr, _point + nftInfo[tokenId][uint256(_attr)]);
+            (uint256 preAttrLevel,) = DBContract(DB_CONTRACT).calcLevel(Attribute(preAttrIndex), nftInfo[_tokenId][preAttrIndex]);
+            (uint256 curAttrLevelAfterUpgrade, uint256 curAttrLevelOverflowAfterUpgrade) = DBContract(DB_CONTRACT).calcLevel(_attr, _point + nftInfo[_tokenId][uint256(_attr)]);
             require(
                 preAttrLevel > curAttrLevelAfterUpgrade ||
                 (preAttrLevel == curAttrLevelAfterUpgrade && curAttrLevelOverflowAfterUpgrade == 0),
@@ -101,7 +101,10 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         uint256 amount = _point * (10 ** decimal);
         _pay(_payment, _msgSender(), amount);
 
-        nftInfo[tokenId][uint256(_attr)] += _point;
+        nftInfo[_tokenId][uint256(_attr)] += _point;
+
+        // dealing with the ref things.
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByUpgrade(_ref, _msgSender(), Attribute.charisma == _attr ? amount : 0);
     }
 
     function nftInfoOf(uint256 _tokenId) external view override returns (uint256[] memory _nftInfo) {

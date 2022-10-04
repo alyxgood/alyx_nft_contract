@@ -37,13 +37,36 @@ contract User is IUser, baseContract {
     function refByMint(address _refAddr, address _userAddr) external {
         require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
 
-        // only new guy refable
         if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
             userInfoOf[_userAddr].refAddress = _refAddr;
 
             for (uint256 index; index <= uint256(userInfoOf[_userAddr].level); index++) {
                 userInfoOf[_refAddr].refInfoOf[index] += 1;
             }
+            auditLevel(_refAddr);
+        }
+    }
+
+    function refByUpgrade(address _refAddr, address _userAddr, uint256 _performance) external {
+        require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
+
+        bool auditNeed = false;
+        if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
+            userInfoOf[_userAddr].refAddress = _refAddr;
+
+            for (uint256 index; index <= uint256(userInfoOf[_userAddr].level); index++) {
+                userInfoOf[_refAddr].refInfoOf[index] += 1;
+            }
+            auditNeed = true;
+        }
+        if (_performance > 0) {
+            _refAddr = userInfoOf[_userAddr].refAddress;
+            if (_refAddr != address(0)) {
+                userInfoOf[_refAddr].performance += _performance;
+                auditNeed = true;
+            }
+        }
+        if (auditNeed) {
             auditLevel(_refAddr);
         }
     }
