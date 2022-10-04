@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.9;
 
+import "./interfaces/IUser.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 // Uncomment this line to use console.log
@@ -41,6 +42,12 @@ contract DBContract is OwnableUpgradeable {
     bool public enableTokenWl;
     address[] public acceptTokens;
     uint256 public sellingLevelLimit;
+
+    /**************************************************************************
+     *****  User fields  ******************************************************
+     **************************************************************************/
+    uint256[] public directRequirements;
+    uint256[] public performanceRequirements;
 
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
@@ -125,6 +132,29 @@ contract DBContract is OwnableUpgradeable {
         sellingLevelLimit = _sellingLevelLimit;
     }
 
+    /**************************************************************************
+     *****  User Manager  *****************************************************
+     **************************************************************************/
+    function setDirectRequirements(uint256[] calldata _requirements) external onlyOwner {
+        require(_requirements.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
+
+        delete directRequirements;
+        for (uint256 index; index < _requirements.length; index++) {
+            directRequirements[index] = _requirements[index];
+        }
+    }
+
+    function setPerformanceRequirements(uint256[] calldata _requirements) external onlyOwner {
+        require(_requirements.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
+
+        delete performanceRequirements;
+        for (uint256 index; index < _requirements.length; index++) {
+            if (index > 0) {
+                require(_requirements[index] > _requirements[index - 1], 'DBContract: invalid requirements.');
+            }
+            performanceRequirements[index] = _requirements[index];
+        }
+    }
 
     /**************************************************************************
      *****  public view  ******************************************************

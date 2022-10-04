@@ -2,7 +2,6 @@
 pragma solidity 0.8.9;
 
 import "./baseContract.sol";
-import "./DBContract.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "./interfaces/IBNFT.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";

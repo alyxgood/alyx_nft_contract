@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 
 import "./baseContract.sol";
-import "./DBContract.sol";
+import "./interfaces/IUser.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
@@ -39,7 +39,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         _randomSeedGen();
     }
 
-    function mint(uint256 _tokenId, address _payment) external {
+    function mint(uint256 _tokenId, address _payment, address _ref) external {
         MintInfo memory mintInfo = mintInfoOf[_msgSender()];
         if (block.timestamp - mintInfo.lastMintTime >= 1 days) {
             mintInfo.mintNumInDuration = 0;
@@ -65,6 +65,9 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
         nftInfo[_tokenId] = [ vitality, intellect, 0, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
+
+        // dealing with the ref things.
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByMint(_ref, _msgSender());
     }
 
     function upgrade(Attribute _attr, uint256 tokenId, uint256 _point, address _payment) external {

@@ -1,44 +1,28 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.9;
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+
 import "./baseContract.sol";
+import "./interfaces/IUser.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract User is baseContract {
-
-    enum Level {
-        elite,
-        epic,
-        master,
-        legendary,
-        mythic,
-        divine
-    }
-
-    mapping(address => RefInfo) public refInfo;
-    mapping(address => UserInfo) public userInfo;
-
-    struct RefInfo {
-        uint32 eliteNum;
-        uint32 epicNum;
-        uint32 masterNum;
-        uint32 legendaryNum;
-        uint32 mythicNum;
-        uint32 divineNum;
-    }
+contract User is IUser, baseContract {
+    mapping(address => UserInfo) public userInfoOf;
 
     struct UserInfo {
-        uint8 level;
-        uint256 refAddress;
+        Level level;
+        address refAddress;
         uint256 stakeRev;
         uint256 directRev;
         uint256 communityRev;
         uint256 contributionRev;
         uint256 achievementRev;
+        uint256 performance;
+        mapping(uint256 => uint256) refInfoOf;
     }
 
-    constructor(address dbAddress) baseContract(dbAddress){
+    constructor(address dbAddress) baseContract(dbAddress) {
 
     }
 
@@ -50,5 +34,33 @@ contract User is baseContract {
     function __User_init_unchained() public onlyInitializing {
     }
 
+    function refByMint(address refAddr, address userAddr) external {
+        require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
+
+        // only new guy refable
+        if (userInfoOf[userAddr].refAddress == address(0)) {
+            userInfoOf[userAddr].refAddress = refAddr;
+            userInfoOf[refAddr].refInfoOf[uint256(Level.elite)] += 1;
+        }
+    }
+
+    function auditLevel(address _userAddr) public {
+        uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
+        if (curLevelIndex < uint256(type(Level).max)) {
+            uint256 nextLevelIndex = curLevelIndex + 1;
+            uint256 directRequire = DBContract(DB_CONTRACT).directRequirements(nextLevelIndex);
+            uint256 performanceRequire = DBContract(DB_CONTRACT).performanceRequirements(nextLevelIndex);
+            if (
+                userInfoOf[_userAddr].performance >= performanceRequire &&
+                userInfoOf[_userAddr].refInfoOf[curLevelIndex] >= directRequire
+            ) {
+                userInfoOf[_userAddr].level = Level(nextLevelIndex);
+
+                address refAddress = userInfoOf[_userAddr].refAddress;
+                userInfoOf[refAddress].refInfoOf[nextLevelIndex] += 1;
+                auditLevel(refAddress);
+            }
+        }
+    }
 
 }
