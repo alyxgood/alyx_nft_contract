@@ -60,8 +60,10 @@ contract User is IUser, baseContract {
                     userInfoOf[_userAddr].level = Level(nextLevelIndex);
 
                     address refAddress = userInfoOf[_userAddr].refAddress;
-                    userInfoOf[refAddress].refInfoOf[nextLevelIndex] += 1;
-                    auditLevel(refAddress);
+                    if (refAddress != address(0)) {
+                        userInfoOf[refAddress].refInfoOf[nextLevelIndex] += 1;
+                        auditLevel(refAddress);
+                    }
                 }
             }
         }
