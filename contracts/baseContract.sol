@@ -30,6 +30,12 @@ abstract contract baseContract is ContextUpgradeable {
         _;
     }
 
+    modifier onlyALYX() {
+        require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
+        _;
+    }
+
+
     function __baseContract_init() public initializer {
         __Context_init();
     }

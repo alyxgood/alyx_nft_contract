@@ -42,14 +42,11 @@ contract User is IUser, baseContract {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function refByMint(address _refAddr, address _userAddr) external {
-        require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
-
+    function refByMint(address _refAddr, address _userAddr)  onlyALYX external {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function refByUpgrade(address _refAddr, address _userAddr, uint256 _performance) external {
-        require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
+    function refByUpgrade(address _refAddr, address _userAddr, uint256 _performance) onlyALYX external {
 
         bool auditNeed = false;
         if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
