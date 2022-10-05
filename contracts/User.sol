@@ -39,7 +39,7 @@ contract User is IUser, baseContract {
     }
 
     function refByBuyAPToken(address _refAddr, address _userAddr) external {
-        require(DBContract(DB_CONTRACT).BP_TOKEN() == _msgSender(), 'User: caller not the AP Token.');
+        require(DBContract(DB_CONTRACT).AP_TOKEN() == _msgSender(), 'User: caller not the AP Token.');
 
         _refCommon(_refAddr, _userAddr);
     }

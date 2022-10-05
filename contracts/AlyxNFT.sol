@@ -94,7 +94,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
                     'AlyxNFT: level overflow.'
             );
 
-            require(_payment == DBContract(DB_CONTRACT).BP_TOKEN(), 'AlyxNFT: unsupported payment.');
+            require(_payment == DBContract(DB_CONTRACT).AP_TOKEN(), 'AlyxNFT: unsupported payment.');
         }
 
         uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
