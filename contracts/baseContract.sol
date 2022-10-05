@@ -25,7 +25,7 @@ abstract contract baseContract is ContextUpgradeable {
     function _pay(address _payment, address _payer, uint256 _amount) internal {
         if (address(0) == _payment) {
             require(msg.value == _amount, 'baseContract: invalid value.');
-            AddressUpgradeable.sendValue(payable(DBContract(DB_CONTRACT).recipient()), _amount);
+            AddressUpgradeable.sendValue(payable(DBContract(DB_CONTRACT).TEAM_ADDR()), _amount);
             return;
         }
 
@@ -34,7 +34,7 @@ abstract contract baseContract is ContextUpgradeable {
             'baseContract: insufficient allowance'
         );
         if (DBContract(DB_CONTRACT).USDT_TOKEN() == _payment) {
-            IERC20Upgradeable(_payment).safeTransferFrom(_payer, DBContract(DB_CONTRACT).recipient(), _amount);
+            IERC20Upgradeable(_payment).safeTransferFrom(_payer, DBContract(DB_CONTRACT).TEAM_ADDR(), _amount);
         } else {
             IERC20Upgradeable(_payment).safeTransferFrom(_payer, BLACK_HOLE, _amount);
         }

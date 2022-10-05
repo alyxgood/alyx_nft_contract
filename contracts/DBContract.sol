@@ -30,7 +30,6 @@ contract DBContract is OwnableUpgradeable {
     // mint price
     uint256 public mintPriceInAU;
     uint256 public mintPriceInUSDT;
-    address public recipient;
     uint256 public maxMintPerDayPerAddress;
     string public baseTokenURI;
     uint256[][] public attributeLevelThreshold;
@@ -76,6 +75,10 @@ contract DBContract is OwnableUpgradeable {
     function __DBContract_init_unchained() public onlyInitializing {
     }
 
+    function setTeamAddr(address _teamAddr) external onlyOwner {
+        TEAM_ADDR = _teamAddr;
+    }
+
 
     /**************************************************************************
      *****  AlynNFT Manager  **************************************************
@@ -83,10 +86,6 @@ contract DBContract is OwnableUpgradeable {
     function setMintPrice(uint256 _mintPriceInAU, uint256 _mintPriceInUSDT) external onlyOwner {
         mintPriceInAU = _mintPriceInAU;
         mintPriceInUSDT = _mintPriceInUSDT;
-    }
-
-    function setRecipient(address _recipient) external onlyOwner {
-        recipient = _recipient;
     }
 
     function setMaxMintPerDayPerAddress(uint256 _maxMintPerDayPerAddress) external onlyOwner {
