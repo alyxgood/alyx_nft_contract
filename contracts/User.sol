@@ -34,9 +34,7 @@ contract User is IUser, baseContract {
     function __User_init_unchained() public onlyInitializing {
     }
 
-    function refByBuyNFT(address _refAddr, address _userAddr) external {
-        require(DBContract(DB_CONTRACT).MARKET() == _msgSender(), 'User: caller not the Market.');
-
+    function refByBuyNFT(address _refAddr, address _userAddr) onlyMarket external {
         _refCommon(_refAddr, _userAddr);
     }
 

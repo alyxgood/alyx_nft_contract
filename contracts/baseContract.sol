@@ -18,6 +18,15 @@ abstract contract baseContract is ContextUpgradeable {
     constructor(address dbContract) {
         DB_CONTRACT = dbContract;
     }
+
+
+    modifier onlyMarket() {
+        require(DBContract(DB_CONTRACT).MARKET() == _msgSender(), 'User: caller not the Market.');
+        _;
+    }
+
+
+
     function __baseContract_init() public initializer {
         __Context_init();
     }
