@@ -14,7 +14,7 @@ contract DBContract is OwnableUpgradeable {
      **************************************************************************/
     address immutable public USDT_TOKEN;
     address immutable public LYNK_TOKEN;
-    address immutable public BP_TOKEN;
+    address immutable public AP_TOKEN;
     address immutable public KEY_TOKEN;
     address immutable public STAKING;
     address immutable public USER_INFO;
@@ -56,7 +56,7 @@ contract DBContract is OwnableUpgradeable {
     constructor(address[] memory addr){
         USDT_TOKEN = addr[0];
         LYNK_TOKEN =addr[1];
-        BP_TOKEN = addr[2];
+        AP_TOKEN = addr[2];
         KEY_TOKEN =addr[3];
         STAKING = addr[4];
         ALYX_NFT = addr[5];
