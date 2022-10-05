@@ -25,7 +25,10 @@ abstract contract baseContract is ContextUpgradeable {
         _;
     }
 
-
+    modifier onlyApToken() {
+        require(DBContract(DB_CONTRACT).AP_TOKEN() == _msgSender(), 'User: caller not the AP Token.');
+        _;
+    }
 
     function __baseContract_init() public initializer {
         __Context_init();
