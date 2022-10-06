@@ -34,20 +34,19 @@ contract User is IUser, baseContract {
     function __User_init_unchained() public onlyInitializing {
     }
 
-    function refByBuyNFT(address _refAddr, address _userAddr) onlyMarket external {
+    function hookByBuyNFT(address _refAddr, address _userAddr) onlyMarket external {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function refByBuyAPToken(address _refAddr, address _userAddr) onlyApToken external {
+    function hookByBuyAPToken(address _refAddr, address _userAddr) onlyApToken external {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function refByMint(address _refAddr, address _userAddr)  onlyALYX external {
+    function hookByMint(address _refAddr, address _userAddr)  onlyALYX external {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function refByUpgrade(address _refAddr, address _userAddr, uint256 _performance) onlyALYX external {
-
+    function hookByUpgrade(address _refAddr, address _userAddr, uint256 _performance) onlyALYX external {
         bool auditNeed = false;
         if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
             userInfoOf[_userAddr].refAddress = _refAddr;

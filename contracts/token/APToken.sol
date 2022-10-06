@@ -29,7 +29,7 @@ contract APToken is ERC20PermitUpgradeable, baseContract {
         _pay(address(uint160(package[0])), _msgSender(), package[1]);
         _mint(_msgSender(), package[2]);
 
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByBuyAPToken(_ref, _msgSender());
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByBuyAPToken(_ref, _msgSender());
     }
 
 }

@@ -67,7 +67,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
 
         // dealing with the ref things.
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByMint(_ref, _msgSender());
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByMint(_ref, _msgSender());
     }
 
     function upgrade(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment, address _ref) external {
@@ -104,7 +104,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         nftInfo[_tokenId][uint256(_attr)] += _point;
 
         // dealing with the ref things.
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByUpgrade(_ref, _msgSender(), Attribute.charisma == _attr ? amount : 0);
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUpgrade(_ref, _msgSender(), Attribute.charisma == _attr ? amount : 0);
     }
 
     function nftInfoOf(uint256 _tokenId) external view override returns (uint256[] memory _nftInfo) {

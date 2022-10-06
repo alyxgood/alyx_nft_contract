@@ -108,7 +108,7 @@ contract Market is baseContract {
         IBNFT(bAlyxNFTAddress).burn(_tokenId);
         IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
 
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).refByBuyNFT(_ref, _msgSender());
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByBuyNFT(_ref, _msgSender());
     }
 
     function onSellNum() external view returns (uint256) {
