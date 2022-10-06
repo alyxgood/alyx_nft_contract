@@ -23,6 +23,7 @@ contract DBContract is OwnableUpgradeable {
     address immutable public LISTED_ALYX_NFT;
     address immutable public MARKET;
     address public TEAM_ADDR;
+    address public operator;
 
     /**************************************************************************
      *****  AlynNFT fields  ***************************************************
@@ -53,7 +54,15 @@ contract DBContract is OwnableUpgradeable {
      **************************************************************************/
     uint256[][] public sellingPackages;
 
-    constructor(address[] memory addr){
+    /**
+     * @dev Throws if called by any account other than the operator.
+     */
+    modifier onlyOperator() {
+        require(operator == _msgSender(), "DBContract: caller is not the operator");
+        _;
+    }
+
+    constructor(address[] memory addr) {
         USDT_TOKEN = addr[0];
         LYNK_TOKEN =addr[1];
         AP_TOKEN = addr[2];
@@ -67,7 +76,7 @@ contract DBContract is OwnableUpgradeable {
         TEAM_ADDR = addr[10];
     }
 
-    function __BoosterToken_init() public initializer {
+    function __DBContract_init() public initializer {
         __DBContract_init_unchained();
         __Ownable_init();
     }
@@ -75,7 +84,11 @@ contract DBContract is OwnableUpgradeable {
     function __DBContract_init_unchained() public onlyInitializing {
     }
 
-    function setTeamAddr(address _teamAddr) external onlyOwner {
+    function setOperator(address _operator) external onlyOwner {
+        operator = _operator;
+    }
+
+    function setTeamAddr(address _teamAddr) external onlyOperator {
         TEAM_ADDR = _teamAddr;
     }
 
@@ -83,27 +96,27 @@ contract DBContract is OwnableUpgradeable {
     /**************************************************************************
      *****  AlynNFT Manager  **************************************************
      **************************************************************************/
-    function setMintPrice(uint256 _mintPriceInAU, uint256 _mintPriceInUSDT) external onlyOwner {
+    function setMintPrice(uint256 _mintPriceInAU, uint256 _mintPriceInUSDT) external onlyOperator {
         mintPriceInAU = _mintPriceInAU;
         mintPriceInUSDT = _mintPriceInUSDT;
     }
 
-    function setMaxMintPerDayPerAddress(uint256 _maxMintPerDayPerAddress) external onlyOwner {
+    function setMaxMintPerDayPerAddress(uint256 _maxMintPerDayPerAddress) external onlyOperator {
         maxMintPerDayPerAddress = _maxMintPerDayPerAddress;
     }
 
-    function setBaseTokenURI(string calldata _baseTokenURI) external onlyOwner {
+    function setBaseTokenURI(string calldata _baseTokenURI) external onlyOperator {
         baseTokenURI = _baseTokenURI;
     }
 
-    function setMintLimitPerDay(uint256 _mintLimitPerDay) external onlyOwner {
+    function setMintLimitPerDay(uint256 _mintLimitPerDay) external onlyOperator {
         mintLimitPerDay = _mintLimitPerDay;
     }
 
     /**
      * CA: [100, 500, 1000 ... ]
      */
-    function setAttributeLevelThreshold(IAlyxNFT.Attribute _attr, uint256[] calldata _thresholds) external onlyOwner {
+    function setAttributeLevelThreshold(IAlyxNFT.Attribute _attr, uint256[] calldata _thresholds) external onlyOperator {
         delete attributeLevelThreshold[uint256(_attr)];
         for (uint256 index; index < _thresholds.length; index++) {
             if (index > 0) {
@@ -116,7 +129,7 @@ contract DBContract is OwnableUpgradeable {
     /**************************************************************************
      *****  Market Manager  ***************************************************
      **************************************************************************/
-    function setAcceptToken(address _acceptToken) external onlyOwner {
+    function setAcceptToken(address _acceptToken) external onlyOperator {
         uint256 wlLength = acceptTokens.length;
         for (uint256 index; index < wlLength; index++) {
             if (_acceptToken == acceptTokens[index]) return;
@@ -125,21 +138,21 @@ contract DBContract is OwnableUpgradeable {
         acceptTokens.push(_acceptToken);
     }
 
-    function removeAcceptToken(uint256 _index) external onlyOwner {
+    function removeAcceptToken(uint256 _index) external onlyOperator {
         uint256 wlLength = acceptTokens.length;
         if (_index < acceptTokens.length - 1)
             acceptTokens[_index] = acceptTokens[wlLength - 1];
         acceptTokens.pop();
     }
 
-    function setSellingLevelLimit(uint256 _sellingLevelLimit) external onlyOwner {
+    function setSellingLevelLimit(uint256 _sellingLevelLimit) external onlyOperator {
         sellingLevelLimit = _sellingLevelLimit;
     }
 
     /**************************************************************************
      *****  User Manager  *****************************************************
      **************************************************************************/
-    function setDirectRequirements(uint256[] calldata _requirements) external onlyOwner {
+    function setDirectRequirements(uint256[] calldata _requirements) external onlyOperator {
         require(_requirements.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
 
         delete directRequirements;
@@ -148,7 +161,7 @@ contract DBContract is OwnableUpgradeable {
         }
     }
 
-    function setPerformanceRequirements(uint256[] calldata _requirements) external onlyOwner {
+    function setPerformanceRequirements(uint256[] calldata _requirements) external onlyOperator {
         require(_requirements.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
 
         delete performanceRequirements;
@@ -163,7 +176,7 @@ contract DBContract is OwnableUpgradeable {
     /**************************************************************************
      *****  APToken Manager  **************************************************
      **************************************************************************/
-    function setSellingPackage(uint256[][] calldata _packages) external onlyOwner {
+    function setSellingPackage(uint256[][] calldata _packages) external onlyOperator {
         delete sellingPackages;
 
         for (uint256 index; index < _packages.length; index++) {
