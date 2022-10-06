@@ -48,6 +48,7 @@ contract DBContract is OwnableUpgradeable {
      **************************************************************************/
     uint256[] public directRequirements;
     uint256[] public performanceRequirements;
+    uint256[] public socialRewardRates;
 
     /**************************************************************************
      *****  APToken fields  ***************************************************
@@ -170,6 +171,16 @@ contract DBContract is OwnableUpgradeable {
                 require(_requirements[index] > _requirements[index - 1], 'DBContract: invalid requirements.');
             }
             performanceRequirements[index] = _requirements[index];
+        }
+    }
+
+    // e.g. 100% = 1e18
+    function setSocialRewardRates(uint256[] calldata _rates) external onlyOperator {
+        require(_rates.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
+
+        delete socialRewardRates;
+        for (uint256 index; index < _rates.length; index++) {
+            socialRewardRates[index] = _rates[index];
         }
     }
 

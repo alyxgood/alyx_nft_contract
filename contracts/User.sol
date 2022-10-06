@@ -3,18 +3,20 @@ pragma solidity 0.8.9;
 
 import "./baseContract.sol";
 import "./interfaces/IUser.sol";
+import "./interfaces/IERC20Mintable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract User is IUser, baseContract {
+contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
     mapping(address => UserInfo) public userInfoOf;
 
     struct UserInfo {
         Level level;
         address refAddress;
         uint256 stakeRev;
-        uint256 directRev;
+        uint256 socialRev;
         uint256 communityRev;
         uint256 contributionRev;
         uint256 achievementRev;
@@ -27,6 +29,7 @@ contract User is IUser, baseContract {
     }
 
     function __User_init() public initializer {
+        __ReentrancyGuard_init();
         __baseContract_init();
         __User_init_unchained();
     }
@@ -34,19 +37,19 @@ contract User is IUser, baseContract {
     function __User_init_unchained() public onlyInitializing {
     }
 
-    function hookByBuyNFT(address _refAddr, address _userAddr) onlyMarket external {
+    function hookByBuyNFT(address _refAddr, address _userAddr) onlyMarketContract external {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function hookByBuyAPToken(address _refAddr, address _userAddr) onlyApToken external {
+    function hookByBuyAPToken(address _refAddr, address _userAddr) onlyApTokenContract external {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function hookByMint(address _refAddr, address _userAddr)  onlyALYX external {
+    function hookByMint(address _refAddr, address _userAddr)  onlyALYXContract external {
         _refCommon(_refAddr, _userAddr);
     }
 
-    function hookByUpgrade(address _refAddr, address _userAddr, uint256 _performance) onlyALYX external {
+    function hookByUpgrade(address _refAddr, address _userAddr, uint256 _performance) onlyALYXContract nonReentrant external {
         bool auditNeed = false;
         if (userInfoOf[_userAddr].refAddress == address(0) && _refAddr != address(0)) {
             userInfoOf[_userAddr].refAddress = _refAddr;
@@ -62,6 +65,12 @@ contract User is IUser, baseContract {
                 userInfoOf[_refAddr].performance += _performance;
                 auditNeed = true;
             }
+
+            // distribute social reward
+            uint256 rate = DBContract(DB_CONTRACT).socialRewardRates(uint256(userInfoOf[_refAddr].level));
+            uint256 amount = _performance * rate / 1e18;
+            userInfoOf[_refAddr].socialRev += amount;
+            IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_refAddr, amount);
         }
         if (auditNeed) {
             auditLevel(_refAddr);

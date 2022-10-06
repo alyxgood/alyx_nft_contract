@@ -20,18 +20,23 @@ abstract contract baseContract is ContextUpgradeable {
     }
 
 
-    modifier onlyMarket() {
-        require(DBContract(DB_CONTRACT).MARKET() == _msgSender(), 'User: caller not the Market.');
+    modifier onlyMarketContract() {
+        require(DBContract(DB_CONTRACT).MARKET() == _msgSender(), 'baseContract: caller not the Market contract.');
         _;
     }
 
-    modifier onlyApToken() {
-        require(DBContract(DB_CONTRACT).AP_TOKEN() == _msgSender(), 'User: caller not the AP Token.');
+    modifier onlyApTokenContract() {
+        require(DBContract(DB_CONTRACT).AP_TOKEN() == _msgSender(), 'baseContract: caller not the AP Token contract.');
         _;
     }
 
-    modifier onlyALYX() {
-        require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'User: caller not the ALYX NFT.');
+    modifier onlyALYXContract() {
+        require(DBContract(DB_CONTRACT).ALYX_NFT() == _msgSender(), 'baseContract: caller not the ALYX NFT contract.');
+        _;
+    }
+
+    modifier onlyUserContract() {
+        require(DBContract(DB_CONTRACT).USER_INFO() == _msgSender(), 'baseContract: caller not the User contract.');
         _;
     }
 
