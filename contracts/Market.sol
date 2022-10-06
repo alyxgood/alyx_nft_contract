@@ -96,7 +96,9 @@ contract Market is baseContract {
 
         address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
         address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
-        IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), listInfo.seller, listInfo.priceInAcceptToken);
+        uint256 fee = listInfo.priceInAcceptToken * DBContract(DB_CONTRACT).tradingFee() / 1e18;
+        IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).TEAM_ADDR(), fee);
+        IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), listInfo.seller, listInfo.priceInAcceptToken - fee);
 
         if (_listIndex < listNFTNum - 1) {
             listNFTs[_listIndex] = listNFTs[listNFTNum - 1];

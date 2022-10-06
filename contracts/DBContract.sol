@@ -42,6 +42,7 @@ contract DBContract is OwnableUpgradeable {
     bool public enableTokenWl;
     address[] public acceptTokens;
     uint256 public sellingLevelLimit;
+    uint256 public tradingFee;
 
     /**************************************************************************
      *****  User fields  ******************************************************
@@ -150,6 +151,12 @@ contract DBContract is OwnableUpgradeable {
         sellingLevelLimit = _sellingLevelLimit;
     }
 
+    // e.g. 100% = 1e18
+    function setTradingFee(uint256 _tradingFee) external onlyOperator {
+        require(_tradingFee <= 1e18, 'DBContract: too large.');
+        tradingFee = _tradingFee;
+    }
+
     /**************************************************************************
      *****  User Manager  *****************************************************
      **************************************************************************/
@@ -180,6 +187,7 @@ contract DBContract is OwnableUpgradeable {
 
         delete socialRewardRates;
         for (uint256 index; index < _rates.length; index++) {
+            require(_rates[index] <= 1e18, 'DBContract: too large.');
             socialRewardRates[index] = _rates[index];
         }
     }
