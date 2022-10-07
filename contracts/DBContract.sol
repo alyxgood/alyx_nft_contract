@@ -50,6 +50,8 @@ contract DBContract is OwnableUpgradeable {
     uint256[] public directRequirements;
     uint256[] public performanceRequirements;
     uint256[] public socialRewardRates;
+    uint256 public contributionRewardThreshold;
+    uint256[] public contributionRewardAmounts;
 
     /**************************************************************************
      *****  APToken fields  ***************************************************
@@ -189,6 +191,19 @@ contract DBContract is OwnableUpgradeable {
         for (uint256 index; index < _rates.length; index++) {
             require(_rates[index] <= 1e18, 'DBContract: too large.');
             socialRewardRates[index] = _rates[index];
+        }
+    }
+
+    function setContributionRewardThreshold(uint256 _contributionRewardThreshold) external onlyOperator {
+        contributionRewardThreshold = _contributionRewardThreshold;
+    }
+
+    function setContributionRewardAmounts(uint256[] calldata _amounts) external onlyOperator {
+        require(_amounts.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
+
+        delete contributionRewardAmounts;
+        for (uint256 index; index < _amounts.length; index++) {
+            contributionRewardAmounts[index] = _amounts[index];
         }
     }
 

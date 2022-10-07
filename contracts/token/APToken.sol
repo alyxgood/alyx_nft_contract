@@ -3,12 +3,13 @@ pragma solidity 0.8.9;
 
 import "../baseContract.sol";
 import "../interfaces/IUser.sol";
+import "../interfaces/IERC20Mintable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract APToken is ERC20PermitUpgradeable, baseContract {
+contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
 
     constructor(address dbAddress) baseContract(dbAddress) { }
 
@@ -30,6 +31,10 @@ contract APToken is ERC20PermitUpgradeable, baseContract {
         _mint(_msgSender(), package[2]);
 
         IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByBuyAPToken(_ref, _msgSender());
+    }
+
+    function mint(address account, uint256 amount) external onlyUserContract {
+        _mint(account, amount);
     }
 
 }

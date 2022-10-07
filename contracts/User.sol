@@ -61,16 +61,29 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         }
         if (_performance > 0) {
             _refAddr = userInfoOf[_userAddr].refAddress;
+            uint256 refPerformance = userInfoOf[_refAddr].performance;
+            uint256 refLevel = uint256(userInfoOf[_refAddr].level);
+
+            uint256 amount;
+            // distribute social reward
+            uint256 rate = DBContract(DB_CONTRACT).socialRewardRates(refLevel);
+            amount = _performance * rate / 1e18;
+            userInfoOf[_refAddr].socialRev += amount;
+            IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_refAddr, amount);
+
+            // distribute contribution reward
+            uint256 threshold = DBContract(DB_CONTRACT).contributionRewardThreshold();
+            if (threshold > 0) {
+                amount = (((refPerformance + _performance) / threshold) - (refPerformance / threshold)) * DBContract(DB_CONTRACT).contributionRewardAmounts(refLevel);
+                if (amount > 0) {
+                    IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_refAddr, amount);
+                }
+            }
+
             if (_refAddr != address(0)) {
                 userInfoOf[_refAddr].performance += _performance;
                 auditNeed = true;
             }
-
-            // distribute social reward
-            uint256 rate = DBContract(DB_CONTRACT).socialRewardRates(uint256(userInfoOf[_refAddr].level));
-            uint256 amount = _performance * rate / 1e18;
-            userInfoOf[_refAddr].socialRev += amount;
-            IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_refAddr, amount);
         }
         if (auditNeed) {
             auditLevel(_refAddr);
