@@ -5,6 +5,7 @@ import "./baseContract.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/IBNFT.sol";
 import "./interfaces/IAlyxNFT.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
@@ -88,17 +89,11 @@ contract Market is baseContract {
         IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
     }
 
-    function takeNFT(uint256 _listIndex, uint256 _tokenId, address _ref) external {
+    function takeNFT(uint256 _listIndex, uint256 _tokenId, address _ref) payable external {
         uint256 listNFTNum = listNFTs.length;
         require(listNFTNum > _listIndex, 'Market: index overflow.');
         ListInfo memory listInfo = listNFTs[_listIndex];
         require(listInfo.tokenId == _tokenId, 'Market: already sold.');
-
-        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
-        address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
-        uint256 fee = listInfo.priceInAcceptToken * DBContract(DB_CONTRACT).tradingFee() / 1e18;
-        IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).TEAM_ADDR(), fee);
-        IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), listInfo.seller, listInfo.priceInAcceptToken - fee);
 
         if (_listIndex < listNFTNum - 1) {
             listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
@@ -106,6 +101,19 @@ contract Market is baseContract {
         }
         listNFTs.pop();
         delete listIndexByTokenId[listNFTNum - 1];
+
+        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
+        uint256 fee = listInfo.priceInAcceptToken * DBContract(DB_CONTRACT).tradingFee() / 1e18;
+
+        if (listInfo.acceptToken == address(0)) {
+            require(msg.value == listInfo.priceInAcceptToken, 'Market: value mismatch.');
+            AddressUpgradeable.sendValue(payable(DBContract(DB_CONTRACT).TEAM_ADDR()), fee);
+            AddressUpgradeable.sendValue(payable(listInfo.seller), listInfo.priceInAcceptToken - fee);
+        } else {
+            IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).TEAM_ADDR(), fee);
+            IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), listInfo.seller, listInfo.priceInAcceptToken - fee);
+        }
 
         IBNFT(bAlyxNFTAddress).burn(_tokenId);
         IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
