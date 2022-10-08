@@ -4,6 +4,7 @@ pragma solidity 0.8.9;
 import "./baseContract.sol";
 import "./interfaces/IAlyxNFT.sol";
 import "./interfaces/IBNFT.sol";
+import "./interfaces/IUser.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
@@ -108,6 +109,8 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         IERC20Upgradeable(DBContract(DB_CONTRACT).LYNK_TOKEN()).safeTransfer(_msgSender(), claimable);
 
         emit Claim(_msgSender(), claimable);
+
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByClaimReward(_msgSender(), claimable);
     }
 
     function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {

@@ -52,6 +52,8 @@ contract DBContract is OwnableUpgradeable {
     uint256[] public socialRewardRates;
     uint256 public contributionRewardThreshold;
     uint256[] public contributionRewardAmounts;
+    uint256 public maxInvitationLevel;
+    mapping(uint256 => uint256[]) public communityRewardRates;
 
     /**************************************************************************
      *****  APToken fields  ***************************************************
@@ -207,6 +209,17 @@ contract DBContract is OwnableUpgradeable {
         }
     }
 
+    function setCommunityRewardRates(IUser.Level _level, uint256[] calldata _rates) external onlyOperator {
+        uint256 levelUint = uint256(_level);
+
+        delete communityRewardRates[levelUint];
+
+        if (_rates.length > maxInvitationLevel) {
+            maxInvitationLevel = _rates.length;
+        }
+        communityRewardRates[levelUint] = _rates;
+    }
+
     /**************************************************************************
      *****  APToken Manager  **************************************************
      **************************************************************************/
@@ -252,6 +265,14 @@ contract DBContract is OwnableUpgradeable {
         require(_index < sellingPackages.length, 'DBContract: index out of bounds.');
 
         return sellingPackages[_index];
+    }
+
+    function communityRewardRate(IUser.Level _level, uint256 _invitationLevel) external view returns (uint256) {
+        if (communityRewardRates[uint256(_level)].length > _invitationLevel) {
+            return communityRewardRates[uint256(_level)][_invitationLevel];
+        }
+
+        return 0;
     }
 
 }
