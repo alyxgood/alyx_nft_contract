@@ -90,6 +90,10 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         }
     }
 
+    function hookByClaimReward(address _userAddr, uint256 _rewardAmount) onlyStakingContract external {
+
+    }
+
     function auditLevel(address _userAddr) public {
         if (_userAddr != address(0)) {
             uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
