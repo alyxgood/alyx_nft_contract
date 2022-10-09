@@ -73,6 +73,8 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
         miningPowerOf[_msgSender()].charisma += charisma;
         miningPowerOf[_msgSender()].dexterity += dexterity;
+
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByStake(nftIds);
     }
 
     function unstake(uint256[] calldata nftIds) external updateReward(_msgSender()) {
@@ -99,6 +101,8 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
         miningPowerOf[_msgSender()].charisma -= charisma;
         miningPowerOf[_msgSender()].dexterity -= dexterity;
+
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUnStake(_msgSender(), nftIds);
     }
 
     function claimReward() external updateReward(_msgSender()) {

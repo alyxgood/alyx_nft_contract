@@ -17,5 +17,7 @@ interface IUser {
     function hookByBuyAPToken(address _refAddr, address _userAddr) external;
     function hookByBuyNFT(address _refAddr, address _userAddr) external;
     function hookByClaimReward(address _userAddr, uint256 _rewardAmount) external;
+    function hookByStake(uint256[] calldata nftIds) external;
+    function hookByUnStake(address _userAddr, uint256[] calldata nftIds) external;
 
 }
