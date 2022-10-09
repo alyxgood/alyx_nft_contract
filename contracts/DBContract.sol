@@ -54,6 +54,9 @@ contract DBContract is OwnableUpgradeable {
     uint256[] public contributionRewardAmounts;
     uint256 public maxInvitationLevel;
     mapping(uint256 => uint256[]) public communityRewardRates;
+    uint256 public achievementRewardDuration;
+    uint256 public achievementRewardThreshold;
+    uint256[] public achievementRewardAmounts;
 
     /**************************************************************************
      *****  APToken fields  ***************************************************
@@ -220,6 +223,23 @@ contract DBContract is OwnableUpgradeable {
         communityRewardRates[levelUint] = _rates;
     }
 
+    function setAchievementRewardDuration(uint256 _achievementRewardDuration) external onlyOperator {
+        achievementRewardDuration = _achievementRewardDuration;
+    }
+
+    function setAchievementRewardThreshold(uint256 _achievementRewardThreshold) external onlyOperator {
+        achievementRewardThreshold = _achievementRewardThreshold;
+    }
+
+    function setAchievementRewardAmounts(uint256[] calldata _amounts) external onlyOperator {
+        require(_amounts.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
+
+        delete achievementRewardAmounts;
+        for (uint256 index; index < _amounts.length; index++) {
+            achievementRewardAmounts[index] = _amounts[index];
+        }
+    }
+
     /**************************************************************************
      *****  APToken Manager  **************************************************
      **************************************************************************/
@@ -235,17 +255,8 @@ contract DBContract is OwnableUpgradeable {
     /**************************************************************************
      *****  public view  ******************************************************
      **************************************************************************/
-    function calcLevel(IAlyxNFT.Attribute _attr, uint256 _point) external view returns (uint256 level, uint256 overflow) {
-        uint256 thresholdLength = attributeLevelThreshold[uint256(_attr)].length;
-        for (uint256 index; index < thresholdLength; index++) {
-            if (_point > attributeLevelThreshold[uint256(_attr)][index]) {
-                level = index + 1;
-                overflow = _point - attributeLevelThreshold[uint256(_attr)][index];
-            } else {
-                break;
-            }
-        }
-        return (level, overflow);
+    function calcLevel(IAlyxNFT.Attribute _attr, uint256 _point) public view returns (uint256 level, uint256 overflow) {
+        return _calcLevel(_attr, _point);
     }
 
     function acceptTokenLength() external view returns (uint256) {
@@ -273,6 +284,32 @@ contract DBContract is OwnableUpgradeable {
         }
 
         return 0;
+    }
+
+    function hasAchievementReward(uint256 _nftId) external view returns (bool) {
+        uint256[] memory attrs = IAlyxNFT(ALYX_NFT).nftInfoOf(_nftId);
+
+        IAlyxNFT.Attribute maxAttr = type(IAlyxNFT.Attribute).max;
+        (uint256 level, ) = _calcLevel(maxAttr, attrs[uint256(maxAttr)]);
+
+        return level >= achievementRewardThreshold;
+    }
+
+    function getAchievementRewardAmounts() external view returns (uint256[] memory) {
+        return achievementRewardAmounts;
+    }
+
+    function _calcLevel(IAlyxNFT.Attribute _attr, uint256 _point) private view returns (uint256 level, uint256 overflow) {
+        uint256 thresholdLength = attributeLevelThreshold[uint256(_attr)].length;
+        for (uint256 index; index < thresholdLength; index++) {
+            if (_point > attributeLevelThreshold[uint256(_attr)][index]) {
+                level = index + 1;
+                overflow = _point - attributeLevelThreshold[uint256(_attr)][index];
+            } else {
+                break;
+            }
+        }
+        return (level, overflow);
     }
 
 }

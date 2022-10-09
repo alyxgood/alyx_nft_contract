@@ -4,13 +4,16 @@ pragma solidity 0.8.9;
 import "./baseContract.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/IERC20Mintable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
+
     mapping(address => UserInfo) public userInfoOf;
+    mapping(uint256 => StakeInfo) public stakeNFTs;
 
     struct UserInfo {
         Level level;
@@ -21,7 +24,14 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         uint256 contributionRev;
         uint256 achievementRev;
         uint256 performance;
+        uint256[] levelUpTime;
         mapping(uint256 => uint256) refInfoOf;
+    }
+
+    struct StakeInfo {
+        bool isDone;
+        uint256 remainTime;
+        uint256 lastUpdateTime;
     }
 
     constructor(address dbAddress) baseContract(dbAddress) {
@@ -90,6 +100,27 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         }
     }
 
+    function hookByStake(uint256[] calldata nftIds) onlyStakingContract nonReentrant external {
+        uint256 achievementRewardDuration = DBContract(DB_CONTRACT).achievementRewardDuration();
+
+        for (uint256 index; index < nftIds.length; index++) {
+            uint256 nftId = nftIds[index];
+            if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
+                if (!stakeNFTs[nftId].isDone) {
+                    stakeNFTs[nftId].lastUpdateTime = block.timestamp;
+                    if (stakeNFTs[nftId].remainTime == 0) {
+                        stakeNFTs[nftId].remainTime = achievementRewardDuration;
+                    }
+                }
+            }
+        }
+    }
+
+    function hookByUnStake(address _userAddr, uint256[] calldata nftIds) onlyStakingContract nonReentrant external {
+        uint256 reward = _calcAchievementReward(_userAddr, nftIds);
+        IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_userAddr, reward);
+    }
+
     function hookByClaimReward(address _userAddr, uint256 _rewardAmount) onlyStakingContract nonReentrant external {
         address curAddr = userInfoOf[_userAddr].refAddress;
         address lynkAddr = DBContract(DB_CONTRACT).LYNK_TOKEN();
@@ -105,6 +136,17 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
 
             curAddr = userInfoOf[curAddr].refAddress;
         }
+    }
+
+    function claimAchievementReward(uint256[] calldata nftIds) nonReentrant external {
+        address bAlyxNFTAddress = DBContract(DB_CONTRACT).STAKING_ALYX_NFT();
+
+        for (uint256 index; index < nftIds.length; index++) {
+            require(IERC721Upgradeable(bAlyxNFTAddress).ownerOf(nftIds[index]) == _msgSender(), 'User: not the owner.');
+        }
+
+        uint256 reward = _calcAchievementReward(_msgSender(), nftIds);
+        IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_msgSender(), reward);
     }
 
     function auditLevel(address _userAddr) public {
@@ -123,6 +165,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
                     address refAddress = userInfoOf[_userAddr].refAddress;
                     if (refAddress != address(0)) {
                         userInfoOf[refAddress].refInfoOf[nextLevelIndex] += 1;
+                        userInfoOf[refAddress].levelUpTime.push(block.timestamp);
                         auditLevel(refAddress);
                     }
                 }
@@ -139,6 +182,41 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
             }
             auditLevel(_refAddr);
         }
+    }
+
+    function _calcAchievementReward(address _userAddr, uint256[] calldata nftIds) private returns (uint256) {
+        uint256 rewardDuration = DBContract(DB_CONTRACT).achievementRewardDuration();
+        uint256[] memory levelUpTime = userInfoOf[_userAddr].levelUpTime;
+        uint256[] memory achievementRewardAmounts = DBContract(DB_CONTRACT).getAchievementRewardAmounts();
+
+        uint256 reward;
+        for (uint256 indexNftId; indexNftId < nftIds.length; indexNftId++) {
+            uint256 remainTime = stakeNFTs[nftIds[indexNftId]].remainTime;
+            if (remainTime > 0) {
+                uint256 duration;
+                uint256 lastUpdateTime = stakeNFTs[nftIds[indexNftId]].lastUpdateTime;
+                for (uint256 indexLevel; indexLevel < levelUpTime.length; indexLevel++) {
+                    if (lastUpdateTime < levelUpTime[indexLevel]) {
+                        duration = levelUpTime[indexLevel] - lastUpdateTime;
+                        if (duration > remainTime) duration = remainTime;
+                        reward += (duration * achievementRewardAmounts[indexLevel + 1]) / rewardDuration;
+
+                        remainTime -= duration;
+                        lastUpdateTime = levelUpTime[indexLevel];
+                    }
+                }
+
+                duration = block.timestamp - lastUpdateTime;
+                if (duration > remainTime) duration = remainTime;
+                reward += (duration * achievementRewardAmounts[uint256(userInfoOf[_userAddr].level)]) / rewardDuration;
+
+                stakeNFTs[nftIds[indexNftId]].remainTime = (remainTime- duration);
+                stakeNFTs[nftIds[indexNftId]].lastUpdateTime = block.timestamp;
+                stakeNFTs[nftIds[indexNftId]].isDone = (remainTime - duration == 0);
+            }
+        }
+
+        return reward;
     }
 
 }
