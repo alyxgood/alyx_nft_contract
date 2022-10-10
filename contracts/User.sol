@@ -126,6 +126,8 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         address lynkAddr = DBContract(DB_CONTRACT).LYNK_TOKEN();
         uint256 maxInvitationLevel = DBContract(DB_CONTRACT).maxInvitationLevel();
         for (uint256 index; index < maxInvitationLevel; index++) {
+            if (curAddr == address(0)) break;
+
             uint256 rate = DBContract(DB_CONTRACT).communityRewardRate(userInfoOf[curAddr].level, index);
             if (rate > 0) {
                 uint256 reward = rate * _rewardAmount / 1e18;
