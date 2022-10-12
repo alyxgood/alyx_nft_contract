@@ -62,7 +62,6 @@ export async function get_user() {
 
 export async function set_up_fixture(fix_name: string) {
 
-    expect('test_net'.includes(fix_name)).true
     await deployments.fixture([fix_name]);
 
     const contracts = {

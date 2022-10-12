@@ -10,7 +10,7 @@ describe("USDT TEST", function () {
      let user1: SignerWithAddress;
 
     beforeEach(async () => {
-      let fix_info = await set_up_fixture("MockERC20");
+      let fix_info = await set_up_fixture("test_net");
       let users = await get_user();
       usdt_erc20 = fix_info.usdt;
       user1 = users.user1;

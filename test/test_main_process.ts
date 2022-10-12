@@ -6,14 +6,18 @@ describe("main_process", function () {
 
     beforeEach(async () => {
         console.log('start test1...');
-        users = await get_user()
 
         contracts = await set_up_fixture("test_net")
+        users = await get_user()
+
+
     });
 
 
     describe('main_process', () => {
-        console.log('start test2...');
-        console.log(contracts.usdt.address);
+        it("main_process1111", async function () {
+            console.log('start test2...');
+            console.log(contracts.usdt.address);
+        })
     })
 });
