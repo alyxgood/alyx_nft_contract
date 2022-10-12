@@ -3,7 +3,7 @@ import { ethers ,deployments} from "hardhat";
 
 import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
 import {expect} from "chai";
-import {MockERC20} from "../typechain-types";
+import {AlyxNFT, APToken, BNFT, DBContract, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
 
 
 export interface USER_FIX {
@@ -20,6 +20,19 @@ export interface USER_FIX {
     user4: SignerWithAddress,
     user5: SignerWithAddress,
     user6: SignerWithAddress
+}
+
+export interface CONTRACT_FIX {
+    usdt: MockERC20,
+    dbContract: DBContract,
+    apToken: APToken,
+    lynkToken: LYNKToken,
+    alyxToken: AlyxNFT,
+    sALYXToken: BNFT,
+    lALYXToken: BNFT,
+    user: User,
+    staking: Staking,
+    market: Market,
 }
 
 export async function get_user() {
@@ -49,17 +62,46 @@ export async function get_user() {
 
 export async function set_up_fixture(fix_name: string) {
 
+    expect('test_net'.includes(fix_name)).true
     await deployments.fixture([fix_name]);
 
     const contracts = {
         USDT: (await deployments.get('mock_usdc')).address,
+        DBContract: (await deployments.get('DBContract_Proxy')).address,
+        APToken: (await deployments.get('APToken_Proxy')).address,
+        LYNKToken: (await deployments.get('LYNKToken_Proxy')).address,
+        ALYXToken: (await deployments.get('ALYXToken_Proxy')).address,
+        sALYXToken: (await deployments.get('sALYXToken_Proxy')).address,
+        lALYXToken: (await deployments.get('lALYXToken_Proxy')).address,
+        User: (await deployments.get('User_Proxy')).address,
+        Staking: (await deployments.get('Staking_Proxy')).address,
+        Market: (await deployments.get('Market_Proxy')).address,
     };
 
 
-    let usdt = <MockERC20>await (await ethers.getContractFactory("MockERC20")).attach(contracts.USDT);
+    const usdt = <MockERC20> await (await ethers.getContractFactory("MockERC20")).attach(contracts.USDT)
+    const dbContract = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(contracts.DBContract)
+    const apToken = <APToken> await (await ethers.getContractFactory('APToken')).attach(contracts.APToken)
+    const lynkToken = <LYNKToken> await (await ethers.getContractFactory('LYNKToken')).attach(contracts.LYNKToken)
+    const alyxToken = <AlyxNFT> await (await ethers.getContractFactory('AlyxNFT')).attach(contracts.ALYXToken)
+    const sALYXToken = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.sALYXToken)
+    const lALYXToken = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.lALYXToken)
+    const user = <User> await (await ethers.getContractFactory('User')).attach(contracts.User)
+    const staking = <Staking> await (await ethers.getContractFactory('Staking')).attach(contracts.Staking)
+    const market = <Market> await (await ethers.getContractFactory('Market')).attach(contracts.Market)
+
 
     return {
-        usdt
+        usdt,
+        dbContract,
+        apToken,
+        lynkToken,
+        alyxToken,
+        sALYXToken,
+        lALYXToken,
+        user,
+        staking,
+        market
     };
 
 }

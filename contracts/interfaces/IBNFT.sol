@@ -72,21 +72,21 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
    **/
   function burn(uint256 tokenId) external;
 
-  /**
-   * @dev Allows smartcontracts to access the tokens within one transaction, as long as the tokens taken is returned.
-   *
-   * Requirements:
-   *  - `nftTokenIds` must exist.
-   *
-   * @param receiverAddress The address of the contract receiving the tokens, implementing the IFlashLoanReceiver interface
-   * @param nftTokenIds token ids of the underlying asset
-   * @param params Variadic packed params to pass to the receiver as extra information
-   */
-  function flashLoan(
-    address receiverAddress,
-    uint256[] calldata nftTokenIds,
-    bytes calldata params
-  ) external;
+//  /**
+//   * @dev Allows smartcontracts to access the tokens within one transaction, as long as the tokens taken is returned.
+//   *
+//   * Requirements:
+//   *  - `nftTokenIds` must exist.
+//   *
+//   * @param receiverAddress The address of the contract receiving the tokens, implementing the IFlashLoanReceiver interface
+//   * @param nftTokenIds token ids of the underlying asset
+//   * @param params Variadic packed params to pass to the receiver as extra information
+//   */
+//  function flashLoan(
+//    address receiverAddress,
+//    uint256[] calldata nftTokenIds,
+//    bytes calldata params
+//  ) external;
 
   /**
    * @dev Returns the owner of the `nftTokenId` token.

@@ -16,7 +16,6 @@ contract DBContract is OwnableUpgradeable {
 
     address public LYNK_TOKEN;
     address public AP_TOKEN;
-    address public KEY_TOKEN;
     address public STAKING;
     address public USER_INFO;
     address public ALYX_NFT;
@@ -309,14 +308,13 @@ contract DBContract is OwnableUpgradeable {
 
         LYNK_TOKEN          = _addresses[0];
         AP_TOKEN            = _addresses[1];
-        KEY_TOKEN           = _addresses[2];
-        STAKING             = _addresses[3];
-        ALYX_NFT            = _addresses[4];
-        STAKING_ALYX_NFT    = _addresses[5];
-        LISTED_ALYX_NFT     = _addresses[6];
-        MARKET              = _addresses[7];
-        USER_INFO           = _addresses[8];
-        TEAM_ADDR           = _addresses[9];
+        STAKING             = _addresses[2];
+        ALYX_NFT            = _addresses[3];
+        STAKING_ALYX_NFT    = _addresses[4];
+        LISTED_ALYX_NFT     = _addresses[5];
+        MARKET              = _addresses[6];
+        USER_INFO           = _addresses[7];
+        TEAM_ADDR           = _addresses[8];
     }
 
 }

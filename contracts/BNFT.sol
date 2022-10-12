@@ -85,42 +85,42 @@ contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
     emit Burn(_msgSender(), _underlyingAsset, tokenId, owner);
   }
 
-  /**
-   * @dev See {IBNFT-flashLoan}.
-   */
-  function flashLoan(
-    address receiverAddress,
-    uint256[] calldata nftTokenIds,
-    bytes calldata params
-  ) external override {
-    uint256 i;
-    IFlashLoanReceiver receiver = IFlashLoanReceiver(receiverAddress);
-
-    // !!!CAUTION: receiver contract may reentry mint, burn, flashloan again
-
-    // only token owner can do flashloan
-    for (i = 0; i < nftTokenIds.length; i++) {
-      require(ownerOf(nftTokenIds[i]) == _msgSender(), "BNFT: caller is not owner");
-    }
-
-    // step 1: moving underlying asset forward to receiver contract
-    for (i = 0; i < nftTokenIds.length; i++) {
-      IERC721Upgradeable(_underlyingAsset).safeTransferFrom(address(this), receiverAddress, nftTokenIds[i]);
-    }
-
-    // setup 2: execute receiver contract, doing something like aidrop
-    require(
-      receiver.executeOperation(_underlyingAsset, nftTokenIds, _msgSender(), address(this), params),
-      "BNFT: invalid flashloan executor return"
-    );
-
-    // setup 3: moving underlying asset backword from receiver contract
-    for (i = 0; i < nftTokenIds.length; i++) {
-      IERC721Upgradeable(_underlyingAsset).safeTransferFrom(receiverAddress, address(this), nftTokenIds[i]);
-
-      emit FlashLoan(receiverAddress, _msgSender(), _underlyingAsset, nftTokenIds[i]);
-    }
-  }
+//  /**
+//   * @dev See {IBNFT-flashLoan}.
+//   */
+//  function flashLoan(
+//    address receiverAddress,
+//    uint256[] calldata nftTokenIds,
+//    bytes calldata params
+//  ) external override {
+//    uint256 i;
+//    IFlashLoanReceiver receiver = IFlashLoanReceiver(receiverAddress);
+//
+//    // !!!CAUTION: receiver contract may reentry mint, burn, flashloan again
+//
+//    // only token owner can do flashloan
+//    for (i = 0; i < nftTokenIds.length; i++) {
+//      require(ownerOf(nftTokenIds[i]) == _msgSender(), "BNFT: caller is not owner");
+//    }
+//
+//    // step 1: moving underlying asset forward to receiver contract
+//    for (i = 0; i < nftTokenIds.length; i++) {
+//      IERC721Upgradeable(_underlyingAsset).safeTransferFrom(address(this), receiverAddress, nftTokenIds[i]);
+//    }
+//
+//    // setup 2: execute receiver contract, doing something like aidrop
+//    require(
+//      receiver.executeOperation(_underlyingAsset, nftTokenIds, _msgSender(), address(this), params),
+//      "BNFT: invalid flashloan executor return"
+//    );
+//
+//    // setup 3: moving underlying asset backword from receiver contract
+//    for (i = 0; i < nftTokenIds.length; i++) {
+//      IERC721Upgradeable(_underlyingAsset).safeTransferFrom(receiverAddress, address(this), nftTokenIds[i]);
+//
+//      emit FlashLoan(receiverAddress, _msgSender(), _underlyingAsset, nftTokenIds[i]);
+//    }
+//  }
 
   /**
    * @dev See {IERC721Metadata-tokenURI}.

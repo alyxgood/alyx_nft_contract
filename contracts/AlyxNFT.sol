@@ -28,7 +28,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
 
     }
 
-    function __KeyToken_init() public initializer {
+    function __AlyxNft_init() public initializer {
         __AlyxNft_init_unchained();
         __ERC721Enumerable_init();
         __ERC721_init("AlyxNFT","AlyxNFT");
