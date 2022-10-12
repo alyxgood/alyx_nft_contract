@@ -13,15 +13,16 @@ contract DBContract is OwnableUpgradeable {
      *****  Common fields  ****************************************************
      **************************************************************************/
     address immutable public USDT_TOKEN;
-    address immutable public LYNK_TOKEN;
-    address immutable public AP_TOKEN;
-    address immutable public KEY_TOKEN;
-    address immutable public STAKING;
-    address immutable public USER_INFO;
-    address immutable public ALYX_NFT;
-    address immutable public STAKING_ALYX_NFT;
-    address immutable public LISTED_ALYX_NFT;
-    address immutable public MARKET;
+
+    address public LYNK_TOKEN;
+    address public AP_TOKEN;
+    address public KEY_TOKEN;
+    address public STAKING;
+    address public USER_INFO;
+    address public ALYX_NFT;
+    address public STAKING_ALYX_NFT;
+    address public LISTED_ALYX_NFT;
+    address public MARKET;
     address public TEAM_ADDR;
     address public operator;
 
@@ -71,34 +72,25 @@ contract DBContract is OwnableUpgradeable {
         _;
     }
 
-    constructor(address[] memory addr) {
-        USDT_TOKEN = addr[0];
-        LYNK_TOKEN =addr[1];
-        AP_TOKEN = addr[2];
-        KEY_TOKEN =addr[3];
-        STAKING = addr[4];
-        ALYX_NFT = addr[5];
-        STAKING_ALYX_NFT = addr[6];
-        LISTED_ALYX_NFT = addr[7];
-        MARKET = addr[8];
-        USER_INFO = addr[9];
-        TEAM_ADDR = addr[10];
+    constructor(address _usdtToken) {
+        USDT_TOKEN = _usdtToken;
     }
 
-    function __DBContract_init() public initializer {
-        __DBContract_init_unchained();
+    function __DBContract_init(address[] calldata _addresses) public initializer {
+        __DBContract_init_unchained(_addresses);
         __Ownable_init();
     }
 
-    function __DBContract_init_unchained() public onlyInitializing {
+    function __DBContract_init_unchained(address[] calldata _addresses) private onlyInitializing {
+        _setAddresses(_addresses);
     }
 
     function setOperator(address _operator) external onlyOwner {
         operator = _operator;
     }
 
-    function setTeamAddr(address _teamAddr) external onlyOperator {
-        TEAM_ADDR = _teamAddr;
+    function setAddresses(address[] calldata _addresses) external onlyOperator {
+        _setAddresses(_addresses);
     }
 
 
@@ -310,6 +302,21 @@ contract DBContract is OwnableUpgradeable {
             }
         }
         return (level, overflow);
+    }
+
+    function _setAddresses(address[] calldata _addresses) private {
+        require(_addresses.length == 10, 'DBContract: addresses length mismatch.');
+
+        LYNK_TOKEN          = _addresses[0];
+        AP_TOKEN            = _addresses[1];
+        KEY_TOKEN           = _addresses[2];
+        STAKING             = _addresses[3];
+        ALYX_NFT            = _addresses[4];
+        STAKING_ALYX_NFT    = _addresses[5];
+        LISTED_ALYX_NFT     = _addresses[6];
+        MARKET              = _addresses[7];
+        USER_INFO           = _addresses[8];
+        TEAM_ADDR           = _addresses[9];
     }
 
 }
