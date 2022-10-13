@@ -17,7 +17,7 @@ describe("main_process", function () {
     describe('main_process', () => {
         it("main_process1111", async function () {
             console.log('start test2...');
-            console.log(contracts.usdt.address);
+            console.log(contracts.USDT.address);
         })
     })
 });

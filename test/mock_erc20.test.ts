@@ -12,7 +12,7 @@ describe("USDT TEST", function () {
     beforeEach(async () => {
       let fix_info = await set_up_fixture("test_net");
       let users = await get_user();
-      usdt_erc20 = fix_info.usdt;
+      usdt_erc20 = fix_info.USDT;
       user1 = users.user1;
     });
 

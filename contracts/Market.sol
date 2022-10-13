@@ -4,7 +4,7 @@ pragma solidity 0.8.9;
 import "./baseContract.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/IBNFT.sol";
-import "./interfaces/IAlyxNFT.sol";
+import "./interfaces/ILYNKNFT.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -39,6 +39,11 @@ contract Market is baseContract {
     }
 
     function listNFT(uint256 _tokenId, address _acceptToken, uint256 _priceInAcceptToken) external {
+        require(
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+                'Market: not a valid user.'
+        );
+
         // require(_priceInAcceptToken > 0, '');
         address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
         address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
@@ -47,9 +52,9 @@ contract Market is baseContract {
         require(DBContract(DB_CONTRACT).isAcceptToken(_acceptToken), 'Market: unsupported token.');
 
         uint256 sellingLevelLimit = DBContract(DB_CONTRACT).sellingLevelLimit();
-        uint256[] memory nftInfo = IAlyxNFT(DBContract(DB_CONTRACT).ALYX_NFT()).nftInfoOf(_tokenId);
+        uint256[] memory nftInfo = ILYNKNFT(DBContract(DB_CONTRACT).ALYX_NFT()).nftInfoOf(_tokenId);
         for (uint256 index; index > nftInfo.length; index++) {
-            (uint256 level,) = DBContract(DB_CONTRACT).calcLevel(IAlyxNFT.Attribute(index), nftInfo[index]);
+            (uint256 level,) = DBContract(DB_CONTRACT).calcLevel(ILYNKNFT.Attribute(index), nftInfo[index]);
             require(level >= sellingLevelLimit, 'Market: Cannot trade yet.');
         }
 
@@ -89,7 +94,12 @@ contract Market is baseContract {
         IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
     }
 
-    function takeNFT(uint256 _listIndex, uint256 _tokenId, address _ref) payable external {
+    function takeNFT(uint256 _listIndex, uint256 _tokenId) payable external {
+        require(
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+                'Market: not a valid user.'
+        );
+
         uint256 listNFTNum = listNFTs.length;
         require(listNFTNum > _listIndex, 'Market: index overflow.');
         ListInfo memory listInfo = listNFTs[_listIndex];
@@ -117,8 +127,6 @@ contract Market is baseContract {
 
         IBNFT(bAlyxNFTAddress).burn(_tokenId);
         IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
-
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByBuyNFT(_ref, _msgSender());
     }
 
     function onSellNum() external view returns (uint256) {

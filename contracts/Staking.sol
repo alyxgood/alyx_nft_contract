@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 
 import "./baseContract.sol";
-import "./interfaces/IAlyxNFT.sol";
+import "./interfaces/ILYNKNFT.sol";
 import "./interfaces/IBNFT.sol";
 import "./interfaces/IUser.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -54,6 +54,11 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
     }
 
     function stake(uint256[] calldata nftIds) external updateReward(_msgSender()) {
+        require(
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+                'Staking: not a valid user.'
+        );
+
         uint256 charisma = 0;
         uint256 dexterity = 0;
         address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
@@ -66,9 +71,9 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
             emit Stake(_msgSender(), nftIds[index]);
 
-            uint256[] memory nftInfo = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
-            charisma += nftInfo[uint256(IAlyxNFT.Attribute.charisma)];
-            dexterity += nftInfo[uint256(IAlyxNFT.Attribute.dexterity)];
+            uint256[] memory nftInfo = ILYNKNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            charisma += nftInfo[uint256(ILYNKNFT.Attribute.charisma)];
+            dexterity += nftInfo[uint256(ILYNKNFT.Attribute.dexterity)];
         }
 
         miningPowerOf[_msgSender()].charisma += charisma;
@@ -94,15 +99,15 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
 
             emit UnStake(_msgSender(), nftIds[index]);
 
-            uint256[] memory nftInfo = IAlyxNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
-            charisma += nftInfo[uint256(IAlyxNFT.Attribute.charisma)];
-            dexterity += nftInfo[uint256(IAlyxNFT.Attribute.dexterity)];
+            uint256[] memory nftInfo = ILYNKNFT(alyxNFTAddress).nftInfoOf(nftIds[index]);
+            charisma += nftInfo[uint256(ILYNKNFT.Attribute.charisma)];
+            dexterity += nftInfo[uint256(ILYNKNFT.Attribute.dexterity)];
         }
 
         miningPowerOf[_msgSender()].charisma -= charisma;
         miningPowerOf[_msgSender()].dexterity -= dexterity;
 
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUnStake(_msgSender(), nftIds);
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUnStake(nftIds);
     }
 
     function claimReward() external updateReward(_msgSender()) {

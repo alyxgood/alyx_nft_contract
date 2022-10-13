@@ -30,7 +30,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             from: users.owner1.address,
             args: [dbLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
@@ -53,7 +53,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             from: users.owner1.address,
             args: [apTokenLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
@@ -75,29 +75,29 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             from: users.owner1.address,
             args: [lynkTokenLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
-    const alyxTokenLogic = await deploy(
-        'ALYXToken_Logic',
+    const lxnkNFTLogic = await deploy(
+        'LYNKNFT_Logic',
         {
             from: users.deployer1.address,
             args: [dbProxy.address],
             log: true,
-            contract: 'AlyxNFT'
+            contract: 'LYNKNFT'
         }
     )
 
-    const AlyxNFT = await ethers.getContractFactory('AlyxNFT')
-    initData = AlyxNFT.interface.encodeFunctionData('__AlyxNft_init')
-    const alyxTokenProxy = await deploy(
-        'ALYXToken_Proxy',
+    const LYNKNFT = await ethers.getContractFactory('LYNKNFT')
+    initData = LYNKNFT.interface.encodeFunctionData('__LYNKNFT_init')
+    const lynkNFTProxy = await deploy(
+        'LYNKNFT_Proxy',
         {
             from: users.owner1.address,
-            args: [alyxTokenLogic.address, users.proxy_admin1.address, initData],
+            args: [lxnkNFTLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
@@ -114,36 +114,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     initData = BNFT.interface.encodeFunctionData(
         'initialize',
         [
-            alyxTokenProxy.address,
-            'Staking ALYX',
-            'sALYX'
+            lynkNFTProxy.address,
+            'Staking LYNK',
+            'sLYNK'
         ]
     )
-    const sALYXTokenProxy = await deploy(
-        'sALYXToken_Proxy',
+    const sLYNKNFTProxy = await deploy(
+        'sLYNKNFT_Proxy',
         {
             from: users.owner1.address,
             args: [bTokenLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
     initData = BNFT.interface.encodeFunctionData(
         'initialize',
         [
-            alyxTokenProxy.address,
-            'List ALYX',
-            'lALYX'
+            lynkNFTProxy.address,
+            'List LYNK',
+            'lLYNK'
         ]
     )
-    const lALYXTokenProxy = await deploy(
-        'lALYXToken_Proxy',
+    const lLYNKTokenProxy = await deploy(
+        'lLYNKNFT_Proxy',
         {
             from: users.owner1.address,
             args: [bTokenLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
@@ -166,7 +166,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             from: users.owner1.address,
             args: [userLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
@@ -189,7 +189,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             from: users.owner1.address,
             args: [stakingLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
@@ -212,7 +212,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             from: users.owner1.address,
             args: [marketLogic.address, users.proxy_admin1.address, initData],
             log: true,
-            contract: 'ALYXProxy'
+            contract: 'LYNKProxy'
         }
     )
 
@@ -222,9 +222,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             lynkTokenProxy.address,
             apTokenProxy.address,
             stakingProxy.address,
-            alyxTokenProxy.address,
-            sALYXTokenProxy.address,
-            lALYXTokenProxy.address,
+            lynkNFTProxy.address,
+            sLYNKNFTProxy.address,
+            lLYNKTokenProxy.address,
             marketProxy.address,
             userProxy.address,
             users.team_addr,

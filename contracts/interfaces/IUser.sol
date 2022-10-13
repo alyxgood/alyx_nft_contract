@@ -12,12 +12,11 @@ interface IUser {
         divine
     }
 
-    function hookByMint(address refAddr, address userAddr) external;
-    function hookByUpgrade(address _refAddr, address _userAddr, uint256 _performance) external;
-    function hookByBuyAPToken(address _refAddr, address _userAddr) external;
-    function hookByBuyNFT(address _refAddr, address _userAddr) external;
+    function isValidUser(address _userAddr) view external returns (bool);
+
+    function hookByUpgrade(address _userAddr, uint256 _performance) external;
     function hookByClaimReward(address _userAddr, uint256 _rewardAmount) external;
     function hookByStake(uint256[] calldata nftIds) external;
-    function hookByUnStake(address _userAddr, uint256[] calldata nftIds) external;
+    function hookByUnStake(uint256[] calldata nftIds) external;
 
 }

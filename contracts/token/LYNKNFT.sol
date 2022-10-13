@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.9;
 
-import "./baseContract.sol";
-import "./interfaces/IUser.sol";
-import "./interfaces/IAlyxNFT.sol";
+import "../baseContract.sol";
+import "../interfaces/IUser.sol";
+import "../interfaces/ILYNKNFT.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
+contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter public currentTokenId;
@@ -28,25 +28,30 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
 
     }
 
-    function __AlyxNft_init() public initializer {
-        __AlyxNft_init_unchained();
+    function __LYNKNFT_init() public initializer {
+        __LYNKNFT_init_unchained();
         __ERC721Enumerable_init();
-        __ERC721_init("AlyxNFT","AlyxNFT");
+        __ERC721_init("LYNKNFT","LYNKNFT");
         __baseContract_init();
     }
 
-    function __AlyxNft_init_unchained() private onlyInitializing {
+    function __LYNKNFT_init_unchained() private onlyInitializing {
         _randomSeedGen();
     }
 
-    function mint(uint256 _tokenId, address _payment, address _ref) external {
+    function mint(uint256 _tokenId, address _payment) external payable {
+        require(
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+                'LYNKNFT: not a valid user.'
+        );
+
         MintInfo memory mintInfo = mintInfoOf[_msgSender()];
         if (block.timestamp - mintInfo.lastMintTime >= 1 days) {
             mintInfo.mintNumInDuration = 0;
         }
         require(
             mintInfo.mintNumInDuration < DBContract(DB_CONTRACT).mintLimitPerDay(),
-                'AlyxNFT: cannot mint more in a day.'
+                'LYNKNFT: cannot mint more in a day.'
         );
         mintInfoOf[_msgSender()].lastMintTime = uint128(block.timestamp);
         mintInfoOf[_msgSender()].mintNumInDuration = mintInfo.mintNumInDuration + 1;
@@ -54,7 +59,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         require(
             DBContract(DB_CONTRACT).LYNK_TOKEN() == _payment ||
             DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
-                'AlyxNFT: unsupported payment.'
+                'LYNKNFT: unsupported payment.'
         );
         uint256 mintPrice = DBContract(DB_CONTRACT).mintPriceInAU();
         if (DBContract(DB_CONTRACT).USDT_TOKEN() == _payment)
@@ -65,24 +70,26 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
         nftInfo[_tokenId] = [ vitality, intellect, 0, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
-
-        // dealing with the ref things.
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByMint(_ref, _msgSender());
     }
 
-    function upgrade(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment, address _ref) external {
+    function upgrade(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment) external payable {
+        require(
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+                'LYNKNFT: not a valid user.'
+        );
+
         // avoid upgrade while staking
         require(
             tx.origin == _msgSender() &&
             ERC721Upgradeable.ownerOf(_tokenId) == _msgSender(),
-                'AlyxNFT: not the owner'
+                'LYNKNFT: not the owner'
         );
 
         if (Attribute.charisma == _attr) {
             require(
                 _payment == DBContract(DB_CONTRACT).USDT_TOKEN() ||
                 _payment == DBContract(DB_CONTRACT).LYNK_TOKEN(),
-                    'AlyxNFT: unsupported payment.'
+                    'LYNKNFT: unsupported payment.'
             );
         } else {
             uint256 preAttrIndex = uint256(_attr) - 1;
@@ -91,10 +98,10 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
             require(
                 preAttrLevel > curAttrLevelAfterUpgrade ||
                 (preAttrLevel == curAttrLevelAfterUpgrade && curAttrLevelOverflowAfterUpgrade == 0),
-                    'AlyxNFT: level overflow.'
+                    'LYNKNFT: level overflow.'
             );
 
-            require(_payment == DBContract(DB_CONTRACT).AP_TOKEN(), 'AlyxNFT: unsupported payment.');
+            require(_payment == DBContract(DB_CONTRACT).AP_TOKEN(), 'LYNKNFT: unsupported payment.');
         }
 
         uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
@@ -104,7 +111,7 @@ contract AlyxNFT is IAlyxNFT, ERC721EnumerableUpgradeable, baseContract {
         nftInfo[_tokenId][uint256(_attr)] += _point;
 
         // dealing with the ref things.
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUpgrade(_ref, _msgSender(), Attribute.charisma == _attr ? amount : 0);
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUpgrade(_msgSender(), Attribute.charisma == _attr ? amount : 0);
     }
 
     function nftInfoOf(uint256 _tokenId) external view override returns (uint256[] memory _nftInfo) {

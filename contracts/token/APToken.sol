@@ -23,14 +23,17 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
 
     }
 
-    function mint(uint256 _indexPackage, address _ref) external {
+    function mint(uint256 _indexPackage) external payable {
+        require(
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+                'APToken: not a valid user.'
+        );
+
         uint256[] memory package = DBContract(DB_CONTRACT).packageByIndex(_indexPackage);
         require(package.length == 3, 'APToken: unrecognized package.');
 
         _pay(address(uint160(package[0])), _msgSender(), package[1]);
         _mint(_msgSender(), package[2]);
-
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByBuyAPToken(_ref, _msgSender());
     }
 
     function mint(address account, uint256 amount) external onlyUserContract {
