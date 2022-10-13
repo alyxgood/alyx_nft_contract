@@ -18,9 +18,9 @@ contract DBContract is OwnableUpgradeable {
     address public AP_TOKEN;
     address public STAKING;
     address public USER_INFO;
-    address public ALYX_NFT;
-    address public STAKING_ALYX_NFT;
-    address public LISTED_ALYX_NFT;
+    address public LYNKNFT;
+    address public STAKING_LYNKNFT;
+    address public LISTED_LYNKNFT;
     address public MARKET;
     address public TEAM_ADDR;
     address public operator;
@@ -285,7 +285,7 @@ contract DBContract is OwnableUpgradeable {
     }
 
     function hasAchievementReward(uint256 _nftId) external view returns (bool) {
-        uint256[] memory attrs = ILYNKNFT(ALYX_NFT).nftInfoOf(_nftId);
+        uint256[] memory attrs = ILYNKNFT(LYNKNFT).nftInfoOf(_nftId);
 
         ILYNKNFT.Attribute maxAttr = type(ILYNKNFT.Attribute).max;
         (uint256 level, ) = _calcLevel(maxAttr, attrs[uint256(maxAttr)]);
@@ -312,9 +312,9 @@ contract DBContract is OwnableUpgradeable {
         LYNK_TOKEN          = _addresses[0];
         AP_TOKEN            = _addresses[1];
         STAKING             = _addresses[2];
-        ALYX_NFT            = _addresses[3];
-        STAKING_ALYX_NFT    = _addresses[4];
-        LISTED_ALYX_NFT     = _addresses[5];
+        LYNKNFT = _addresses[3];
+        STAKING_LYNKNFT = _addresses[4];
+        LISTED_LYNKNFT = _addresses[5];
         MARKET              = _addresses[6];
         USER_INFO           = _addresses[7];
         TEAM_ADDR           = _addresses[8];

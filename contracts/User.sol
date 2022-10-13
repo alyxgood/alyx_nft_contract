@@ -66,7 +66,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         return userInfoOf[_userAddr].refAddress != address(0);
     }
 
-    function hookByUpgrade(address _userAddr, uint256 _performance) onlyALYXContract nonReentrant external {
+    function hookByUpgrade(address _userAddr, uint256 _performance) onlyLYNKNFTContract nonReentrant external {
         if (_performance > 0) {
             address _refAddr = userInfoOf[_userAddr].refAddress;
             uint256 refPerformance = userInfoOf[_refAddr].performance;
@@ -133,10 +133,10 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
     }
 
     function claimAchievementReward(uint256[] calldata _nftIds) nonReentrant external {
-        address bAlyxNFTAddress = DBContract(DB_CONTRACT).STAKING_ALYX_NFT();
+        address bLYNKNFTAddress = DBContract(DB_CONTRACT).STAKING_LYNKNFT();
 
         for (uint256 index; index < _nftIds.length; index++) {
-            require(IERC721Upgradeable(bAlyxNFTAddress).ownerOf(_nftIds[index]) == _msgSender(), 'User: not the owner.');
+            require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(_nftIds[index]) == _msgSender(), 'User: not the owner.');
         }
         (bool[] memory claimable, uint256 rewardAmount) = _calcAchievementReward(_msgSender(), _nftIds);
 

@@ -45,22 +45,22 @@ contract Market is baseContract {
         );
 
         // require(_priceInAcceptToken > 0, '');
-        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
-        address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
+        address lynkNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
+        address bLYNKNFTAddress = DBContract(DB_CONTRACT).LISTED_LYNKNFT();
 
-        require(IERC721Upgradeable(alyxNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
+        require(IERC721Upgradeable(lynkNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
         require(DBContract(DB_CONTRACT).isAcceptToken(_acceptToken), 'Market: unsupported token.');
 
         uint256 sellingLevelLimit = DBContract(DB_CONTRACT).sellingLevelLimit();
-        uint256[] memory nftInfo = ILYNKNFT(DBContract(DB_CONTRACT).ALYX_NFT()).nftInfoOf(_tokenId);
+        uint256[] memory nftInfo = ILYNKNFT(DBContract(DB_CONTRACT).LYNKNFT()).nftInfoOf(_tokenId);
         for (uint256 index; index > nftInfo.length; index++) {
             (uint256 level,) = DBContract(DB_CONTRACT).calcLevel(ILYNKNFT.Attribute(index), nftInfo[index]);
             require(level >= sellingLevelLimit, 'Market: Cannot trade yet.');
         }
 
-        IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(_msgSender(), address(this), _tokenId);
-        IERC721Upgradeable(alyxNFTAddress).approve(bAlyxNFTAddress, _tokenId);
-        IBNFT(bAlyxNFTAddress).mint(_msgSender(), _tokenId);
+        IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(_msgSender(), address(this), _tokenId);
+        IERC721Upgradeable(lynkNFTAddress).approve(bLYNKNFTAddress, _tokenId);
+        IBNFT(bLYNKNFTAddress).mint(_msgSender(), _tokenId);
 
         listNFTs.push(ListInfo({
             seller: _msgSender(),
@@ -76,12 +76,12 @@ contract Market is baseContract {
         require(listNFTNum > _listIndex, 'Market: index overflow.');
 
         ListInfo memory listInfo = listNFTs[_listIndex];
-        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
-        address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
+        address lynkNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
+        address bLYNKNFTAddress = DBContract(DB_CONTRACT).LISTED_LYNKNFT();
 
         require(listInfo.tokenId == _tokenId, 'Market: token id mismatch.');
         require(listInfo.seller == _msgSender(), 'Market: seller mismatch.');
-        require(IERC721Upgradeable(bAlyxNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
+        require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
 
         if (_listIndex < listNFTNum - 1) {
             listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
@@ -90,8 +90,8 @@ contract Market is baseContract {
         listNFTs.pop();
         delete listIndexByTokenId[listNFTNum - 1];
 
-        IBNFT(bAlyxNFTAddress).burn(_tokenId);
-        IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
+        IBNFT(bLYNKNFTAddress).burn(_tokenId);
+        IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
     }
 
     function takeNFT(uint256 _listIndex, uint256 _tokenId) payable external {
@@ -112,8 +112,8 @@ contract Market is baseContract {
         listNFTs.pop();
         delete listIndexByTokenId[listNFTNum - 1];
 
-        address alyxNFTAddress = DBContract(DB_CONTRACT).ALYX_NFT();
-        address bAlyxNFTAddress = DBContract(DB_CONTRACT).LISTED_ALYX_NFT();
+        address lynkNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
+        address bLYNKNFTAddress = DBContract(DB_CONTRACT).LISTED_LYNKNFT();
         uint256 fee = listInfo.priceInAcceptToken * DBContract(DB_CONTRACT).tradingFee() / 1e18;
 
         if (listInfo.acceptToken == address(0)) {
@@ -125,8 +125,8 @@ contract Market is baseContract {
             IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), listInfo.seller, listInfo.priceInAcceptToken - fee);
         }
 
-        IBNFT(bAlyxNFTAddress).burn(_tokenId);
-        IERC721Upgradeable(alyxNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
+        IBNFT(bLYNKNFTAddress).burn(_tokenId);
+        IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
     }
 
     function onSellNum() external view returns (uint256) {
