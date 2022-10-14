@@ -28,9 +28,6 @@ contract DBContract is OwnableUpgradeable {
     /**************************************************************************
      *****  AlynNFT fields  ***************************************************
      **************************************************************************/
-    // mint price
-    uint256 public mintPriceInAU;
-    uint256 public mintPriceInUSDT;
     uint256 public maxMintPerDayPerAddress;
     string public baseTokenURI;
     uint256[][] public attributeLevelThreshold;
@@ -97,11 +94,6 @@ contract DBContract is OwnableUpgradeable {
     /**************************************************************************
      *****  AlynNFT Manager  **************************************************
      **************************************************************************/
-    function setMintPrice(uint256 _mintPriceInAU, uint256 _mintPriceInUSDT) external onlyOperator {
-        mintPriceInAU = _mintPriceInAU;
-        mintPriceInUSDT = _mintPriceInUSDT;
-    }
-
     function setMaxMintPerDayPerAddress(uint256 _maxMintPerDayPerAddress) external onlyOperator {
         maxMintPerDayPerAddress = _maxMintPerDayPerAddress;
     }
