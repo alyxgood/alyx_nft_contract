@@ -1,7 +1,8 @@
 import {DeployFunction} from 'hardhat-deploy/types';
 import {HardhatRuntimeEnvironment} from "hardhat/types";
-import {MockERC20} from "../typechain-types";
-import {get_user, USER_FIX} from "../test/start_up";
+import {DBContract, MockERC20} from "../typechain-types";
+import {ENV_FIX, get_user, getEnv, USER_FIX} from "../test/start_up";
+import {use} from "chai";
 
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -10,7 +11,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const {deploy} = deployments
     let users: USER_FIX = await get_user()
 
-    const mockUSDTAddress = (await deployments.get('mock_usdc')).address
+    const mockUSDTAddress = (await deployments.get('mock_usdt')).address
+    const mockAPTokenAddress = (await deployments.get('mock_ap_token')).address
+    const mockLYNKTokenAddress = (await deployments.get('mock_lynk_token')).address
 
     let initData = '0x'
     // deploy db logic
@@ -29,51 +32,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         {
             from: users.owner1.address,
             args: [dbLogic.address, users.proxy_admin1.address, initData],
-            log: true,
-            contract: 'LYNKProxy'
-        }
-    )
-
-    // deploy tokens
-    const apTokenLogic = await deploy(
-        'APToken_Logic',
-        {
-            from: users.deployer1.address,
-            args: [dbProxy.address],
-            log: true,
-            contract: 'APToken'
-        }
-    )
-
-    const APToken = await ethers.getContractFactory('APToken')
-    initData = APToken.interface.encodeFunctionData('__APToken_init')
-    const apTokenProxy = await deploy(
-        'APToken_Proxy',
-        {
-            from: users.owner1.address,
-            args: [apTokenLogic.address, users.proxy_admin1.address, initData],
-            log: true,
-            contract: 'LYNKProxy'
-        }
-    )
-
-    const lynkTokenLogic = await deploy(
-        'LYNKToken_Logic',
-        {
-            from: users.deployer1.address,
-            args: [dbProxy.address],
-            log: true,
-            contract: 'LYNKToken'
-        }
-    )
-
-    const LYNKToken = await ethers.getContractFactory('LYNKToken')
-    initData = LYNKToken.interface.encodeFunctionData('__LYNKToken_init')
-    const lynkTokenProxy = await deploy(
-        'LYNKToken_Proxy',
-        {
-            from: users.owner1.address,
-            args: [lynkTokenLogic.address, users.proxy_admin1.address, initData],
             log: true,
             contract: 'LYNKProxy'
         }
@@ -217,19 +175,53 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )
 
     // init db contract
+    let tx;
+    const env: ENV_FIX = getEnv();
+    let dbProxyAttached = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(dbProxy.address)
     try {
-        const tx = await dbProxy.connect(users.owner1).__DBContract_init([
-            lynkTokenProxy.address,
-            apTokenProxy.address,
+        tx = await dbProxyAttached.connect(users.owner1).__DBContract_init([
+            mockLYNKTokenAddress,
+            mockAPTokenAddress,
             stakingProxy.address,
             lynkNFTProxy.address,
             sLYNKNFTProxy.address,
             lLYNKTokenProxy.address,
             marketProxy.address,
             userProxy.address,
-            users.team_addr,
+            users.team_addr.address,
         ])
         await tx.wait()
+
+        tx = await dbProxyAttached.connect(users.owner1).setOperator(users.operator.address)
+        await tx.wait()
+
+        tx = await dbProxyAttached.connect(users.operator).setMaxMintPerDayPerAddress(env.MAX_MINT_PER_DAY_PER_ADDRESS)
+        await tx.wait()
+
+        await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold('0', env.ATTRIBUTE_VA)
+        await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold('1', env.ATTRIBUTE_IN)
+        await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold('2', env.ATTRIBUTE_DX)
+        await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold('3', env.ATTRIBUTE_CA)
+
+        await dbProxyAttached.connect(users.operator).setAcceptToken(mockUSDTAddress)
+        await dbProxyAttached.connect(users.operator).setAcceptToken(ethers.constants.AddressZero)
+
+        await dbProxyAttached.connect(users.operator).setSellingLevelLimit(env.SELLING_LEVEL_LIMIT)
+        await dbProxyAttached.connect(users.operator).setTradingFee(env.TRADING_FEE)
+        await dbProxyAttached.connect(users.operator).setRootAddress(env.ROOT)
+        await dbProxyAttached.connect(users.operator).setDirectRequirements(env.DIRECT_REQUIREMENTS)
+        await dbProxyAttached.connect(users.operator).setPerformanceRequirements(env.PERFORMANCE_REQUIREMENTS)
+        await dbProxyAttached.connect(users.operator).setSocialRewardRates(env.SOCIAL_REWARD)
+        await dbProxyAttached.connect(users.operator).setContributionRewardThreshold(env.CONTRIBUTION_THRESHOLD)
+        await dbProxyAttached.connect(users.operator).setContributionRewardAmounts(env.CONTRIBUTION_REWARD)
+
+        for (let index = 0; index < env.COMMUNITY_REWARD.length; index++) {
+            await dbProxyAttached.connect(users.operator).setCommunityRewardRates(index, env.COMMUNITY_REWARD[index])
+        }
+
+        await dbProxyAttached.connect(users.operator).setAchievementRewardLevelThreshold(env.ACHIEVEMENT_LEVEL_THRESHOLD)
+        await dbProxyAttached.connect(users.operator).setAchievementRewardDurationThreshold(env.ACHIEVEMENT_DURATION)
+        await dbProxyAttached.connect(users.operator).setAchievementRewardAmounts(env.ACHIEVEMENT_REWARD)
     } catch (e: any) {
         console.log(e.reason)
     }

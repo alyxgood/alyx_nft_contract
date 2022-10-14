@@ -8,13 +8,13 @@ describe("main_process", function () {
         console.log('start test1...');
 
         contracts = await set_up_fixture("test_net")
-        users = await get_user()
+        // users = await get_user()
 
 
     });
 
 
-    describe('main_process', () => {
+    describe('main_process_1', () => {
         it("main_process1111", async function () {
             console.log('start test2...');
             console.log(contracts.USDT.address);

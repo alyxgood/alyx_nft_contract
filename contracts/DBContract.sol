@@ -31,12 +31,10 @@ contract DBContract is OwnableUpgradeable {
     uint256 public maxMintPerDayPerAddress;
     string public baseTokenURI;
     uint256[][] public attributeLevelThreshold;
-    uint256 public mintLimitPerDay;
 
     /**************************************************************************
      *****  Market fields  ****************************************************
      **************************************************************************/
-    bool public enableTokenWl;
     address[] public acceptTokens;
     uint256 public sellingLevelLimit;
     uint256 public tradingFee;
@@ -102,20 +100,23 @@ contract DBContract is OwnableUpgradeable {
         baseTokenURI = _baseTokenURI;
     }
 
-    function setMintLimitPerDay(uint256 _mintLimitPerDay) external onlyOperator {
-        mintLimitPerDay = _mintLimitPerDay;
-    }
-
     /**
      * CA: [100, 500, 1000 ... ]
      */
     function setAttributeLevelThreshold(ILYNKNFT.Attribute _attr, uint256[] calldata _thresholds) external onlyOperator {
-        delete attributeLevelThreshold[uint256(_attr)];
+        require(uint256(_attr) <= attributeLevelThreshold.length, 'DBContract: length mismatch.');
+
         for (uint256 index; index < _thresholds.length; index++) {
             if (index > 0) {
                 require(_thresholds[index] > _thresholds[index - 1], 'DBContract: invalid thresholds.');
             }
-            attributeLevelThreshold[uint256(_attr)][index] = _thresholds[index];
+        }
+
+        if (attributeLevelThreshold.length == uint256(_attr)) {
+            attributeLevelThreshold.push(_thresholds);
+        } else {
+            delete attributeLevelThreshold[uint256(_attr)];
+            attributeLevelThreshold[uint256(_attr)] = _thresholds;
         }
     }
 
@@ -158,24 +159,17 @@ contract DBContract is OwnableUpgradeable {
     }
 
     function setDirectRequirements(uint256[] calldata _requirements) external onlyOperator {
-        require(_requirements.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
+        require(_requirements.length == uint256(type(IUser.Level).max), 'DBContract: length mismatch.');
 
         delete directRequirements;
-        for (uint256 index; index < _requirements.length; index++) {
-            directRequirements[index] = _requirements[index];
-        }
+        directRequirements = _requirements;
     }
 
     function setPerformanceRequirements(uint256[] calldata _requirements) external onlyOperator {
-        require(_requirements.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
+        require(_requirements.length == uint256(type(IUser.Level).max), 'DBContract: length mismatch.');
 
         delete performanceRequirements;
-        for (uint256 index; index < _requirements.length; index++) {
-            if (index > 0) {
-                require(_requirements[index] > _requirements[index - 1], 'DBContract: invalid requirements.');
-            }
-            performanceRequirements[index] = _requirements[index];
-        }
+        performanceRequirements = _requirements;
     }
 
     // e.g. 100% = 1e18
@@ -185,8 +179,9 @@ contract DBContract is OwnableUpgradeable {
         delete socialRewardRates;
         for (uint256 index; index < _rates.length; index++) {
             require(_rates[index] <= 1e18, 'DBContract: too large.');
-            socialRewardRates[index] = _rates[index];
         }
+
+        socialRewardRates = _rates;
     }
 
     function setContributionRewardThreshold(uint256 _contributionRewardThreshold) external onlyOperator {
@@ -197,9 +192,7 @@ contract DBContract is OwnableUpgradeable {
         require(_amounts.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
 
         delete contributionRewardAmounts;
-        for (uint256 index; index < _amounts.length; index++) {
-            contributionRewardAmounts[index] = _amounts[index];
-        }
+        contributionRewardAmounts = _amounts;
     }
 
     function setCommunityRewardRates(IUser.Level _level, uint256[] calldata _rates) external onlyOperator {
@@ -217,7 +210,7 @@ contract DBContract is OwnableUpgradeable {
         achievementRewardDurationThreshold = _achievementRewardDurationThreshold;
     }
 
-    function setAchievementRewardThresholdThreshold(uint256 _achievementRewardLevelThreshold) external onlyOperator {
+    function setAchievementRewardLevelThreshold(uint256 _achievementRewardLevelThreshold) external onlyOperator {
         achievementRewardLevelThreshold = _achievementRewardLevelThreshold;
     }
 
@@ -225,9 +218,7 @@ contract DBContract is OwnableUpgradeable {
         require(_amounts.length == uint256(type(IUser.Level).max) + 1, 'DBContract: length mismatch.');
 
         delete achievementRewardAmounts;
-        for (uint256 index; index < _amounts.length; index++) {
-            achievementRewardAmounts[index] = _amounts[index];
-        }
+        achievementRewardAmounts = _amounts;
     }
 
     /**************************************************************************
@@ -299,14 +290,14 @@ contract DBContract is OwnableUpgradeable {
     }
 
     function _setAddresses(address[] calldata _addresses) private {
-        require(_addresses.length == 10, 'DBContract: addresses length mismatch.');
+        require(_addresses.length == 9, 'DBContract: addresses length mismatch.');
 
         LYNK_TOKEN          = _addresses[0];
         AP_TOKEN            = _addresses[1];
         STAKING             = _addresses[2];
-        LYNKNFT = _addresses[3];
-        STAKING_LYNKNFT = _addresses[4];
-        LISTED_LYNKNFT = _addresses[5];
+        LYNKNFT             = _addresses[3];
+        STAKING_LYNKNFT     = _addresses[4];
+        LISTED_LYNKNFT      = _addresses[5];
         MARKET              = _addresses[6];
         USER_INFO           = _addresses[7];
         TEAM_ADDR           = _addresses[8];

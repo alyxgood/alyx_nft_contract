@@ -50,7 +50,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
             mintInfo.mintNumInDuration = 0;
         }
         require(
-            mintInfo.mintNumInDuration < DBContract(DB_CONTRACT).mintLimitPerDay(),
+            mintInfo.mintNumInDuration < DBContract(DB_CONTRACT).maxMintPerDayPerAddress(),
                 'LYNKNFT: cannot mint more in a day.'
         );
         mintInfoOf[_msgSender()].lastMintTime = uint128(block.timestamp);

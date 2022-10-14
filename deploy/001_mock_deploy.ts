@@ -10,9 +10,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const {deployer1} = await getNamedAccounts();
 
-    await deploy('mock_usdc', {
+    await deploy('mock_usdt', {
         from: deployer1,
-        args: ["usdc", "mock_usdc", 6],
+        args: ["MOCK USDT", "mUSDT", 18],
+        log: true,
+        contract: "MockERC20"
+    });
+
+    await deploy('mock_ap_token', {
+        from: deployer1,
+        args: ["MOCK Attribute Point", "mAP", 18],
+        log: true,
+        contract: "MockERC20"
+    });
+
+    await deploy('mock_lynk_token', {
+        from: deployer1,
+        args: ["MOCK LYNK TOKEN", "mLYNK", 18],
         log: true,
         contract: "MockERC20"
     });
