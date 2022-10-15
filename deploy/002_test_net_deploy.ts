@@ -1,7 +1,7 @@
 import {DeployFunction} from 'hardhat-deploy/types';
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {DBContract, MockERC20} from "../typechain-types";
-import {ENV_FIX, get_user, getEnv, USER_FIX} from "../test/start_up";
+import {ENV_FIX, get_user, get_env, USER_FIX} from "../test/start_up";
 import {use} from "chai";
 
 
@@ -176,7 +176,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     // init db contract
     let tx;
-    const env: ENV_FIX = getEnv();
+    const env: ENV_FIX = get_env();
     let dbProxyAttached = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(dbProxy.address)
     try {
         tx = await dbProxyAttached.connect(users.owner1).__DBContract_init([
@@ -195,6 +195,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.owner1).setOperator(users.operator.address)
         await tx.wait()
 
+        await dbProxyAttached.connect(users.operator).setMintPrices(env.MINT_PRICES)
         tx = await dbProxyAttached.connect(users.operator).setMaxMintPerDayPerAddress(env.MAX_MINT_PER_DAY_PER_ADDRESS)
         await tx.wait()
 

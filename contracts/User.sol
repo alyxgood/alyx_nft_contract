@@ -24,7 +24,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         uint256 contributionRev;
         uint256 achievementRev;
         uint256 performance;
-        mapping(uint256 => uint256) refInfoOf;
+        mapping(uint256 => uint256) refCounterOf;
     }
 
     struct StakeInfo {
@@ -58,7 +58,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         );
 
         userInfoOf[_msgSender()].refAddress = _refAddr;
-        userInfoOf[_refAddr].refInfoOf[0] += 1;
+        userInfoOf[_refAddr].refCounterOf[0] += 1;
         auditLevel(_refAddr);
     }
 
@@ -161,17 +161,17 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
             uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
             if (curLevelIndex < uint256(type(Level).max)) {
                 uint256 nextLevelIndex = curLevelIndex + 1;
-                uint256 directRequire = DBContract(DB_CONTRACT).directRequirements(nextLevelIndex);
-                uint256 performanceRequire = DBContract(DB_CONTRACT).performanceRequirements(nextLevelIndex);
+                uint256 directRequire = DBContract(DB_CONTRACT).directRequirements(curLevelIndex);
+                uint256 performanceRequire = DBContract(DB_CONTRACT).performanceRequirements(curLevelIndex);
                 if (
                     userInfoOf[_userAddr].performance >= performanceRequire &&
-                    userInfoOf[_userAddr].refInfoOf[curLevelIndex] >= directRequire
+                    userInfoOf[_userAddr].refCounterOf[curLevelIndex] >= directRequire
                 ) {
                     userInfoOf[_userAddr].level = Level(nextLevelIndex);
 
                     address refAddress = userInfoOf[_userAddr].refAddress;
                     if (refAddress != address(0)) {
-                        userInfoOf[refAddress].refInfoOf[nextLevelIndex] += 1;
+                        userInfoOf[refAddress].refCounterOf[nextLevelIndex] += 1;
                         auditLevel(refAddress);
                     }
                 }
@@ -194,6 +194,10 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         }
 
         return (claimable, rewardTotalAmount);
+    }
+
+    function refCounterOf(address _userAddr, Level _level) external view returns (uint256) {
+        return userInfoOf[_userAddr].refCounterOf[uint256(_level)];
     }
 
 }

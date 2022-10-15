@@ -4,17 +4,12 @@ pragma solidity 0.8.9;
 import "../baseContract.sol";
 import "../interfaces/IUser.sol";
 import "../interfaces/ILYNKNFT.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
-    using CountersUpgradeable for CountersUpgradeable.Counter;
-
-    CountersUpgradeable.Counter public currentTokenId;
-
     uint256 private randomSeed;
     mapping(uint256 => uint256[]) public nftInfo;
     mapping(address => MintInfo) public mintInfoOf;
