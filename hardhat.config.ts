@@ -62,6 +62,17 @@ const config: HardhatUserConfig = {
         count: 10
       }
     },
+    mumbai: {
+      url: process.env.MUMBAI_RPC,
+      chainId: 80001,
+      gasMultiplier: 1.5,
+      accounts: {
+        mnemonic: process.env.MNEMONIC_MUMBAI ? process.env.MNEMONIC_MUMBAI : "test test test test test test test test test test test junk",
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 14
+      }
+    }
   },
   mocha: {
     timeout: 200000
