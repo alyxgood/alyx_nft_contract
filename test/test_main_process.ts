@@ -32,11 +32,31 @@ describe("main_process", function () {
         // 1. create fixture
         userLevels = await set_up_level(users.team_addr.address, contracts, envs, users, state)
         nftLevels = await set_up_nft_level(users.team_addr.address, users.user1, contracts, envs, state)
+        // await contracts.user.connect(users.user1).register(envs.ROOT)
     });
 
 
     describe('main_process_1', () => {
         it("Should main process work well", async function () {
+            let tx;
+
+            // user1 buy APToken
+            let user1APTBalance = BigNumber.from(0)
+            for (let index = 0; index < envs.AP_PACKAGE.length; index++) {
+                let tx = await contracts.apToken
+                    .connect(users.user1)["mint(uint256)"](
+                    index,
+                    {value: BigNumber.from(envs.AP_PACKAGE[index][1])}
+                )
+                expect(tx.value).to.equal(envs.AP_PACKAGE[index][1])
+                await expect(tx)
+                    .to.emit(contracts.apToken, 'Transfer')
+                    .withArgs(ethers.constants.AddressZero, users.user1.address, envs.AP_PACKAGE[index][2])
+
+                user1APTBalance = user1APTBalance.add(envs.AP_PACKAGE[index][2])
+                expect(await contracts.apToken.balanceOf(users.user1.address)).to.equal(user1APTBalance)
+            }
+
             // let tx;
             //
             // // user1 register by root
