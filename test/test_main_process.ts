@@ -41,7 +41,7 @@ describe("main_process", function () {
             let tx;
 
             // user1 buy APToken
-            let user1APTBalance = BigNumber.from(0)
+            let user1APTBalance = await contracts.apToken.balanceOf(users.user1.address)
             for (let index = 0; index < envs.AP_PACKAGE.length; index++) {
                 let tx = await contracts.apToken
                     .connect(users.user1)["mint(uint256)"](
