@@ -311,4 +311,36 @@ contract DBContract is OwnableUpgradeable {
         TEAM_ADDR           = _addresses[8];
     }
 
+    function mintPricesNum() external view returns (uint256) {
+        return mintPrices.length;
+    }
+
+    function attributeLevelThresholdNum() external view returns (uint256) {
+        return attributeLevelThreshold.length;
+    }
+
+    function directRequirementsNum() external view returns (uint256) {
+        return directRequirements.length;
+    }
+
+    function performanceRequirementsNum() external view returns (uint256) {
+        return performanceRequirements.length;
+    }
+
+    function socialRewardRatesNum() external view returns (uint256) {
+        return socialRewardRates.length;
+    }
+
+    function contributionRewardAmountsNum() external view returns (uint256) {
+        return contributionRewardAmounts.length;
+    }
+
+    function communityRewardRatesNumByLevel(IUser.Level _level) external view returns (uint256) {
+        return communityRewardRates[uint256(_level)].length;
+    }
+
+    function achievementRewardAmountsNum() external view returns (uint256) {
+        return achievementRewardAmounts.length;
+    }
+
 }

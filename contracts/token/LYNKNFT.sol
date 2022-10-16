@@ -120,6 +120,10 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         return nftInfo[_tokenId];
     }
 
+    function exists(uint256 tokenId) external returns (bool) {
+        return _exists(tokenId);
+    }
+
     function _attributesGen(address _minter) private returns (uint256 _vitality, uint256 _intellect) {
         uint256 _randomSeed = _randomSeedGen();
         _randomSeed = uint256(keccak256(abi.encodePacked(_randomSeed, _minter)));
