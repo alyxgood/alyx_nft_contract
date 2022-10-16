@@ -258,22 +258,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
         if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.charisma.valueOf())) {
             console.log('setup charisma level threshold...')
-            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.charisma.valueOf(), env.ATTRIBUTE_VA)
+            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.charisma.valueOf(), env.ATTRIBUTE_CA)
             await tx.wait()
         }
         if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.dexterity.valueOf())) {
             console.log('setup dexterity level threshold...')
-            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.dexterity.valueOf(), env.ATTRIBUTE_IN)
+            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.dexterity.valueOf(), env.ATTRIBUTE_DX)
             await tx.wait()
         }
         if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.vitality.valueOf())) {
             console.log('setup vitality level threshold...')
-            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.vitality.valueOf(), env.ATTRIBUTE_DX)
+            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.vitality.valueOf(), env.ATTRIBUTE_VA)
             await tx.wait()
         }
         if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.intellect.valueOf())) {
             console.log('setup intellect level threshold...')
-            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.intellect.valueOf(), env.ATTRIBUTE_CA)
+            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.intellect.valueOf(), env.ATTRIBUTE_IN)
             await tx.wait()
         }
 
@@ -350,6 +350,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         if ((await dbProxyAttached.achievementRewardAmountsNum()).eq(0)) {
             console.log('setup achievement reward amounts...')
             tx = await dbProxyAttached.connect(users.operator).setAchievementRewardAmounts(env.ACHIEVEMENT_REWARD)
+            await tx.wait()
+        }
+
+        if ((await dbProxyAttached.packageLength()).eq(0)) {
+            console.log('setup APToken selling package...')
+            tx = await dbProxyAttached.connect(users.operator).setSellingPackage(env.AP_PACKAGE)
             await tx.wait()
         }
     } catch (e: any) {

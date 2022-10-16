@@ -120,7 +120,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         return nftInfo[_tokenId];
     }
 
-    function exists(uint256 tokenId) external returns (bool) {
+    function exists(uint256 tokenId) external view returns (bool) {
         return _exists(tokenId);
     }
 

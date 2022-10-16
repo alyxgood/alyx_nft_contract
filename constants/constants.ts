@@ -4,3 +4,12 @@ export enum Attribute {
     vitality,
     intellect
 }
+
+export enum Level {
+    elite,
+    epic,
+    master,
+    legendary,
+    mythic,
+    divine
+}

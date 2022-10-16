@@ -116,7 +116,7 @@ contract DBContract is OwnableUpgradeable {
 
         for (uint256 index; index < _thresholds.length; index++) {
             if (index > 0) {
-                require(_thresholds[index] > _thresholds[index - 1], 'DBContract: invalid thresholds.');
+                require(_thresholds[index] >= _thresholds[index - 1], 'DBContract: invalid thresholds.');
             }
         }
 
@@ -237,14 +237,29 @@ contract DBContract is OwnableUpgradeable {
 
         for (uint256 index; index < _packages.length; index++) {
             require(_packages[index].length == 3, 'DBContract: length mismatch.');
-            sellingPackages[index] = _packages[index];
+
+            sellingPackages.push(_packages[index]);
         }
     }
 
     /**************************************************************************
      *****  public view  ******************************************************
      **************************************************************************/
-    function calcLevel(ILYNKNFT.Attribute _attr, uint256 _point) public view returns (uint256 level, uint256 overflow) {
+    function calcTokenLevel(uint256 _tokenId) external view returns (uint256 level) {
+        require(ILYNKNFT(LYNKNFT).exists(_tokenId), 'DBContract: invalid token ID.');
+
+        uint256[] memory _nftInfo = ILYNKNFT(LYNKNFT).nftInfoOf(_tokenId);
+        for (uint256 index; index < uint256(type(ILYNKNFT.Attribute).max) + 1; index++) {
+            (uint256 levelSingleAttr,) = _calcLevel(ILYNKNFT.Attribute(index), _nftInfo[index]);
+            if (index == 0 || levelSingleAttr < level) {
+                level = levelSingleAttr;
+            }
+        }
+
+        return level;
+    }
+
+    function calcLevel(ILYNKNFT.Attribute _attr, uint256 _point) external view returns (uint256 level, uint256 overflow) {
         return _calcLevel(_attr, _point);
     }
 
@@ -259,6 +274,10 @@ contract DBContract is OwnableUpgradeable {
         }
 
         return false;
+    }
+
+    function packageLength() external view returns (uint256) {
+        return sellingPackages.length;
     }
 
     function packageByIndex(uint256 _index) external view returns (uint256[] memory) {
@@ -287,7 +306,7 @@ contract DBContract is OwnableUpgradeable {
     function _calcLevel(ILYNKNFT.Attribute _attr, uint256 _point) private view returns (uint256 level, uint256 overflow) {
         uint256 thresholdLength = attributeLevelThreshold[uint256(_attr)].length;
         for (uint256 index; index < thresholdLength; index++) {
-            if (_point > attributeLevelThreshold[uint256(_attr)][index]) {
+            if (_point >= attributeLevelThreshold[uint256(_attr)][index]) {
                 level = index + 1;
                 overflow = _point - attributeLevelThreshold[uint256(_attr)][index];
             } else {

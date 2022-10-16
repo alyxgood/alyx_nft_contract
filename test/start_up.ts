@@ -1,24 +1,17 @@
 // We import the hardhat environment field we are planning to use
-import { ethers ,deployments} from "hardhat";
+import {deployments, ethers} from "hardhat";
 
 import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
 
-import {
-    APToken,
-    BNFT,
-    DBContract,
-    LYNKNFT,
-    LYNKToken,
-    Market,
-    MockERC20,
-    Staking,
-    User
-} from "../typechain-types";
+import {APToken, BNFT, DBContract, LYNKNFT, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
 import {BigNumber} from "ethers";
 import {expect} from "chai";
+import {Attribute, Level} from "../constants/constants";
+import {increase} from "./helpers/time";
 
 export interface CONTRACT_STATE {
     LYNKNFT_TOKEN_ID: BigNumber
+    HOLDER_LIST: Map<string, number[]>
 }
 
 export interface USER_FIX {
@@ -41,8 +34,8 @@ export interface USER_FIX {
 export interface CONTRACT_FIX {
     USDT: MockERC20,
     dbContract: DBContract,
-    apToken: MockERC20,
-    LYNKToken: MockERC20,
+    apToken: APToken,
+    LYNKToken: LYNKToken,
     LYNKNFT: LYNKNFT,
     sLYNKNFT: BNFT,
     lLYNKNFT: BNFT,
@@ -81,13 +74,20 @@ export interface USER_LEVEL_FIX {
     mythic: SignerWithAddress
 }
 
+export interface NFT_LEVEL_FIX {
+    token_id_by_level: number[]
+}
+
 export function get_contract_state() {
     let LYNKNFT_TOKEN_ID: BigNumber
+    let HOLDER_LIST: Map<string, number[]>
 
     LYNKNFT_TOKEN_ID = BigNumber.from(0)
+    HOLDER_LIST = new Map<string, number[]>()
 
     return {
-        LYNKNFT_TOKEN_ID
+        LYNKNFT_TOKEN_ID,
+        HOLDER_LIST
     }
 }
 
@@ -138,19 +138,25 @@ export function get_env() {
 
     MINT_PRICES = (process.env.LYNKNFY_PRICES ? process.env.LYNKNFY_PRICES : '10,100,300').split(',')
     MAX_MINT_PER_DAY_PER_ADDRESS = process.env.MAX_MINT_PER_DAY_PER_ADDRESS ? process.env.MAX_MINT_PER_DAY_PER_ADDRESS : '2'
+    ATTRIBUTE_CA = (process.env.ATTRIBUTE_CA ? process.env.ATTRIBUTE_CA : '100,500,1000,3000,5000,10000,20000,30000,50000,100000').split(',')
+    ATTRIBUTE_DX = (process.env.ATTRIBUTE_DX ? process.env.ATTRIBUTE_DX : '5,10,15,20,25,30,40,50,60,70,80,100,120').split(',')
     ATTRIBUTE_VA = (process.env.ATTRIBUTE_VA ? process.env.ATTRIBUTE_VA : '10,20,40,80,160,320,640,1280,2560,5120,10240,20480,40960').split(',')
     ATTRIBUTE_IN = (process.env.ATTRIBUTE_IN ? process.env.ATTRIBUTE_IN : '10,20,30,40,50,60,70,80,90,100,110,120,130').split(',')
-    ATTRIBUTE_DX = (process.env.ATTRIBUTE_DX ? process.env.ATTRIBUTE_DX : '5,10,15,20,25,30,40,50,60,70,80,100,120').split(',')
-    ATTRIBUTE_CA = (process.env.ATTRIBUTE_CA ? process.env.ATTRIBUTE_CA : '100,500,1000,3000,5000,10000,20000,30000,50000,100000').split(',')
     SELLING_LEVEL_LIMIT = process.env.SELLING_LEVEL_LIMIT ? process.env.SELLING_LEVEL_LIMIT : '2'
     TRADING_FEE = ethers.utils.parseEther(process.env.TRADING_FEE ? process.env.TRADING_FEE : '0.003').toString()
     ROOT = process.env.ROOT ? process.env.ROOT : '0x000000000000000000000000000000000000dEaD'
 
     const apPackage = process.env.AP_PACKAGE ? process.env.AP_PACKAGE : '0,30,1|0,3000,110|0,12000,450|0,30000,1200'
     const packages = apPackage.split('|')
-    AP_PACKAGE = new Array(packages.length)
+    AP_PACKAGE = []
     for (let index = 0; index < packages.length; index++) {
         const pkg = packages[index].split(',')
+        for (let indexPkg = 0; indexPkg < pkg.length; indexPkg++) {
+            pkg[indexPkg] = pkg[indexPkg]
+            if (indexPkg > 0) {
+                pkg[indexPkg] = ethers.utils.parseEther(pkg[indexPkg]).toString()
+            }
+        }
         AP_PACKAGE.push(pkg)
     }
 
@@ -220,8 +226,8 @@ export async function set_up_fixture(fix_name: string) {
     const contracts = {
         USDT: (await deployments.get('mock_usdt')).address,
         DBContract: (await deployments.get('DBContract_Proxy')).address,
-        APToken: (await deployments.get('mock_ap_token')).address,
-        LYNKToken: (await deployments.get('mock_lynk_token')).address,
+        APToken: (await deployments.get('APToken_Proxy')).address,
+        LYNKToken: (await deployments.get('LYNKToken_Proxy')).address,
         LYNKNFT: (await deployments.get('LYNKNFT_Proxy')).address,
         sLYNKNFT: (await deployments.get('sLYNKNFT_Proxy')).address,
         lLYNKNFT: (await deployments.get('lLYNKNFT_Proxy')).address,
@@ -233,8 +239,8 @@ export async function set_up_fixture(fix_name: string) {
 
     const USDT = <MockERC20> await (await ethers.getContractFactory("MockERC20")).attach(contracts.USDT)
     const dbContract = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(contracts.DBContract)
-    const apToken = <MockERC20> await (await ethers.getContractFactory('MockERC20')).attach(contracts.APToken)
-    const LYNKToken = <MockERC20> await (await ethers.getContractFactory('MockERC20')).attach(contracts.LYNKToken)
+    const apToken = <APToken> await (await ethers.getContractFactory('APToken')).attach(contracts.APToken)
+    const LYNKToken = <LYNKToken> await (await ethers.getContractFactory('LYNKToken')).attach(contracts.LYNKToken)
     const LYNKNFT = <LYNKNFT> await (await ethers.getContractFactory('LYNKNFT')).attach(contracts.LYNKNFT)
     const sLYNKNFT = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.sLYNKNFT)
     const lLYNKNFT = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.lLYNKNFT)
@@ -258,18 +264,18 @@ export async function set_up_fixture(fix_name: string) {
 
 }
 
-export async function set_up_level(contracts: CONTRACT_FIX, envs: ENV_FIX, users: USER_FIX, state: CONTRACT_STATE) {
-    let elite: SignerWithAddress
-    let epic: SignerWithAddress
-    let master: SignerWithAddress
-    let legendary: SignerWithAddress
-    let mythic: SignerWithAddress
+export async function set_up_level(team_addr: string, contracts: CONTRACT_FIX, envs: ENV_FIX, users: USER_FIX, state: CONTRACT_STATE) {
+    let elite: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
+    let epic: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
+    let master: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
+    let legendary: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
+    let mythic: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
 
-    elite = await eliteGen(contracts, envs, users, undefined)
-    epic = await epicGen(contracts, envs, users, state, undefined)
-    master = await masterGen(contracts, envs, users, state, undefined)
-    legendary = await legendaryGen(contracts, envs, users, state, undefined)
-    mythic = await mythicGen(contracts, envs, users, state, undefined)
+    await user_level_up(team_addr, users.deployer1, elite, Level.elite, contracts, envs, state, undefined)
+    await user_level_up(team_addr, users.deployer1, epic, Level.epic, contracts, envs, state, undefined)
+    await user_level_up(team_addr, users.deployer1, master, Level.master, contracts, envs, state, undefined)
+    await user_level_up(team_addr, users.deployer1, legendary, Level.legendary, contracts, envs, state, undefined)
+    await user_level_up(team_addr, users.deployer1, mythic, Level.mythic, contracts, envs, state, undefined)
 
     return {
         elite,
@@ -280,127 +286,123 @@ export async function set_up_level(contracts: CONTRACT_FIX, envs: ENV_FIX, users
     }
 }
 
-async function eliteGen(contracts: CONTRACT_FIX, envs: ENV_FIX, users: USER_FIX, ref: string | undefined) {
-    const user: SignerWithAddress = await createRandomSignerAndSendETH(users)
-    await contracts.user.connect(user).register(ref ? ref : envs.ROOT)
-    const eliteInfo = await contracts.user.userInfoOf(user.address)
-    expect(eliteInfo.level).to.equal(0)
+export async function set_up_nft_level(team_addr: string, user: SignerWithAddress, contracts: CONTRACT_FIX, envs: ENV_FIX, state: CONTRACT_STATE) {
+    await user_level_up(team_addr, user, user, Level.elite, contracts, envs, state, undefined)
+    const token_id_by_level = new Array(14)
 
-    return user
+    for (let index = 0; index < 14; index++) {
+        token_id_by_level[index] = await mintLYNKNFTAndCheck(team_addr, user, contracts, envs, state)
+        await nft_level_up(token_id_by_level[index], user, index, contracts, envs)
+        await increase(24*60*60)
+    }
+
+    return {
+        token_id_by_level
+    }
 }
 
-async function epicGen(contracts: CONTRACT_FIX, envs: ENV_FIX, users: USER_FIX, state: CONTRACT_STATE, ref: string | undefined) {
-    const user: SignerWithAddress = await eliteGen(contracts, envs, users, ref)
+export async function user_level_up(team_addr: string, vault: SignerWithAddress, user: SignerWithAddress, toLevel: Level, contracts: CONTRACT_FIX, envs: ENV_FIX, state: CONTRACT_STATE, ref: string | undefined) {
+    let userInfo = await contracts.user.userInfoOf(user.address)
+    if (userInfo.refAddress === ethers.constants.AddressZero) {
+        await contracts.user.connect(user).register(ref ?? envs.ROOT)
+        userInfo = await contracts.user.userInfoOf(user.address)
+        expect(userInfo.level).to.equal(Level.elite.valueOf())
+        expect(userInfo.refAddress).to.equal(ref ?? envs.ROOT)
+    }
+    const toLevelNumber = toLevel.valueOf();
 
-    const epicDirectRequirements = BigNumber.from(envs.DIRECT_REQUIREMENTS[0]).toNumber()
-    const epicPerformanceRequirements = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[0]).add(ethers.utils.parseEther(`${epicDirectRequirements}`))
+    if (toLevelNumber > userInfo.level) {
+        const decimalUSDT = await contracts.USDT.decimals()
+        const directRequirement = BigNumber.from(envs.DIRECT_REQUIREMENTS[toLevelNumber - 1]).toNumber()
+        const performanceRequirement = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[toLevelNumber - 1]).add(ethers.utils.parseEther(`${directRequirement}`)).div(directRequirement)
+        for (let index = 0; index < directRequirement; index++) {
+            const randomUser = await createRandomSignerAndSendETH(vault)
+            await user_level_up(team_addr, vault, randomUser, (toLevelNumber - 1 as Level), contracts, envs, state, user.address)
+
+            const tokenId = await mintLYNKNFTAndCheck(team_addr, randomUser, contracts, envs, state)
+            await contracts.USDT.connect(randomUser).mint(randomUser.address, performanceRequirement)
+            await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, performanceRequirement)
+
+            await contracts.LYNKNFT.connect(randomUser).upgrade(0, tokenId, performanceRequirement.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
+        }
+    }
+
+    userInfo = await contracts.user.userInfoOf(user.address)
+    expect(userInfo.level).to.equal(toLevelNumber)
+}
+
+export async function nft_level_up(tokenId: number, user: SignerWithAddress, toLevel: number, contracts: CONTRACT_FIX, envs: ENV_FIX) {
+    expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(user.address)
+
+    if (toLevel > 0) {
+        const nftInfo = await contracts.LYNKNFT.nftInfoOf(tokenId)
+        expect(nftInfo.length).to.equal(4)
+
+        const decimalUSDT = await contracts.USDT.decimals()
+        const decimalAPT = await contracts.apToken.decimals()
+
+        const charismaThreshold = BigNumber.from(envs.ATTRIBUTE_CA[toLevel - 1]).sub(nftInfo[0])
+        const charismaThresholdNeedAmount = charismaThreshold.mul(BigNumber.from(10).pow(decimalUSDT))
+        await contracts.USDT.connect(user).mint(user.address, charismaThresholdNeedAmount)
+        await contracts.USDT.connect(user).approve(contracts.LYNKNFT.address, charismaThresholdNeedAmount)
+        await contracts.LYNKNFT.connect(user).upgrade(Attribute.charisma.valueOf(), tokenId, charismaThreshold, contracts.USDT.address)
+
+        const dexterityThreshold = BigNumber.from(envs.ATTRIBUTE_DX[toLevel - 1]).sub(nftInfo[1])
+        const dexterityThresholdNeedAmount = dexterityThreshold.mul(BigNumber.from(10).pow(decimalAPT))
+
+        const vitalityThreshold = BigNumber.from(envs.ATTRIBUTE_VA[toLevel - 1]).sub(nftInfo[2])
+        const vitalityThresholdNeedAmount = vitalityThreshold.mul(BigNumber.from(10).pow(decimalAPT))
+
+        const intellectThreshold = BigNumber.from(envs.ATTRIBUTE_IN[toLevel - 1]).sub(nftInfo[3])
+        const intellectThresholdAmount = intellectThreshold.mul(BigNumber.from(10).pow(decimalAPT))
+
+        const totalAPT = dexterityThresholdNeedAmount.add(vitalityThresholdNeedAmount).add(intellectThresholdAmount)
+        const maxPackage = envs.AP_PACKAGE[envs.AP_PACKAGE.length - 1]
+        const needPackageNum = totalAPT.div(BigNumber.from(maxPackage[2])).add(1).toNumber()
+
+        for (let index = 0; index < needPackageNum; index++) {
+            await contracts.apToken.connect(user)["mint(uint256)"](envs.AP_PACKAGE.length - 1, {value: BigNumber.from(maxPackage[1])})
+        }
+
+        await contracts.apToken.connect(user).approve(contracts.LYNKNFT.address, totalAPT)
+        await contracts.LYNKNFT.connect(user).upgrade(Attribute.dexterity.valueOf(), tokenId, dexterityThreshold, contracts.apToken.address)
+        await contracts.LYNKNFT.connect(user).upgrade(Attribute.vitality.valueOf(), tokenId, vitalityThreshold, contracts.apToken.address)
+        await contracts.LYNKNFT.connect(user).upgrade(Attribute.intellect.valueOf(), tokenId, intellectThreshold, contracts.apToken.address)
+    }
+
+    const level = await contracts.dbContract.calcTokenLevel(tokenId)
+    expect(level).to.equal(toLevel)
+}
+
+export async function mintLYNKNFTAndCheck(team_addr: string, user: SignerWithAddress, contracts: CONTRACT_FIX, envs: ENV_FIX, state: CONTRACT_STATE) {
     const decimalUSDT = await contracts.USDT.decimals()
     const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
-    for (let index = 0; index < epicDirectRequirements; index++) {
-        const randomUser: SignerWithAddress = await eliteGen(contracts, envs, users, user.address)
+    await contracts.USDT.connect(user).mint(user.address, mintPrice)
+    await contracts.USDT.connect(user).approve(contracts.LYNKNFT.address, mintPrice)
 
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice)
-        await contracts.LYNKNFT.connect(randomUser).mint(state.LYNKNFT_TOKEN_ID, contracts.USDT.address)
+    const tokenId = state.LYNKNFT_TOKEN_ID
+    const tx = await contracts.LYNKNFT.connect(user).mint(tokenId, contracts.USDT.address)
+    await expect(tx)
+        .to.emit(contracts.USDT, 'Transfer')
+        .withArgs(user.address, team_addr, mintPrice)
+    await expect(tx)
+        .to.emit(contracts.LYNKNFT, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, user.address, tokenId)
+    expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(user.address)
 
-        const upgradeAmount = epicPerformanceRequirements.div(epicDirectRequirements)
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, upgradeAmount)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, upgradeAmount)
-        await contracts.LYNKNFT.connect(randomUser).upgrade(0, state.LYNKNFT_TOKEN_ID, upgradeAmount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
-
-        state.LYNKNFT_TOKEN_ID = state.LYNKNFT_TOKEN_ID.add(1)
+    if (!state.HOLDER_LIST.has(user.address)) {
+        state.HOLDER_LIST.set(user.address, [])
     }
-    const epicInfo = await contracts.user.userInfoOf(user.address)
-    expect(epicInfo.level).to.equal(1)
+    (state.HOLDER_LIST.get(user.address) as number[]).push(tokenId.toNumber())
+    state.LYNKNFT_TOKEN_ID = state.LYNKNFT_TOKEN_ID.add(1)
 
-    return user
+    return tokenId.toNumber()
 }
 
-async function masterGen(contracts: CONTRACT_FIX, envs: ENV_FIX, users: USER_FIX, state: CONTRACT_STATE, ref: string | undefined) {
-    const user: SignerWithAddress = await epicGen(contracts, envs, users, state, ref)
-
-    const epicDirectRequirements = BigNumber.from(envs.DIRECT_REQUIREMENTS[1]).toNumber()
-    const epicPerformanceRequirements = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[1]).add(ethers.utils.parseEther(`${epicDirectRequirements}`))
-    const decimalUSDT = await contracts.USDT.decimals()
-    const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
-    for (let index = 0; index < epicDirectRequirements; index++) {
-        const randomUser: SignerWithAddress = await epicGen(contracts, envs, users, state, user.address)
-
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice)
-        await contracts.LYNKNFT.connect(randomUser).mint(state.LYNKNFT_TOKEN_ID, contracts.USDT.address)
-
-        const upgradeAmount = epicPerformanceRequirements.div(epicDirectRequirements)
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, upgradeAmount)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, upgradeAmount)
-        await contracts.LYNKNFT.connect(randomUser).upgrade(0, state.LYNKNFT_TOKEN_ID, upgradeAmount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
-
-        state.LYNKNFT_TOKEN_ID = state.LYNKNFT_TOKEN_ID.add(1)
-    }
-    const epicInfo = await contracts.user.userInfoOf(user.address)
-    expect(epicInfo.level).to.equal(2)
-
-    return user
-}
-
-async function legendaryGen(contracts: CONTRACT_FIX, envs: ENV_FIX, users: USER_FIX, state: CONTRACT_STATE, ref: string | undefined) {
-    const user: SignerWithAddress = await masterGen(contracts, envs, users, state, ref)
-
-    const epicDirectRequirements = BigNumber.from(envs.DIRECT_REQUIREMENTS[2]).toNumber()
-    const epicPerformanceRequirements = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[2]).add(ethers.utils.parseEther(`${epicDirectRequirements}`))
-    const decimalUSDT = await contracts.USDT.decimals()
-    const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
-    for (let index = 0; index < epicDirectRequirements; index++) {
-        const randomUser: SignerWithAddress = await masterGen(contracts, envs, users, state, user.address)
-
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice)
-        await contracts.LYNKNFT.connect(randomUser).mint(state.LYNKNFT_TOKEN_ID, contracts.USDT.address)
-
-        const upgradeAmount = epicPerformanceRequirements.div(epicDirectRequirements)
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, upgradeAmount)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, upgradeAmount)
-        await contracts.LYNKNFT.connect(randomUser).upgrade(0, state.LYNKNFT_TOKEN_ID, upgradeAmount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
-
-        state.LYNKNFT_TOKEN_ID = state.LYNKNFT_TOKEN_ID.add(1)
-    }
-    const epicInfo = await contracts.user.userInfoOf(user.address)
-    expect(epicInfo.level).to.equal(3)
-
-    return user
-}
-
-async function mythicGen(contracts: CONTRACT_FIX, envs: ENV_FIX, users: USER_FIX, state: CONTRACT_STATE, ref: string | undefined) {
-    const user: SignerWithAddress = await legendaryGen(contracts, envs, users, state, ref)
-
-    const epicDirectRequirements = BigNumber.from(envs.DIRECT_REQUIREMENTS[3]).toNumber()
-    const epicPerformanceRequirements = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[3]).add(ethers.utils.parseEther(`${epicDirectRequirements}`))
-    const decimalUSDT = await contracts.USDT.decimals()
-    const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
-    for (let index = 0; index < epicDirectRequirements; index++) {
-        const randomUser: SignerWithAddress = await legendaryGen(contracts, envs, users, state, user.address)
-
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice)
-        await contracts.LYNKNFT.connect(randomUser).mint(state.LYNKNFT_TOKEN_ID, contracts.USDT.address)
-
-        const upgradeAmount = epicPerformanceRequirements.div(epicDirectRequirements)
-        await contracts.USDT.connect(randomUser).mint(randomUser.address, upgradeAmount)
-        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, upgradeAmount)
-        await contracts.LYNKNFT.connect(randomUser).upgrade(0, state.LYNKNFT_TOKEN_ID, upgradeAmount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
-
-        state.LYNKNFT_TOKEN_ID = state.LYNKNFT_TOKEN_ID.add(1)
-    }
-    const epicInfo = await contracts.user.userInfoOf(user.address)
-    expect(epicInfo.level).to.equal(4)
-
-    return user
-}
-
-async function createRandomSignerAndSendETH(users: USER_FIX) {
+async function createRandomSignerAndSendETH(vault: SignerWithAddress) {
     // @ts-ignore
     const randomSigner = await SignerWithAddress.create(ethers.Wallet.createRandom().connect(ethers.provider))
-    const tx = await users.deployer1.sendTransaction({
+    const tx = await vault.sendTransaction({
         to: randomSigner.address,
         value: ethers.utils.parseEther('1')
     })

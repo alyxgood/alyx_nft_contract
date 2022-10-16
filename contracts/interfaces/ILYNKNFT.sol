@@ -15,4 +15,6 @@ interface ILYNKNFT {
         view
         returns (uint256[] memory _nftInfo);
 
+    function exists(uint256 tokenId) external view returns (bool);
+
 }
