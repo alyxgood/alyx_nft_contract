@@ -8,6 +8,7 @@ import {BigNumber} from "ethers";
 import {expect} from "chai";
 import {Attribute, Level} from "../constants/constants";
 import {increase} from "./helpers/time";
+import {BigNumberish} from "@ethersproject/bignumber/src.ts/bignumber";
 
 export interface CONTRACT_STATE {
     LYNKNFT_TOKEN_ID: BigNumber
@@ -270,19 +271,22 @@ export async function set_up_level(team_addr: string, contracts: CONTRACT_FIX, e
     let master: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
     let legendary: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
     let mythic: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
+    let divine: SignerWithAddress = await createRandomSignerAndSendETH(users.deployer1)
 
     await user_level_up(team_addr, users.deployer1, elite, Level.elite, contracts, envs, state, undefined)
     await user_level_up(team_addr, users.deployer1, epic, Level.epic, contracts, envs, state, undefined)
     await user_level_up(team_addr, users.deployer1, master, Level.master, contracts, envs, state, undefined)
     await user_level_up(team_addr, users.deployer1, legendary, Level.legendary, contracts, envs, state, undefined)
     await user_level_up(team_addr, users.deployer1, mythic, Level.mythic, contracts, envs, state, undefined)
+    await user_level_up(team_addr, users.deployer1, divine, Level.divine, contracts, envs, state, undefined)
 
     return {
         elite,
         epic,
         master,
         legendary,
-        mythic
+        mythic,
+        divine
     }
 }
 
@@ -397,6 +401,18 @@ export async function mintLYNKNFTAndCheck(team_addr: string, user: SignerWithAdd
     state.LYNKNFT_TOKEN_ID = state.LYNKNFT_TOKEN_ID.add(1)
 
     return tokenId.toNumber()
+}
+
+export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: string, tokenId: BigNumberish, contracts: CONTRACT_FIX) {
+    const tx = await contracts.LYNKNFT.connect(from).transferFrom(
+        from.address,
+        to,
+        tokenId
+    )
+    await expect(tx)
+        .to.emit(contracts.LYNKNFT, 'Transfer')
+        .withArgs(from.address, to, tokenId)
+    expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(to)
 }
 
 async function createRandomSignerAndSendETH(vault: SignerWithAddress) {

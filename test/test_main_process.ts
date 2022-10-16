@@ -6,7 +6,7 @@ import {
     get_env,
     set_up_fixture,
     set_up_level,
-    USER_FIX, USER_LEVEL_FIX, mintLYNKNFTAndCheck, NFT_LEVEL_FIX, set_up_nft_level
+    USER_FIX, USER_LEVEL_FIX, mintLYNKNFTAndCheck, NFT_LEVEL_FIX, set_up_nft_level, transferLYNKNFTAndCheck
 } from "./start_up";
 import {BigNumber} from "ethers";
 import {assert, expect} from "chai";
@@ -57,6 +57,22 @@ describe("main_process", function () {
                 expect(await contracts.apToken.balanceOf(users.user1.address)).to.equal(user1APTBalance)
             }
 
+            // user2 buy APToken & upgrade CA
+            // ...
+
+            // user3 mint LYNKNFT
+            await contracts.user.connect(users.user3).register(envs.ROOT)
+            await mintLYNKNFTAndCheck(users.team_addr.address, users.user3, contracts, envs, state)
+
+            // user3 transfer LYNKNFT to user4
+            assert.ok(
+                state.HOLDER_LIST.has(users.user3.address) &&
+                (state.HOLDER_LIST.get(users.user3.address) as number[]).length == 1
+            )
+            const tokenId = (state.HOLDER_LIST.get(users.user3.address) as number[])[0]
+            await transferLYNKNFTAndCheck(users.user3, users.user4.address, tokenId, contracts)
+
+
             // let tx;
             //
             // // user1 register by root
@@ -81,21 +97,3 @@ describe("main_process", function () {
         })
     })
 });
-
-async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: string, tokenId: BigNumberish) {
-    const tx = await contracts.LYNKNFT.connect(users.user3).transferFrom(
-        users.user3.address,
-        users.user4.address,
-        tokenId
-    )
-    await expect(tx)
-        .to.emit(contracts.LYNKNFT, 'Transfer')
-        .withArgs(users.user3.address, users.user4.address, tokenId)
-    expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(users.user4.address)
-}
-
-async function registerAndCheck(user: SignerWithAddress, refAddress: string) {
-    await contracts.user.connect(user).register(refAddress)
-    const user3Info = await contracts.user.userInfoOf(user.address)
-    expect(user3Info.refAddress).to.equal(refAddress)
-}
