@@ -165,7 +165,7 @@ export function get_env() {
         AP_PACKAGE.push(pkg)
     }
 
-    const upCondition = process.env.UP_CONDITION ? process.env.UP_CONDITION : '3,10000000000000000000000|3,50000000000000000000000|3,100000000000000000000000|3,300000000000000000000000|3,1000000000000000000000000'
+    const upCondition = process.env.UP_CONDITION ? process.env.UP_CONDITION : '3,10000|3,50000|3,100000|3,300000|3,1000000'
     const conditions = upCondition.split('|')
     DIRECT_REQUIREMENTS = []
     PERFORMANCE_REQUIREMENTS = []
@@ -180,7 +180,7 @@ export function get_env() {
         SOCIAL_REWARD[index] = ethers.utils.parseEther(SOCIAL_REWARD[index]).div(100).toString()
     }
 
-    CONTRIBUTION_THRESHOLD = ethers.utils.parseEther(process.env.CONTRIBUTION_THRESHOLD ? process.env.CONTRIBUTION_THRESHOLD : '100').toString()
+    CONTRIBUTION_THRESHOLD = process.env.CONTRIBUTION_THRESHOLD ? process.env.CONTRIBUTION_THRESHOLD : '100'
     CONTRIBUTION_REWARD = (process.env.CONTRIBUTION_REWARD ? process.env.CONTRIBUTION_REWARD : '1,2,3,4,5,6').split(',')
     for (let index = 0; index < CONTRIBUTION_REWARD.length; index++) {
         CONTRIBUTION_REWARD[index] = ethers.utils.parseEther(CONTRIBUTION_REWARD[index]).toString()
@@ -323,7 +323,8 @@ export async function user_level_up(team_addr: string, vault: SignerWithAddress,
         const decimalUSDT = await contracts.USDT.decimals()
         const directRequirement = BigNumber.from(envs.DIRECT_REQUIREMENTS[toLevelNumber - 1]).toNumber()
         // const performanceRequirement = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[toLevelNumber - 1]).add(ethers.utils.parseEther(`${directRequirement}`)).div(directRequirement)
-        const performanceRequirement = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[toLevelNumber - 1]).add(ethers.utils.parseEther(`${directRequirement}`))
+        const performanceRequirement = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[toLevelNumber - 1]).add(directRequirement)
+        const performanceRequirementAmount = performanceRequirement.mul(BigNumber.from(10).pow(decimalUSDT))
         for (let index = 0; index < directRequirement; index++) {
             let childUser;
             let tokenId = -1;
@@ -357,10 +358,10 @@ export async function user_level_up(team_addr: string, vault: SignerWithAddress,
                 if (tokenId == -1)
                     tokenId = await mintLYNKNFTAndCheck(team_addr, childUser, contracts, envs, state)
 
-                await contracts.USDT.connect(childUser).mint(childUser.address, performanceRequirement)
-                await contracts.USDT.connect(childUser).approve(contracts.LYNKNFT.address, performanceRequirement)
+                await contracts.USDT.connect(childUser).mint(childUser.address, performanceRequirementAmount)
+                await contracts.USDT.connect(childUser).approve(contracts.LYNKNFT.address, performanceRequirementAmount)
 
-                await contracts.LYNKNFT.connect(childUser).upgrade(0, tokenId, performanceRequirement.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
+                await contracts.LYNKNFT.connect(childUser).upgrade(0, tokenId, performanceRequirementAmount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
             }
         }
     }

@@ -113,7 +113,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         nftInfo[_tokenId][uint256(_attr)] += _point;
 
         // dealing with the ref things.
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUpgrade(_msgSender(), Attribute.charisma == _attr ? amount : 0);
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUpgrade(_msgSender(), Attribute.charisma == _attr ? _point : 0);
     }
 
     function nftInfoOf(uint256 _tokenId) external view override returns (uint256[] memory _nftInfo) {

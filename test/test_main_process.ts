@@ -37,9 +37,9 @@ describe("main_process", function () {
         users = await get_user()
         contracts = await set_up_fixture("test_net")
         // 1. create fixture
-        userLevels = await set_up_level(users.team_addr.address, contracts, envs, users, state)
-        nftLevels = await set_up_nft_level(users.team_addr.address, users.user1, contracts, envs, state)
-        // await contracts.user.connect(users.user1).register(envs.ROOT)
+        // userLevels = await set_up_level(users.team_addr.address, contracts, envs, users, state)
+        // nftLevels = await set_up_nft_level(users.team_addr.address, users.user1, contracts, envs, state)
+        await contracts.user.connect(users.user1).register(envs.ROOT)
     });
 
 
@@ -78,14 +78,19 @@ describe("main_process", function () {
             for (let index = 0; index < Level.divine.valueOf() + 1; index++) {
                 await user_level_up(users.team_addr.address, users.deployer1, user2Ref, (index as Level), contracts, envs, state, undefined)
                 tx = await contracts.LYNKNFT.connect(users.user2).upgrade(Attribute.charisma.valueOf(), user2TokenId, 100, contracts.USDT.address)
-                const spentAmount = BigNumber.from(100).mul(BigNumber.from(10).pow(decimalUSDT))
+                const spentAmount = BigNumber.from(envs.CONTRIBUTION_THRESHOLD).mul(BigNumber.from(10).pow(decimalUSDT))
 
                 await expect(tx)
                     .to.emit(contracts.USDT, 'Transfer')
                     .withArgs(users.user2.address, users.team_addr.address, spentAmount)
+                // Social Reward
                 await expect(tx)
                     .to.emit(contracts.LYNKToken, 'Transfer')
                     .withArgs(ethers.constants.AddressZero, user2Ref.address, BigNumber.from(envs.SOCIAL_REWARD[index]).mul(spentAmount).div(BigNumber.from(10).pow(18)))
+                // Contribution Reward
+                await expect(tx)
+                    .to.emit(contracts.apToken, 'Transfer')
+                    .withArgs(ethers.constants.AddressZero, user2Ref.address, envs.CONTRIBUTION_REWARD[index])
             }
 
             // user3 mint LYNKNFT
@@ -100,6 +105,7 @@ describe("main_process", function () {
             const tokenId = (state.HOLDER_LIST.get(users.user3.address) as number[])[0]
             await transferLYNKNFTAndCheck(users.user3, users.user4.address, tokenId, contracts)
 
+            // upgrade NFT
 
             // let tx;
             //

@@ -4,6 +4,7 @@ pragma solidity 0.8.9;
 import "./baseContract.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/IERC20Mintable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
@@ -75,7 +76,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
             uint256 amount;
             // distribute social reward
             uint256 rate = DBContract(DB_CONTRACT).socialRewardRates(refLevel);
-            amount = _performance * rate / 1e18;
+            amount = (_performance * (10 ** IERC20MetadataUpgradeable(DBContract(DB_CONTRACT).LYNK_TOKEN()).decimals()) * rate) / 1e18;
             userInfoOf[_refAddr].socialRev += amount;
             IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_refAddr, amount);
 
