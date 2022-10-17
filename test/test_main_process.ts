@@ -1,18 +1,25 @@
 import {
     CONTRACT_FIX,
     CONTRACT_STATE,
-    ENV_FIX, get_contract_state,
-    get_user,
+    createRandomSignerAndSendETH,
+    ENV_FIX,
+    get_contract_state,
     get_env,
+    get_user,
+    mintLYNKNFTAndCheck,
+    NFT_LEVEL_FIX,
     set_up_fixture,
+    transferLYNKNFTAndCheck,
+    USER_FIX,
+    USER_LEVEL_FIX,
+    user_level_up,
     set_up_level,
-    USER_FIX, USER_LEVEL_FIX, mintLYNKNFTAndCheck, NFT_LEVEL_FIX, set_up_nft_level, transferLYNKNFTAndCheck
+    set_up_nft_level
 } from "./start_up";
 import {BigNumber} from "ethers";
 import {assert, expect} from "chai";
 import {ethers} from "hardhat";
-import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
-import {BigNumberish} from "@ethersproject/bignumber/src.ts/bignumber";
+import {Attribute, Level} from "../constants/constants";
 
 let state: CONTRACT_STATE
 let envs: ENV_FIX
@@ -57,8 +64,29 @@ describe("main_process", function () {
                 expect(await contracts.apToken.balanceOf(users.user1.address)).to.equal(user1APTBalance)
             }
 
-            // user2 buy APToken & upgrade CA
-            // ...
+            // user2 upgrade CA
+            const user2Ref = await createRandomSignerAndSendETH(users.deployer1)
+            await user_level_up(users.team_addr.address, users.deployer1, user2Ref, Level.elite, contracts, envs, state, undefined)
+            await contracts.user.connect(users.user2).register(user2Ref.address)
+            const user2TokenId = await mintLYNKNFTAndCheck(users.team_addr.address, users.user2, contracts, envs, state)
+
+            const decimalUSDT = await contracts.USDT.decimals()
+            const mintAmount = BigNumber.from(100).mul(Level.divine.valueOf() + 1).mul(BigNumber.from(10).pow(decimalUSDT))
+            await contracts.USDT.connect(users.user2).mint(users.user2.address, mintAmount)
+            await contracts.USDT.connect(users.user2).approve(contracts.LYNKNFT.address, mintAmount)
+            // for elite -> divine (user2Ref)
+            for (let index = 0; index < Level.divine.valueOf() + 1; index++) {
+                await user_level_up(users.team_addr.address, users.deployer1, user2Ref, (index as Level), contracts, envs, state, undefined)
+                tx = await contracts.LYNKNFT.connect(users.user2).upgrade(Attribute.charisma.valueOf(), user2TokenId, 100, contracts.USDT.address)
+                const spentAmount = BigNumber.from(100).mul(BigNumber.from(10).pow(decimalUSDT))
+
+                await expect(tx)
+                    .to.emit(contracts.USDT, 'Transfer')
+                    .withArgs(users.user2.address, users.team_addr.address, spentAmount)
+                await expect(tx)
+                    .to.emit(contracts.LYNKToken, 'Transfer')
+                    .withArgs(ethers.constants.AddressZero, user2Ref.address, BigNumber.from(envs.SOCIAL_REWARD[index]).mul(spentAmount).div(BigNumber.from(10).pow(18)))
+            }
 
             // user3 mint LYNKNFT
             await contracts.user.connect(users.user3).register(envs.ROOT)

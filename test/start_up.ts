@@ -13,6 +13,7 @@ import {BigNumberish} from "@ethersproject/bignumber/src.ts/bignumber";
 export interface CONTRACT_STATE {
     LYNKNFT_TOKEN_ID: BigNumber
     HOLDER_LIST: Map<string, number[]>
+    INVITEE_LIST: Map<string, SignerWithAddress[]>
 }
 
 export interface USER_FIX {
@@ -82,13 +83,16 @@ export interface NFT_LEVEL_FIX {
 export function get_contract_state() {
     let LYNKNFT_TOKEN_ID: BigNumber
     let HOLDER_LIST: Map<string, number[]>
+    let INVITEE_LIST: Map<string, SignerWithAddress[]>
 
     LYNKNFT_TOKEN_ID = BigNumber.from(0)
     HOLDER_LIST = new Map<string, number[]>()
+    INVITEE_LIST = new Map<string, SignerWithAddress[]>()
 
     return {
         LYNKNFT_TOKEN_ID,
-        HOLDER_LIST
+        HOLDER_LIST,
+        INVITEE_LIST
     }
 }
 
@@ -172,6 +176,9 @@ export function get_env() {
     }
 
     SOCIAL_REWARD = (process.env.SOCIAL_REWARD ? process.env.SOCIAL_REWARD : '5,6,7,8,9,10').split(',')
+    for (let index = 0; index < SOCIAL_REWARD.length; index++) {
+        SOCIAL_REWARD[index] = ethers.utils.parseEther(SOCIAL_REWARD[index]).div(100).toString()
+    }
 
     CONTRIBUTION_THRESHOLD = ethers.utils.parseEther(process.env.CONTRIBUTION_THRESHOLD ? process.env.CONTRIBUTION_THRESHOLD : '100').toString()
     CONTRIBUTION_REWARD = (process.env.CONTRIBUTION_REWARD ? process.env.CONTRIBUTION_REWARD : '1,2,3,4,5,6').split(',')
@@ -308,26 +315,53 @@ export async function set_up_nft_level(team_addr: string, user: SignerWithAddres
 export async function user_level_up(team_addr: string, vault: SignerWithAddress, user: SignerWithAddress, toLevel: Level, contracts: CONTRACT_FIX, envs: ENV_FIX, state: CONTRACT_STATE, ref: string | undefined) {
     let userInfo = await contracts.user.userInfoOf(user.address)
     if (userInfo.refAddress === ethers.constants.AddressZero) {
-        await contracts.user.connect(user).register(ref ?? envs.ROOT)
-        userInfo = await contracts.user.userInfoOf(user.address)
-        expect(userInfo.level).to.equal(Level.elite.valueOf())
-        expect(userInfo.refAddress).to.equal(ref ?? envs.ROOT)
+        userInfo = await registerAndCheck(user, ref ?? envs.ROOT, contracts, state)
     }
     const toLevelNumber = toLevel.valueOf();
 
     if (toLevelNumber > userInfo.level) {
         const decimalUSDT = await contracts.USDT.decimals()
         const directRequirement = BigNumber.from(envs.DIRECT_REQUIREMENTS[toLevelNumber - 1]).toNumber()
-        const performanceRequirement = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[toLevelNumber - 1]).add(ethers.utils.parseEther(`${directRequirement}`)).div(directRequirement)
+        // const performanceRequirement = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[toLevelNumber - 1]).add(ethers.utils.parseEther(`${directRequirement}`)).div(directRequirement)
+        const performanceRequirement = BigNumber.from(envs.PERFORMANCE_REQUIREMENTS[toLevelNumber - 1]).add(ethers.utils.parseEther(`${directRequirement}`))
         for (let index = 0; index < directRequirement; index++) {
-            const randomUser = await createRandomSignerAndSendETH(vault)
-            await user_level_up(team_addr, vault, randomUser, (toLevelNumber - 1 as Level), contracts, envs, state, user.address)
+            let childUser;
+            let tokenId = -1;
+            if (state.INVITEE_LIST.has(user.address)) {
+                const inviteeList = state.INVITEE_LIST.get(user.address)
+                if (inviteeList && inviteeList.length > index) {
+                    childUser = inviteeList[index]
+                    await user_level_up(team_addr, vault, childUser, (toLevelNumber - 1 as Level), contracts, envs, state, user.address)
+                }
+            }
 
-            const tokenId = await mintLYNKNFTAndCheck(team_addr, randomUser, contracts, envs, state)
-            await contracts.USDT.connect(randomUser).mint(randomUser.address, performanceRequirement)
-            await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, performanceRequirement)
+            if (!childUser) {
+                childUser = await createRandomSignerAndSendETH(vault)
+                await user_level_up(team_addr, vault, childUser, (toLevelNumber - 1 as Level), contracts, envs, state, user.address)
+            }
+            if (state.HOLDER_LIST.has(childUser.address)) {
+                const tokenIds = state.HOLDER_LIST.get(childUser.address)
+                if (tokenIds && tokenIds.length > 0) {
+                    tokenId = tokenIds[0]
+                }
+            }
+            // if (tokenId == -1)
+            //     tokenId = await mintLYNKNFTAndCheck(team_addr, childUser, contracts, envs, state)
+            //
+            // await contracts.USDT.connect(childUser).mint(childUser.address, performanceRequirement)
+            // await contracts.USDT.connect(childUser).approve(contracts.LYNKNFT.address, performanceRequirement)
+            //
+            // await contracts.LYNKNFT.connect(childUser).upgrade(0, tokenId, performanceRequirement.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
 
-            await contracts.LYNKNFT.connect(randomUser).upgrade(0, tokenId, performanceRequirement.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
+            if (index == 0) {
+                if (tokenId == -1)
+                    tokenId = await mintLYNKNFTAndCheck(team_addr, childUser, contracts, envs, state)
+
+                await contracts.USDT.connect(childUser).mint(childUser.address, performanceRequirement)
+                await contracts.USDT.connect(childUser).approve(contracts.LYNKNFT.address, performanceRequirement)
+
+                await contracts.LYNKNFT.connect(childUser).upgrade(0, tokenId, performanceRequirement.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
+            }
         }
     }
 
@@ -378,6 +412,20 @@ export async function nft_level_up(tokenId: number, user: SignerWithAddress, toL
     expect(level).to.equal(toLevel)
 }
 
+export async function registerAndCheck(user: SignerWithAddress, refAddress: string, contracts: CONTRACT_FIX, state: CONTRACT_STATE) {
+    await contracts.user.connect(user).register(refAddress)
+    const userInfo = await contracts.user.userInfoOf(user.address)
+    expect(userInfo.level).to.equal(Level.elite.valueOf())
+    expect(userInfo.refAddress).to.equal(refAddress)
+
+    if (!state.INVITEE_LIST.has(refAddress)) {
+        state.INVITEE_LIST.set(refAddress, [])
+    }
+    (state.INVITEE_LIST.get(refAddress) as SignerWithAddress[]).push(user)
+
+    return userInfo
+}
+
 export async function mintLYNKNFTAndCheck(team_addr: string, user: SignerWithAddress, contracts: CONTRACT_FIX, envs: ENV_FIX, state: CONTRACT_STATE) {
     const decimalUSDT = await contracts.USDT.decimals()
     const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
@@ -415,7 +463,7 @@ export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: strin
     expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(to)
 }
 
-async function createRandomSignerAndSendETH(vault: SignerWithAddress) {
+export async function createRandomSignerAndSendETH(vault: SignerWithAddress) {
     // @ts-ignore
     const randomSigner = await SignerWithAddress.create(ethers.Wallet.createRandom().connect(ethers.provider))
     const tx = await vault.sendTransaction({
