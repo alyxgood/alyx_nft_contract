@@ -45,6 +45,15 @@ abstract contract baseContract is ContextUpgradeable {
         _;
     }
 
+    modifier onlyUserOrStakingContract() {
+        require(
+            DBContract(DB_CONTRACT).USER_INFO() == _msgSender() ||
+            DBContract(DB_CONTRACT).STAKING() == _msgSender(),
+                'baseContract: caller not the User OR Staking contract.'
+        );
+        _;
+    }
+
 
     function __baseContract_init() public initializer {
         __Context_init();

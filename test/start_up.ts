@@ -5,7 +5,7 @@ import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
 
 import {APToken, BNFT, DBContract, LYNKNFT, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
 import {BigNumber} from "ethers";
-import {expect} from "chai";
+import {assert, expect} from "chai";
 import {Attribute, Level} from "../constants/constants";
 import {increase} from "./helpers/time";
 import {BigNumberish} from "@ethersproject/bignumber/src.ts/bignumber";
@@ -452,7 +452,7 @@ export async function mintLYNKNFTAndCheck(team_addr: string, user: SignerWithAdd
     return tokenId.toNumber()
 }
 
-export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: string, tokenId: BigNumberish, contracts: CONTRACT_FIX) {
+export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: string, tokenId: BigNumberish, contracts: CONTRACT_FIX, state: CONTRACT_STATE) {
     const tx = await contracts.LYNKNFT.connect(from).transferFrom(
         from.address,
         to,
@@ -462,6 +462,21 @@ export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: strin
         .to.emit(contracts.LYNKNFT, 'Transfer')
         .withArgs(from.address, to, tokenId)
     expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(to)
+
+    assert.ok(
+        state.HOLDER_LIST.get(from.address) &&
+        (state.HOLDER_LIST.get(from.address) as number[]).length > 0
+    )
+    const tokenIdNumber = BigNumber.from(tokenId).toNumber()
+    const fromList = state.HOLDER_LIST.get(from.address) as number[]
+    const index = fromList.indexOf(tokenIdNumber)
+    assert.ok(index >= 0)
+    fromList.splice(index, 1)
+
+    if (!state.HOLDER_LIST.has(to)) {
+        state.HOLDER_LIST.set(to, [])
+    }
+    (state.HOLDER_LIST.get(to) as number[]).push(tokenIdNumber)
 }
 
 export async function createRandomSignerAndSendETH(vault: SignerWithAddress) {

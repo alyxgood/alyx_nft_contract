@@ -5,16 +5,13 @@ import "./baseContract.sol";
 import "./interfaces/ILYNKNFT.sol";
 import "./interfaces/IBNFT.sol";
 import "./interfaces/IUser.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "./interfaces/IERC20Mintable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 contract Staking is baseContract, IERC721ReceiverUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
-
     mapping(address => MiningPower) public miningPowerOf;
     mapping(address => uint256) public rewardOf;
     mapping(address => uint256) public lastUpdateTimeOf;
@@ -51,6 +48,14 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         rewardOf[account] += rewardRate * (block.timestamp - lastUpdateTime);
 
         _;
+    }
+
+    function claimableOf(address account) external view returns (uint256) {
+        uint256 charisma = miningPowerOf[account].charisma;
+        uint256 dexterity = miningPowerOf[account].dexterity;
+        uint256 rewardRate = _rewardRate(charisma, dexterity);
+
+        return rewardOf[account] + rewardRate * (block.timestamp - lastUpdateTimeOf[account]);
     }
 
     function stake(uint256[] calldata nftIds) external updateReward(_msgSender()) {
@@ -115,7 +120,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         require(claimable > 0, 'Staking: cannot claim 0.');
 
         rewardOf[_msgSender()] = 0;
-        IERC20Upgradeable(DBContract(DB_CONTRACT).LYNK_TOKEN()).safeTransfer(_msgSender(), claimable);
+        IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_msgSender(), claimable);
 
         emit Claim(_msgSender(), claimable);
 

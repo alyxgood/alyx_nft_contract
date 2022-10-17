@@ -20,6 +20,7 @@ import {BigNumber} from "ethers";
 import {assert, expect} from "chai";
 import {ethers} from "hardhat";
 import {Attribute, Level} from "../constants/constants";
+import {increase} from "./helpers/time";
 
 let state: CONTRACT_STATE
 let envs: ENV_FIX
@@ -37,9 +38,10 @@ describe("main_process", function () {
         users = await get_user()
         contracts = await set_up_fixture("test_net")
         // 1. create fixture
-        // userLevels = await set_up_level(users.team_addr.address, contracts, envs, users, state)
+        userLevels = await set_up_level(users.team_addr.address, contracts, envs, users, state)
+        nftLevels = await set_up_nft_level(users.team_addr.address, users.user1, contracts, envs, state)
+        // await contracts.user.connect(users.user1).register(envs.ROOT)
         // nftLevels = await set_up_nft_level(users.team_addr.address, users.user1, contracts, envs, state)
-        await contracts.user.connect(users.user1).register(envs.ROOT)
     });
 
 
@@ -103,9 +105,79 @@ describe("main_process", function () {
                 (state.HOLDER_LIST.get(users.user3.address) as number[]).length == 1
             )
             const tokenId = (state.HOLDER_LIST.get(users.user3.address) as number[])[0]
-            await transferLYNKNFTAndCheck(users.user3, users.user4.address, tokenId, contracts)
+            await transferLYNKNFTAndCheck(users.user3, users.user4.address, tokenId, contracts, state)
 
             // upgrade NFT
+
+            // stake NFT
+            let charisma = BigNumber.from(0)
+            let dexterity = BigNumber.from(0)
+            expect(await contracts.staking.claimableOf(users.user2.address)).to.equal(0);
+            for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+                const nftInfo = await contracts.LYNKNFT.nftInfoOf(nftLevels.token_id_by_level[index])
+                assert.ok(nftInfo.length == Attribute.intellect.valueOf() + 1)
+                charisma = charisma.add(nftInfo[Attribute.charisma.valueOf()])
+                dexterity = dexterity.add(nftInfo[Attribute.dexterity.valueOf()])
+
+                await transferLYNKNFTAndCheck(users.user1, users.user2.address, nftLevels.token_id_by_level[index], contracts, state)
+            }
+
+            const balanceOfUser2Before = await contracts.LYNKToken.balanceOf(users.user2.address)
+            const balanceOfUser2RefBefore = await contracts.LYNKToken.balanceOf(user2Ref.address)
+            await contracts.LYNKNFT.connect(users.user2).setApprovalForAll(contracts.staking.address, true)
+            tx = await contracts.staking.connect(users.user2).stake(nftLevels.token_id_by_level)
+            for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+                const tokenId = nftLevels.token_id_by_level[index];
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(users.user2.address, contracts.staking.address, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.staking.address, contracts.sLYNKNFT.address, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.sLYNKNFT, 'Transfer')
+                    .withArgs(ethers.constants.AddressZero, users.user2.address, tokenId)
+            }
+            await increase(24*60*60)
+            tx = await contracts.staking.connect(users.user2).unstake(nftLevels.token_id_by_level)
+            for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+                const tokenId = nftLevels.token_id_by_level[index];
+                await expect(tx)
+                    .to.emit(contracts.sLYNKNFT, 'Transfer')
+                    .withArgs(users.user2.address, ethers.constants.AddressZero, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.sLYNKNFT.address, contracts.staking.address, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.staking.address, users.user2.address, tokenId)
+            }
+            expect(await contracts.LYNKToken.balanceOf(users.user2.address)).to.equal(balanceOfUser2Before)
+            expect(await contracts.LYNKToken.balanceOf(user2Ref.address)).to.equal(balanceOfUser2RefBefore)
+
+            const claimable = await contracts.staking.claimableOf(users.user2.address)
+            const claimableCalc = rewardRate(charisma, dexterity).mul(24*60*60)
+            expect(
+                claimable.sub(claimableCalc)
+            ).to.lt(ethers.utils.parseEther('1'))
+
+            // user2 claim reward
+            tx = await contracts.staking.connect(users.user2).claimReward()
+            await expect(tx)
+                .to.emit(contracts.LYNKToken, 'Transfer')
+                .withArgs(ethers.constants.AddressZero, users.user2.address, claimable)
+            await expect(tx)
+                .to.emit(contracts.staking, 'Claim')
+                .withArgs(users.user2.address, claimable)
+            // const user2RefInfo = await contracts.user.userInfoOf(user2Ref.address)
+            await expect(tx)
+                .to.emit(contracts.LYNKToken, 'Transfer')
+                .withArgs(
+                    ethers.constants.AddressZero,
+                    user2Ref.address,
+                    BigNumber.from(envs.COMMUNITY_REWARD[/*user2RefInfo.level*/Level.divine.valueOf()][0]).mul(claimable).div(ethers.utils.parseEther('1'))
+                )
+
 
             // let tx;
             //
@@ -131,3 +203,10 @@ describe("main_process", function () {
         })
     })
 });
+
+function rewardRate(charisma: BigNumber, dexterity: BigNumber) {
+    return ethers.utils.parseEther('0.007').mul(charisma)
+        .add(
+            ethers.utils.parseEther('0.005').mul(charisma).mul(dexterity).div(100)
+        ).div(24*60*60);
+}
