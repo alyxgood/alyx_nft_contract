@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Market is baseContract {
+contract Market is baseContract, IERC721ReceiverUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     ListInfo[] public listNFTs;
@@ -52,11 +52,7 @@ contract Market is baseContract {
         require(DBContract(DB_CONTRACT).isAcceptToken(_acceptToken), 'Market: unsupported token.');
 
         uint256 sellingLevelLimit = DBContract(DB_CONTRACT).sellingLevelLimit();
-        uint256[] memory nftInfo = ILYNKNFT(DBContract(DB_CONTRACT).LYNKNFT()).nftInfoOf(_tokenId);
-        for (uint256 index; index > nftInfo.length; index++) {
-            (uint256 level,) = DBContract(DB_CONTRACT).calcLevel(ILYNKNFT.Attribute(index), nftInfo[index]);
-            require(level >= sellingLevelLimit, 'Market: Cannot trade yet.');
-        }
+        require(DBContract(DB_CONTRACT).calcTokenLevel(_tokenId) >= sellingLevelLimit, 'Market: Cannot trade yet.');
 
         IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(_msgSender(), address(this), _tokenId);
         IERC721Upgradeable(lynkNFTAddress).approve(bLYNKNFTAddress, _tokenId);
@@ -131,6 +127,10 @@ contract Market is baseContract {
 
     function onSellNum() external view returns (uint256) {
         return listNFTs.length;
+    }
+
+    function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 
 }

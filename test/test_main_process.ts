@@ -159,7 +159,7 @@ describe("main_process", function () {
             const claimableCalc = rewardRate(charisma, dexterity).mul(24*60*60)
             expect(
                 claimable.sub(claimableCalc)
-            ).to.lt(ethers.utils.parseEther('1'))
+            ).to.lt(ethers.constants.WeiPerEther)
 
             // user2 claim reward
             tx = await contracts.staking.connect(users.user2).claimReward()
@@ -175,9 +175,101 @@ describe("main_process", function () {
                 .withArgs(
                     ethers.constants.AddressZero,
                     user2Ref.address,
-                    BigNumber.from(envs.COMMUNITY_REWARD[/*user2RefInfo.level*/Level.divine.valueOf()][0]).mul(claimable).div(ethers.utils.parseEther('1'))
+                    BigNumber.from(envs.COMMUNITY_REWARD[/*user2RefInfo.level*/Level.divine.valueOf()][0]).mul(claimable).div(ethers.constants.WeiPerEther)
                 )
 
+            // Marketplace
+            let listNFTNum = await contracts.market.onSellNum()
+            const levelLimit = BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber()
+            for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+                const tokenId = nftLevels.token_id_by_level[index];
+                await contracts.LYNKNFT.connect(users.user2).approve(contracts.market.address, tokenId)
+
+                if (index < levelLimit) {
+                    await expect(
+                        contracts.market.connect(users.user2).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+                    ).revertedWith('Market: Cannot trade yet.')
+
+                    continue
+                }
+
+                tx = await contracts.market.connect(users.user2).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(users.user2.address, contracts.market.address, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.market.address, contracts.lLYNKNFT.address, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.lLYNKNFT, 'Transfer')
+                    .withArgs(ethers.constants.AddressZero, users.user2.address, tokenId)
+
+                const listInfo = await contracts.market.listNFTs(listNFTNum)
+                expect(listInfo.seller).to.equal(users.user2.address)
+                expect(listInfo.tokenId).to.equal(tokenId)
+                expect(listInfo.acceptToken).to.equal(ethers.constants.AddressZero)
+                expect(listInfo.priceInAcceptToken).to.equal(ethers.constants.WeiPerEther)
+
+                expect(await contracts.market.listIndexByTokenId(tokenId)).to.equal(listNFTNum)
+
+                listNFTNum = listNFTNum.add(1)
+                expect(await contracts.market.onSellNum()).to.equal(listNFTNum)
+            }
+
+            // cancel a part of order
+            {
+                const lastNFTInfo = await contracts.market.listNFTs(listNFTNum.sub(1))
+                const tokenId = nftLevels.token_id_by_level[levelLimit];
+                const listIndex = await contracts.market.listIndexByTokenId(tokenId)
+                tx = await contracts.market.connect(users.user2).cancelList(listIndex, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.lLYNKNFT, 'Transfer')
+                    .withArgs(users.user2.address, ethers.constants.AddressZero, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.lLYNKNFT.address, contracts.market.address, tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.market.address, users.user2.address, tokenId)
+
+                const nftInfo = await contracts.market.listNFTs(listIndex)
+                expect(nftInfo.seller).to.equal(lastNFTInfo.seller)
+                expect(nftInfo.tokenId).to.equal(lastNFTInfo.tokenId)
+                expect(nftInfo.acceptToken).to.equal(lastNFTInfo.acceptToken)
+                expect(nftInfo.priceInAcceptToken).to.equal(lastNFTInfo.priceInAcceptToken)
+
+                listNFTNum = listNFTNum.sub(1)
+                expect(await contracts.market.onSellNum()).to.equal(listNFTNum)
+            }
+
+            // user5 register & buy
+            await user_level_up(users.team_addr.address, users.deployer1, users.user5, Level.elite, contracts, envs, state, undefined)
+            for (let index = listNFTNum.toNumber() - 1; index >= 0; index--) {
+                const balanceOfSellerBefore = await users.user2.getBalance()
+                const balanceOfBuyerBefore = await users.user5.getBalance()
+                const balanceOfTeamBefore = await users.team_addr.getBalance()
+
+                const nftInfo = await contracts.market.listNFTs(index)
+                tx = await contracts.market.connect(users.user5).takeNFT(index, nftInfo.tokenId, {value: nftInfo.priceInAcceptToken})
+                await expect(tx)
+                    .to.emit(contracts.lLYNKNFT, 'Transfer')
+                    .withArgs(nftInfo.seller, ethers.constants.AddressZero, nftInfo.tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.lLYNKNFT.address, contracts.market.address, nftInfo.tokenId)
+                await expect(tx)
+                    .to.emit(contracts.LYNKNFT, 'Transfer')
+                    .withArgs(contracts.market.address, users.user5.address, nftInfo.tokenId)
+                tx = await tx.wait()
+
+                const fee = nftInfo.priceInAcceptToken.mul(BigNumber.from(envs.TRADING_FEE)).div(ethers.constants.WeiPerEther)
+                // Gas fee
+                expect(
+                    balanceOfBuyerBefore.sub(nftInfo.priceInAcceptToken).sub(await users.user5.getBalance())
+                ).to.equal(tx.gasUsed.mul(tx.effectiveGasPrice))
+                expect(await users.team_addr.getBalance()).to.equal(balanceOfTeamBefore.add(fee))
+                expect(await users.user2.getBalance()).to.equal(balanceOfSellerBefore.add(nftInfo.priceInAcceptToken.sub(fee)))
+            }
 
             // let tx;
             //
