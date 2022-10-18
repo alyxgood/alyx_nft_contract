@@ -246,17 +246,7 @@ contract DBContract is OwnableUpgradeable {
      *****  public view  ******************************************************
      **************************************************************************/
     function calcTokenLevel(uint256 _tokenId) external view returns (uint256 level) {
-        require(ILYNKNFT(LYNKNFT).exists(_tokenId), 'DBContract: invalid token ID.');
-
-        uint256[] memory _nftInfo = ILYNKNFT(LYNKNFT).nftInfoOf(_tokenId);
-        for (uint256 index; index < uint256(type(ILYNKNFT.Attribute).max) + 1; index++) {
-            (uint256 levelSingleAttr,) = _calcLevel(ILYNKNFT.Attribute(index), _nftInfo[index]);
-            if (index == 0 || levelSingleAttr < level) {
-                level = levelSingleAttr;
-            }
-        }
-
-        return level;
+        return _calcTokenLevel(_tokenId);
     }
 
     function calcLevel(ILYNKNFT.Attribute _attr, uint256 _point) external view returns (uint256 level, uint256 overflow) {
@@ -295,12 +285,21 @@ contract DBContract is OwnableUpgradeable {
     }
 
     function hasAchievementReward(uint256 _nftId) external view returns (bool) {
-        uint256[] memory attrs = ILYNKNFT(LYNKNFT).nftInfoOf(_nftId);
+        return _calcTokenLevel(_nftId) >= achievementRewardLevelThreshold;
+    }
 
-        ILYNKNFT.Attribute maxAttr = type(ILYNKNFT.Attribute).max;
-        (uint256 level, ) = _calcLevel(maxAttr, attrs[uint256(maxAttr)]);
+    function _calcTokenLevel(uint256 _tokenId) private view returns (uint256 level) {
+        require(ILYNKNFT(LYNKNFT).exists(_tokenId), 'DBContract: invalid token ID.');
 
-        return level >= achievementRewardLevelThreshold;
+        uint256[] memory _nftInfo = ILYNKNFT(LYNKNFT).nftInfoOf(_tokenId);
+        for (uint256 index; index < uint256(type(ILYNKNFT.Attribute).max) + 1; index++) {
+            (uint256 levelSingleAttr,) = _calcLevel(ILYNKNFT.Attribute(index), _nftInfo[index]);
+            if (index == 0 || levelSingleAttr < level) {
+                level = levelSingleAttr;
+            }
+        }
+
+        return level;
     }
 
     function _calcLevel(ILYNKNFT.Attribute _attr, uint256 _point) private view returns (uint256 level, uint256 overflow) {

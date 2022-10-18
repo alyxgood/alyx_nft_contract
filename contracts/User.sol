@@ -134,10 +134,15 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
     }
 
     function claimAchievementReward(uint256[] calldata _nftIds) nonReentrant external {
+        address LYNKNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
         address bLYNKNFTAddress = DBContract(DB_CONTRACT).STAKING_LYNKNFT();
 
         for (uint256 index; index < _nftIds.length; index++) {
-            require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(_nftIds[index]) == _msgSender(), 'User: not the owner.');
+            require(
+                IERC721Upgradeable(LYNKNFTAddress).ownerOf(_nftIds[index]) == _msgSender() ||
+                IERC721Upgradeable(bLYNKNFTAddress).ownerOf(_nftIds[index]) == _msgSender(),
+                    'User: not the owner.'
+            );
         }
         (bool[] memory claimable, uint256 rewardAmount) = _calcAchievementReward(_msgSender(), _nftIds);
 
@@ -187,10 +192,12 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         bool[] memory claimable = new bool[](_nftIds.length);
         uint256 rewardTotalAmount;
         for (uint256 index; index < _nftIds.length; index++) {
-            uint256 duration = block.timestamp - stakeNFTs[_nftIds[index]].lastUpdateTime;
-            if (stakeNFTs[_nftIds[index]].stakedDuration + duration >= durationThreshold) {
-                claimable[index] = true;
-                rewardTotalAmount += rewardAmount;
+            if (DBContract(DB_CONTRACT).hasAchievementReward(_nftIds[index])) {
+                uint256 duration = block.timestamp - stakeNFTs[_nftIds[index]].lastUpdateTime;
+                if (stakeNFTs[_nftIds[index]].stakedDuration + duration >= durationThreshold) {
+                    claimable[index] = true;
+                    rewardTotalAmount += rewardAmount;
+                }
             }
         }
 

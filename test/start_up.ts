@@ -196,7 +196,7 @@ export function get_env() {
         COMMUNITY_REWARD.push(reward)
     }
 
-    ACHIEVEMENT_LEVEL_THRESHOLD = process.env.CONTRIBUTION_THRESHOLD ? process.env.CONTRIBUTION_THRESHOLD : '2'
+    ACHIEVEMENT_LEVEL_THRESHOLD = process.env.ACHIEVEMENT_LEVEL_THRESHOLD ? process.env.ACHIEVEMENT_LEVEL_THRESHOLD : '2'
     ACHIEVEMENT_DURATION = BigNumber.from(process.env.ACHIEVEMENT_DURATION ? process.env.ACHIEVEMENT_DURATION : '10').mul(BigNumber.from(24*60*60)).toString()
     ACHIEVEMENT_REWARD = (process.env.ACHIEVEMENT_REWARD ? process.env.ACHIEVEMENT_REWARD : '10,20,40,60,80,100').split(',')
     for (let index = 0; index < ACHIEVEMENT_REWARD.length; index++) {
@@ -444,7 +444,7 @@ export async function mintLYNKNFTAndCheck(team_addr: string, user: SignerWithAdd
     return tokenId.toNumber()
 }
 
-export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: string, tokenId: BigNumberish, contracts: CONTRACT_FIX, state: CONTRACT_STATE) {
+export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: string, tokenId: BigNumberish, contracts: CONTRACT_FIX) {
     const tx = await contracts.LYNKNFT.connect(from).transferFrom(
         from.address,
         to,
