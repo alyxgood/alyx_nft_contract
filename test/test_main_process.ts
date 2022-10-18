@@ -20,7 +20,7 @@ import {BigNumber} from "ethers";
 import {assert, expect} from "chai";
 import {ethers} from "hardhat";
 import {Attribute, Level} from "../constants/constants";
-import {increase, now} from "./helpers/time";
+import {increase, now, revertToSnapShot, takeSnapshot} from "./helpers/time";
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {address} from "hardhat/internal/core/config/config-validation";
 
@@ -84,32 +84,48 @@ describe("main_process", function () {
         let tx;
 
         // user2 upgrade CA
-        const user2Ref = await createRandomSignerAndSendETH(users.deployer1)
-        await user_level_up(users.team_addr.address, users.deployer1, user2Ref, Level.elite, contracts, envs, state, undefined)
-        await contracts.user.connect(users.user2).register(user2Ref.address)
-        const user2TokenId = await mintLYNKNFTAndCheck(users.team_addr.address, users.user2, contracts, envs, state)
-
         const decimalUSDT = await contracts.USDT.decimals()
-        const mintAmount = BigNumber.from(100).mul(Level.divine.valueOf() + 1).mul(BigNumber.from(10).pow(decimalUSDT))
-        await contracts.USDT.connect(users.user2).mint(users.user2.address, mintAmount)
-        await contracts.USDT.connect(users.user2).approve(contracts.LYNKNFT.address, mintAmount)
+        const mintAmount = BigNumber.from(envs.CONTRIBUTION_THRESHOLD).mul(Level.divine.valueOf() + 1).mul(BigNumber.from(10).pow(decimalUSDT))
+        tx = await contracts.USDT.connect(users.user2).mint(users.user2.address, mintAmount)
+        await tx.wait()
+
+        let snapshotId = await takeSnapshot()
         // for elite -> divine (user2Ref)
-        for (let index = 0; index < Level.divine.valueOf() + 1; index++) {
-            await user_level_up(users.team_addr.address, users.deployer1, user2Ref, (index as Level), contracts, envs, state, undefined)
-            tx = await contracts.LYNKNFT.connect(users.user2).upgrade(Attribute.charisma.valueOf(), user2TokenId, 100, contracts.USDT.address)
+        for (let index = 0; index < userLevels.signer_by_level.length; index++) {
+            if (index > 0) {
+                await revertToSnapShot(snapshotId)
+                snapshotId = await takeSnapshot()
+            }
+
+            const user2Ref = userLevels.signer_by_level[index]
+            await contracts.user.connect(users.user2).register(user2Ref.address)
+            const user2TokenId = await mintLYNKNFTAndCheck(users.team_addr.address, users.user2, contracts, envs, state)
+
+            const USDTBalanceOfUser2 = await contracts.USDT.balanceOf(users.user2.address)
+            const LYNKTokenBalanceOfUser2Ref = await contracts.LYNKToken.balanceOf(user2Ref.address)
+            const apTokenBalanceOfUser2Ref = await contracts.apToken.balanceOf(user2Ref.address)
+
             const spentAmount = BigNumber.from(envs.CONTRIBUTION_THRESHOLD).mul(BigNumber.from(10).pow(decimalUSDT))
+            await contracts.USDT.connect(users.user2).approve(contracts.LYNKNFT.address, spentAmount)
+            tx = await contracts.LYNKNFT.connect(users.user2).upgrade(Attribute.charisma.valueOf(), user2TokenId, envs.CONTRIBUTION_THRESHOLD, contracts.USDT.address)
 
             await expect(tx)
                 .to.emit(contracts.USDT, 'Transfer')
                 .withArgs(users.user2.address, users.team_addr.address, spentAmount)
             // Social Reward
+            const socialRewardAmount = BigNumber.from(envs.SOCIAL_REWARD[index]).mul(spentAmount).div(BigNumber.from(10).pow(18))
             await expect(tx)
                 .to.emit(contracts.LYNKToken, 'Transfer')
-                .withArgs(ethers.constants.AddressZero, user2Ref.address, BigNumber.from(envs.SOCIAL_REWARD[index]).mul(spentAmount).div(BigNumber.from(10).pow(18)))
+                .withArgs(ethers.constants.AddressZero, user2Ref.address, socialRewardAmount)
             // Contribution Reward
+            const contributionRewardAmount = envs.CONTRIBUTION_REWARD[index]
             await expect(tx)
                 .to.emit(contracts.apToken, 'Transfer')
-                .withArgs(ethers.constants.AddressZero, user2Ref.address, envs.CONTRIBUTION_REWARD[index])
+                .withArgs(ethers.constants.AddressZero, user2Ref.address, contributionRewardAmount)
+
+            expect(await contracts.USDT.balanceOf(users.user2.address)).to.equal(USDTBalanceOfUser2.sub(spentAmount))
+            expect(await contracts.LYNKToken.balanceOf(user2Ref.address)).to.equal(LYNKTokenBalanceOfUser2Ref.add(socialRewardAmount))
+            expect(await contracts.apToken.balanceOf(user2Ref.address)).to.equal(apTokenBalanceOfUser2Ref.add(contributionRewardAmount))
         }
     })
 

@@ -20,6 +20,15 @@ export async function now() {
   return BigNumber.from((await ethers.provider.getBlock("latest")).timestamp);
 }
 
+export async function takeSnapshot() {
+  const snapshotId: string = await ethers.provider.send("evm_snapshot", []);
+  return snapshotId;
+}
+
+export async function revertToSnapShot(id: string) {
+  await ethers.provider.send("evm_revert", [id]);
+}
+
 /**
  * Beware that due to the need of calling two separate ganache methods and rpc calls overhead
  * it's hard to increase time precisely to a target point so design your test to tolerate

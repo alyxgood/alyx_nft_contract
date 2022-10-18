@@ -68,11 +68,7 @@ export interface ENV_FIX {
 }
 
 export interface USER_LEVEL_FIX {
-    elite: SignerWithAddress,
-    epic: SignerWithAddress,
-    master: SignerWithAddress,
-    legendary: SignerWithAddress,
-    mythic: SignerWithAddress
+    signer_by_level: SignerWithAddress[]
 }
 
 export interface NFT_LEVEL_FIX {
@@ -287,12 +283,14 @@ export async function set_up_level(team_addr: string, contracts: CONTRACT_FIX, e
     await user_level_up(team_addr, users.deployer1, divine, Level.divine, contracts, envs, state, undefined)
 
     return {
-        elite,
-        epic,
-        master,
-        legendary,
-        mythic,
-        divine
+        signer_by_level: [
+            elite,
+            epic,
+            master,
+            legendary,
+            mythic,
+            divine
+        ]
     }
 }
 
