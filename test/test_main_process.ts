@@ -22,6 +22,7 @@ import {ethers} from "hardhat";
 import {Attribute, Level} from "../constants/constants";
 import {increase} from "./helpers/time";
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
+import {address} from "hardhat/internal/core/config/config-validation";
 
 
 
@@ -62,7 +63,7 @@ describe("main_process", function () {
         // user1 buy APToken
         let user1APTBalance = await contracts.apToken.balanceOf(users.user1.address)
         for (let index = 0; index < envs.AP_PACKAGE.length; index++) {
-            let tx = await contracts.apToken
+            tx = await contracts.apToken
                 .connect(users.user1)["mint(uint256)"](
                 index,
                 {value: BigNumber.from(envs.AP_PACKAGE[index][1])}
@@ -113,24 +114,23 @@ describe("main_process", function () {
     })
 
 
-    it("user3 mint LYNKNFT", async function () {
+    it("user3 mint LYNKNFT && transfer LYNKNFT to user 4", async function () {
         // user3 mint LYNKNFT
         await contracts.user.connect(users.user3).register(envs.ROOT)
-        await mintLYNKNFTAndCheck(users.team_addr.address, users.user3, contracts, envs, state)
-    })
+        const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, users.user3, contracts, envs, state)
 
-    it("user3 transfer LYNKNFT to user4", async function () {
-       assert.ok(
-            state.HOLDER_LIST.has(users.user3.address) &&
-            (state.HOLDER_LIST.get(users.user3.address) as number[]).length == 1
-        )
-        const tokenId = (state.HOLDER_LIST.get(users.user3.address) as number[])[0]
         await transferLYNKNFTAndCheck(users.user3, users.user4.address, tokenId, contracts, state)
     })
 
     it("Marketplace", async function () {
         // Marketplace
         let tx;
+
+        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+            await transferLYNKNFTAndCheck(users.user1, users.user2.address, nftLevels.token_id_by_level[index], contracts, state)
+        }
+        await user_level_up(users.team_addr.address, users.deployer1, users.user2, Level.elite, contracts, envs, state, undefined)
+
         let listNFTNum = await contracts.market.onSellNum()
         const levelLimit = BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber()
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
@@ -229,7 +229,12 @@ describe("main_process", function () {
         let tx;
 
         const user2Ref = await createRandomSignerAndSendETH(users.deployer1)
-        // upgrade NFT
+        await user_level_up(users.team_addr.address, users.deployer1, user2Ref, Level.elite, contracts, envs, state, undefined)
+        await contracts.user.connect(users.user2).register(user2Ref.address)
+
+        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+            await transferLYNKNFTAndCheck(users.user1, users.user2.address, nftLevels.token_id_by_level[index], contracts, state)
+        }
 
         // stake NFT
         let charisma = BigNumber.from(0)
@@ -241,7 +246,7 @@ describe("main_process", function () {
             charisma = charisma.add(nftInfo[Attribute.charisma.valueOf()])
             dexterity = dexterity.add(nftInfo[Attribute.dexterity.valueOf()])
 
-            await transferLYNKNFTAndCheck(users.user1, users.user2.address, nftLevels.token_id_by_level[index], contracts, state)
+            expect(await contracts.LYNKNFT.ownerOf(nftLevels.token_id_by_level[index])).to.equal(users.user2.address)
         }
 
         const balanceOfUser2Before = await contracts.LYNKToken.balanceOf(users.user2.address)
@@ -291,13 +296,13 @@ describe("main_process", function () {
         await expect(tx)
             .to.emit(contracts.staking, 'Claim')
             .withArgs(users.user2.address, claimable)
-        // const user2RefInfo = await contracts.user.userInfoOf(user2Ref.address)
+
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
             .withArgs(
                 ethers.constants.AddressZero,
                 user2Ref.address,
-                BigNumber.from(envs.COMMUNITY_REWARD[/*user2RefInfo.level*/Level.divine.valueOf()][0]).mul(claimable).div(ethers.constants.WeiPerEther)
+                BigNumber.from(envs.COMMUNITY_REWARD[Level.elite.valueOf()][0]).mul(claimable).div(ethers.constants.WeiPerEther)
             )
 
 

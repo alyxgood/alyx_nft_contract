@@ -12,7 +12,6 @@ import {BigNumberish} from "@ethersproject/bignumber/src.ts/bignumber";
 
 export interface CONTRACT_STATE {
     LYNKNFT_TOKEN_ID: BigNumber
-    HOLDER_LIST: Map<string, number[]>
     INVITEE_LIST: Map<string, SignerWithAddress[]>
 }
 
@@ -340,11 +339,8 @@ export async function user_level_up(team_addr: string, vault: SignerWithAddress,
                 childUser = await createRandomSignerAndSendETH(vault)
                 await user_level_up(team_addr, vault, childUser, (toLevelNumber - 1 as Level), contracts, envs, state, user.address)
             }
-            if (state.HOLDER_LIST.has(childUser.address)) {
-                const tokenIds = state.HOLDER_LIST.get(childUser.address)
-                if (tokenIds && tokenIds.length > 0) {
-                    tokenId = tokenIds[0]
-                }
+            if ((await contracts.LYNKNFT.balanceOf(childUser.address)).gt(0)) {
+                tokenId = (await contracts.LYNKNFT.tokenOfOwnerByIndex(childUser.address, 0)).toNumber()
             }
             // if (tokenId == -1)
             //     tokenId = await mintLYNKNFTAndCheck(team_addr, childUser, contracts, envs, state)
@@ -443,10 +439,6 @@ export async function mintLYNKNFTAndCheck(team_addr: string, user: SignerWithAdd
         .withArgs(ethers.constants.AddressZero, user.address, tokenId)
     expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(user.address)
 
-    if (!state.HOLDER_LIST.has(user.address)) {
-        state.HOLDER_LIST.set(user.address, [])
-    }
-    (state.HOLDER_LIST.get(user.address) as number[]).push(tokenId.toNumber())
     state.LYNKNFT_TOKEN_ID = state.LYNKNFT_TOKEN_ID.add(1)
 
     return tokenId.toNumber()
@@ -462,21 +454,6 @@ export async function transferLYNKNFTAndCheck(from: SignerWithAddress, to: strin
         .to.emit(contracts.LYNKNFT, 'Transfer')
         .withArgs(from.address, to, tokenId)
     expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(to)
-
-    assert.ok(
-        state.HOLDER_LIST.get(from.address) &&
-        (state.HOLDER_LIST.get(from.address) as number[]).length > 0
-    )
-    const tokenIdNumber = BigNumber.from(tokenId).toNumber()
-    const fromList = state.HOLDER_LIST.get(from.address) as number[]
-    const index = fromList.indexOf(tokenIdNumber)
-    assert.ok(index >= 0)
-    fromList.splice(index, 1)
-
-    if (!state.HOLDER_LIST.has(to)) {
-        state.HOLDER_LIST.set(to, [])
-    }
-    (state.HOLDER_LIST.get(to) as number[]).push(tokenIdNumber)
 }
 
 export async function createRandomSignerAndSendETH(vault: SignerWithAddress) {
