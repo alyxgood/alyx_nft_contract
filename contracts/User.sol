@@ -94,23 +94,17 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         }
     }
 
-    function hookByStake(uint256[] calldata _nftIds) onlyStakingContract nonReentrant external {
-        for (uint256 index; index < _nftIds.length; index++) {
-            uint256 nftId = _nftIds[index];
-            if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
-                stakeNFTs[nftId].lastUpdateTime = block.timestamp;
-            }
+    function hookByStake(uint256 nftId) onlyStakingContract nonReentrant external {
+        if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
+            stakeNFTs[nftId].lastUpdateTime = block.timestamp;
         }
     }
 
-    function hookByUnStake(uint256[] calldata _nftIds) onlyStakingContract nonReentrant external {
-        for (uint256 index; index < _nftIds.length; index++) {
-            uint256 nftId = _nftIds[index];
-            if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
-                uint256 lastUpdateTime = stakeNFTs[nftId].lastUpdateTime;
-                stakeNFTs[nftId].lastUpdateTime = block.timestamp;
-                stakeNFTs[nftId].stakedDuration += block.timestamp - lastUpdateTime;
-            }
+    function hookByUnStake(uint256 nftId) onlyStakingContract nonReentrant external {
+        if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
+            uint256 lastUpdateTime = stakeNFTs[nftId].lastUpdateTime;
+            stakeNFTs[nftId].lastUpdateTime = block.timestamp;
+            stakeNFTs[nftId].stakedDuration += block.timestamp - lastUpdateTime;
         }
     }
 

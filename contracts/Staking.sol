@@ -58,7 +58,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         return rewardOf[account] + rewardRate * (block.timestamp - lastUpdateTimeOf[account]);
     }
 
-    function stake(uint256[] calldata nftIds) external updateReward(_msgSender()) {
+    function stake(uint256 nftId) external updateReward(_msgSender()) {
         require(
             IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
                 'Staking: not a valid user.'
@@ -69,50 +69,41 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         address lynkNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
         address bLYNKNFTAddress = DBContract(DB_CONTRACT).STAKING_LYNKNFT();
 
-        for (uint256 index; index < nftIds.length; index++) {
-            IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(_msgSender(), address(this), nftIds[index]);
-            IERC721Upgradeable(lynkNFTAddress).approve(bLYNKNFTAddress, nftIds[index]);
-            IBNFT(bLYNKNFTAddress).mint(_msgSender(), nftIds[index]);
+        IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(_msgSender(), address(this), nftId);
+        IERC721Upgradeable(lynkNFTAddress).approve(bLYNKNFTAddress, nftId);
+        IBNFT(bLYNKNFTAddress).mint(_msgSender(), nftId);
 
-            emit Stake(_msgSender(), nftIds[index]);
+        emit Stake(_msgSender(), nftId);
 
-            uint256[] memory nftInfo = ILYNKNFT(lynkNFTAddress).nftInfoOf(nftIds[index]);
-            charisma += nftInfo[uint256(ILYNKNFT.Attribute.charisma)];
-            dexterity += nftInfo[uint256(ILYNKNFT.Attribute.dexterity)];
-        }
+        uint256[] memory nftInfo = ILYNKNFT(lynkNFTAddress).nftInfoOf(nftId);
+        charisma += nftInfo[uint256(ILYNKNFT.Attribute.charisma)];
+        dexterity += nftInfo[uint256(ILYNKNFT.Attribute.dexterity)];
 
         miningPowerOf[_msgSender()].charisma += charisma;
         miningPowerOf[_msgSender()].dexterity += dexterity;
 
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByStake(nftIds);
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByStake(nftId);
     }
 
-    function unstake(uint256[] calldata nftIds) external updateReward(_msgSender()) {
-        uint256 charisma = 0;
-        uint256 dexterity = 0;
+    function unstake(uint256 nftId) external updateReward(_msgSender()) {
         address lynkNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
         address bLYNKNFTAddress = DBContract(DB_CONTRACT).STAKING_LYNKNFT();
 
-        uint256 index;
-        for (index = 0; index < nftIds.length; index++) {
-            require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(nftIds[index]) == _msgSender(), 'Staking: not the owner.');
-        }
+        require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(nftId) == _msgSender(), 'Staking: not the owner.');
 
-        for (index = 0; index < nftIds.length; index++) {
-            IBNFT(bLYNKNFTAddress).burn(nftIds[index]);
-            IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), nftIds[index]);
+        IBNFT(bLYNKNFTAddress).burn(nftId);
+        IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), nftId);
 
-            emit UnStake(_msgSender(), nftIds[index]);
+        emit UnStake(_msgSender(), nftId);
 
-            uint256[] memory nftInfo = ILYNKNFT(lynkNFTAddress).nftInfoOf(nftIds[index]);
-            charisma += nftInfo[uint256(ILYNKNFT.Attribute.charisma)];
-            dexterity += nftInfo[uint256(ILYNKNFT.Attribute.dexterity)];
-        }
+        uint256[] memory nftInfo = ILYNKNFT(lynkNFTAddress).nftInfoOf(nftId);
+        uint256 charisma = nftInfo[uint256(ILYNKNFT.Attribute.charisma)];
+        uint256 dexterity = nftInfo[uint256(ILYNKNFT.Attribute.dexterity)];
 
         miningPowerOf[_msgSender()].charisma -= charisma;
         miningPowerOf[_msgSender()].dexterity -= dexterity;
 
-        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUnStake(nftIds);
+        IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUnStake(nftId);
     }
 
     function claimReward() external updateReward(_msgSender()) {

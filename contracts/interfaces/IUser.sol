@@ -16,7 +16,7 @@ interface IUser {
 
     function hookByUpgrade(address _userAddr, uint256 _performance) external;
     function hookByClaimReward(address _userAddr, uint256 _rewardAmount) external;
-    function hookByStake(uint256[] calldata nftIds) external;
-    function hookByUnStake(uint256[] calldata nftIds) external;
+    function hookByStake(uint256 nftId) external;
+    function hookByUnStake(uint256 nftId) external;
 
 }
