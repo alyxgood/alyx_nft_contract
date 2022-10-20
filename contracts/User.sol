@@ -60,7 +60,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
 
         userInfoOf[_msgSender()].refAddress = _refAddr;
         userInfoOf[_refAddr].refCounterOf[0] += 1;
-        auditLevel(_refAddr);
+        _auditLevel(_refAddr);
     }
 
     function isValidUser(address _userAddr) view external returns (bool) {
@@ -90,7 +90,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
             }
 
             userInfoOf[_refAddr].performance += _performance;
-            auditLevel(_refAddr);
+            _auditLevel(_refAddr);
         }
     }
 
@@ -152,31 +152,47 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_msgSender(), rewardAmount);
     }
 
+    function auditLevel(address _userAddr) external {
+        _auditLevel(_userAddr);
+    }
+
     function calcAchievementReward(address _userAddr, uint256[] calldata _nftIds) external view returns (bool[] memory, uint256) {
         return _calcAchievementReward(_userAddr, _nftIds);
     }
 
-    function auditLevel(address _userAddr) private {
-        if (_userAddr != address(0)) {
-            uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
-            if (curLevelIndex < uint256(type(Level).max)) {
-                uint256 nextLevelIndex = curLevelIndex + 1;
-                uint256 directRequire = DBContract(DB_CONTRACT).directRequirements(curLevelIndex);
-                uint256 performanceRequire = DBContract(DB_CONTRACT).performanceRequirements(curLevelIndex);
-                if (
-                    userInfoOf[_userAddr].performance >= performanceRequire &&
-                    userInfoOf[_userAddr].refCounterOf[curLevelIndex] >= directRequire
-                ) {
-                    userInfoOf[_userAddr].level = Level(nextLevelIndex);
+    function levelUpAble(address _userAddr) external view returns (bool) {
+        return _levelUpAble(_userAddr);
+    }
 
-                    address refAddress = userInfoOf[_userAddr].refAddress;
-                    if (refAddress != address(0)) {
-                        userInfoOf[refAddress].refCounterOf[nextLevelIndex] += 1;
-                        auditLevel(refAddress);
-                    }
-                }
+    function _auditLevel(address _userAddr) private {
+        require(_userAddr != address(0), 'User: not a valid user.');
+
+        uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
+        if (_levelUpAble(_userAddr)) {
+            uint256 nextLevelIndex = curLevelIndex + 1;
+            userInfoOf[_userAddr].level = Level(nextLevelIndex);
+
+            address refAddress = userInfoOf[_userAddr].refAddress;
+            if (refAddress != address(0)) {
+                userInfoOf[refAddress].refCounterOf[nextLevelIndex] += 1;
             }
         }
+    }
+
+    function _levelUpAble(address _userAddr) private view returns (bool) {
+        uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
+        if (curLevelIndex < uint256(type(Level).max)) {
+            uint256 directRequire = DBContract(DB_CONTRACT).directRequirements(curLevelIndex);
+            uint256 performanceRequire = DBContract(DB_CONTRACT).performanceRequirements(curLevelIndex);
+            if (
+                userInfoOf[_userAddr].performance >= performanceRequire &&
+                userInfoOf[_userAddr].refCounterOf[curLevelIndex] >= directRequire
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function _calcAchievementReward(address _userAddr, uint256[] calldata _nftIds) private view returns (bool[] memory, uint256) {

@@ -360,8 +360,24 @@ export async function user_level_up(team_addr: string, vault: SignerWithAddress,
         }
     }
 
+    await auditLevel(user, contracts, state)
     userInfo = await contracts.user.userInfoOf(user.address)
     expect(userInfo.level).to.equal(toLevelNumber)
+}
+
+export async function auditLevel(user: SignerWithAddress, contracts: CONTRACT_FIX, state: CONTRACT_STATE) {
+    // const inviteeList = state.INVITEE_LIST.get(user.address)
+    // if (inviteeList && inviteeList.length > 0) {
+    //     for (let index = 0; index < inviteeList.length; index++) {
+    //         await auditLevel(inviteeList[index], contracts, state)
+    //         await contracts.user.auditLevel(inviteeList[index].address)
+    //     }
+    //     await contracts.user.auditLevel(user.address)
+    // }
+    while (await contracts.user.levelUpAble(user.address)) {
+        const tx = await contracts.user.auditLevel(user.address)
+        await tx.wait()
+    }
 }
 
 export async function nft_level_up(tokenId: number, user: SignerWithAddress, toLevel: number, contracts: CONTRACT_FIX, envs: ENV_FIX) {
