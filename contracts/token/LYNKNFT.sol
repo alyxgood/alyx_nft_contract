@@ -6,6 +6,7 @@ import "../interfaces/IUser.sol";
 import "../interfaces/ILYNKNFT.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
@@ -34,44 +35,14 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _randomSeedGen();
     }
 
-    function mint(uint256 _tokenId, address _payment) external payable {
-        require(
-            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
-                'LYNKNFT: not a valid user.'
-        );
+    function mintWithPermit(uint256 _tokenId, address _payment, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+        uint256 mintPrice = _mintPrice(_tokenId, _payment);
+        IERC20PermitUpgradeable(_payment).permit(_msgSender(), address(this), mintPrice, deadline, v, r, s);
+        _mint(_tokenId, _payment);
+    }
 
-        MintInfo memory mintInfo = mintInfoOf[_msgSender()];
-        if (block.timestamp - mintInfo.lastMintTime >= 1 days) {
-            mintInfo.mintNumInDuration = 0;
-        }
-        require(
-            mintInfo.mintNumInDuration < DBContract(DB_CONTRACT).maxMintPerDayPerAddress(),
-                'LYNKNFT: cannot mint more in a day.'
-        );
-        mintInfoOf[_msgSender()].lastMintTime = uint128(block.timestamp);
-        mintInfoOf[_msgSender()].mintNumInDuration = mintInfo.mintNumInDuration + 1;
-
-        require(
-            DBContract(DB_CONTRACT).LYNK_TOKEN() == _payment ||
-            DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
-                'LYNKNFT: unsupported payment.'
-        );
-        uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
-        uint256 mintPrice;
-        if (_tokenId >= 200_000) {
-            mintPrice = DBContract(DB_CONTRACT).mintPrices(2) * (10 ** decimal);
-        } else if (_tokenId >= 100_000) {
-            mintPrice = DBContract(DB_CONTRACT).mintPrices(1) * (10 ** decimal);
-        } else {
-            mintPrice = DBContract(DB_CONTRACT).mintPrices(0) * (10 ** decimal);
-        }
-        require(_tokenId < 300_000, 'LYNKNFT: token id too large.');
-
-        _pay(_payment, _msgSender(), mintPrice);
-
-        (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
-        nftInfo[_tokenId] = [ vitality, intellect, 0, 0];
-        ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
+    function mint(uint256 _tokenId, address _payment) external {
+        _mint(_tokenId, _payment);
     }
 
     function upgrade(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment) external payable {
@@ -139,5 +110,50 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     /// @dev Returns an URI for a given token ID
     function _baseURI() internal view virtual override returns (string memory) {
         return DBContract(DB_CONTRACT).baseTokenURI();
+    }
+
+    function _mintPrice(uint256 _tokenId, address _payment) private view returns (uint256) {
+        require(
+            DBContract(DB_CONTRACT).LYNK_TOKEN() == _payment ||
+            DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
+            'LYNKNFT: unsupported payment.'
+        );
+        uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
+        uint256 mintPrice;
+        if (_tokenId >= 200_000) {
+            mintPrice = DBContract(DB_CONTRACT).mintPrices(2) * (10 ** decimal);
+        } else if (_tokenId >= 100_000) {
+            mintPrice = DBContract(DB_CONTRACT).mintPrices(1) * (10 ** decimal);
+        } else {
+            mintPrice = DBContract(DB_CONTRACT).mintPrices(0) * (10 ** decimal);
+        }
+        require(_tokenId < 300_000, 'LYNKNFT: token id too large.');
+
+        return mintPrice;
+    }
+
+    function _mint(uint256 _tokenId, address _payment) private {
+        require(
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+            'LYNKNFT: not a valid user.'
+        );
+
+        MintInfo memory mintInfo = mintInfoOf[_msgSender()];
+        if (block.timestamp - mintInfo.lastMintTime >= 1 days) {
+            mintInfo.mintNumInDuration = 0;
+        }
+        require(
+            mintInfo.mintNumInDuration < DBContract(DB_CONTRACT).maxMintPerDayPerAddress(),
+            'LYNKNFT: cannot mint more in a day.'
+        );
+        mintInfoOf[_msgSender()].lastMintTime = uint128(block.timestamp);
+        mintInfoOf[_msgSender()].mintNumInDuration = mintInfo.mintNumInDuration + 1;
+
+        uint256 mintPrice = _mintPrice(_tokenId, _payment);
+        _pay(_payment, _msgSender(), mintPrice);
+
+        (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
+        nftInfo[_tokenId] = [ vitality, intellect, 0, 0];
+        ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
     }
 }
