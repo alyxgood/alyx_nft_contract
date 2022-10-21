@@ -15,6 +15,8 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     mapping(uint256 => uint256[]) public nftInfo;
     mapping(address => MintInfo) public mintInfoOf;
 
+    event Upgrade(uint256 indexed tokenId, Attribute attr, uint256 point);
+
     struct MintInfo {
         uint128 lastMintTime;
         uint128 mintNumInDuration;
@@ -82,6 +84,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _pay(_payment, _msgSender(), amount);
 
         nftInfo[_tokenId][uint256(_attr)] += _point;
+        emit Upgrade(_tokenId, _attr, _point);
 
         // dealing with the ref things.
         IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUpgrade(_msgSender(), Attribute.charisma == _attr ? _point : 0);
