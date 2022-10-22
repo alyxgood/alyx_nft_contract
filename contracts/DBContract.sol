@@ -303,6 +303,8 @@ contract DBContract is OwnableUpgradeable {
     }
 
     function _calcLevel(ILYNKNFT.Attribute _attr, uint256 _point) private view returns (uint256 level, uint256 overflow) {
+        level = 0;
+        overflow = _point;
         uint256 thresholdLength = attributeLevelThreshold[uint256(_attr)].length;
         for (uint256 index; index < thresholdLength; index++) {
             if (_point >= attributeLevelThreshold[uint256(_attr)][index]) {
