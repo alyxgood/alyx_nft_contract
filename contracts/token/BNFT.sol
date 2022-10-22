@@ -33,7 +33,7 @@ contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
 
     _underlyingAsset = underlyingAsset;
 
-    emit Initialized(underlyingAsset);
+    emit BNFTInitialized(underlyingAsset);
   }
 
   /**
