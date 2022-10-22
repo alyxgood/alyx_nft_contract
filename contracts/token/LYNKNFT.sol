@@ -37,9 +37,8 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _randomSeedGen();
     }
 
-    function mintWithPermit(uint256 _tokenId, address _payment, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
-        uint256 mintPrice = _mintPrice(_tokenId, _payment);
-        IERC20PermitUpgradeable(_payment).permit(_msgSender(), address(this), mintPrice, deadline, v, r, s);
+    function mintWithPermit(uint256 _tokenId, address _payment, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+        IERC20PermitUpgradeable(_payment).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
         _mint(_tokenId, _payment);
     }
 
