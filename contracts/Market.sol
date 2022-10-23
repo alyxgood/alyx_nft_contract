@@ -19,6 +19,10 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
     ListInfo[] public listNFTs;
     mapping(uint256 => uint256) public listIndexByTokenId;
 
+    event List(address indexed seller, uint256 indexed tokenId, uint256 index, address acceptToken, uint256 priceInAcceptToken);
+    event Cancel(uint256 indexed tokenId, uint256 index);
+    event Take(address indexed buyer, uint256 indexed tokenId, uint256 index);
+
     struct ListInfo {
         address seller;
         uint256 tokenId;
@@ -64,7 +68,10 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
             acceptToken: _acceptToken,
             priceInAcceptToken: _priceInAcceptToken
         }));
-        listIndexByTokenId[_tokenId] = listNFTs.length - 1;
+        uint256 index = listNFTs.length - 1;
+        listIndexByTokenId[_tokenId] = index;
+
+        emit List(_msgSender(), _tokenId, index, _acceptToken, _priceInAcceptToken);
     }
 
     function cancelList(uint256 _listIndex, uint256 _tokenId) external {
@@ -88,6 +95,8 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
 
         IBNFT(bLYNKNFTAddress).burn(_tokenId);
         IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
+
+        emit Cancel(_tokenId, _listIndex);
     }
 
     function takeNFT(uint256 _listIndex, uint256 _tokenId) payable external {
@@ -123,6 +132,8 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
 
         IBNFT(bLYNKNFTAddress).burn(_tokenId);
         IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
+
+        emit Take(_msgSender(), _tokenId, _listIndex);
     }
 
     function onSellNum() external view returns (uint256) {
