@@ -99,7 +99,7 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
         uint256 listNFTNum = listNFTs.length;
         require(listNFTNum > _listIndex, 'Market: index overflow.');
         ListInfo memory listInfo = listNFTs[_listIndex];
-        require(listInfo.tokenId == _tokenId, 'Market: already sold.');
+        require(listInfo.tokenId == _tokenId, 'Market: token id mismatch.');
 
         if (_listIndex < listNFTNum - 1) {
             listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
