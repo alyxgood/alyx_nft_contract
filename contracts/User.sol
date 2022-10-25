@@ -16,6 +16,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
     mapping(address => UserInfo) public userInfoOf;
     mapping(uint256 => StakeInfo) public stakeNFTs;
 
+    event Register(address indexed account, address ref);
     event LevelUp(address indexed account, Level level);
 
     struct UserInfo {
@@ -62,6 +63,8 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
 
         userInfoOf[_msgSender()].refAddress = _refAddr;
         userInfoOf[_refAddr].refCounterOf[0] += 1;
+        emit Register(_msgSender(), _refAddr);
+
         _auditLevel(_refAddr);
     }
 
