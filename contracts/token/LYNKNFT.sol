@@ -121,7 +121,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _pay(_payment, _msgSender(), mintPrice);
 
         (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
-        nftInfo[_tokenId] = [ vitality, intellect, 0, 0];
+        nftInfo[_tokenId] = [ 0, vitality, intellect, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
     }
 
