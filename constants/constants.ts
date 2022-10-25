@@ -1,8 +1,8 @@
 export enum Attribute {
     charisma,
-    dexterity,
     vitality,
-    intellect
+    intellect,
+    dexterity,
 }
 
 export enum Level {

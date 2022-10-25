@@ -15,7 +15,7 @@ import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {BigNumber} from "ethers";
 import {Attribute} from "../constants/constants";
 
-describe("main_process", function () {
+describe("LYNKNFT", function () {
 
     let envs: ENV_FIX
     let state: CONTRACT_STATE
@@ -134,9 +134,6 @@ describe("main_process", function () {
             contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.dexterity.valueOf(), tokenId, 1, ethers.constants.AddressZero)
         ).to.be.revertedWith('LYNKNFT: level overflow.')
         await expect(
-            contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.vitality.valueOf(), tokenId, 1, ethers.constants.AddressZero)
-        ).to.be.revertedWith('LYNKNFT: level overflow.')
-        await expect(
             contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.intellect.valueOf(), tokenId, 1, ethers.constants.AddressZero)
         ).to.be.revertedWith('LYNKNFT: level overflow.')
     });
@@ -159,18 +156,11 @@ describe("main_process", function () {
         await contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.charisma.valueOf(), tokenId, amount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.USDT.address)
 
         await expect(
-            contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.dexterity.valueOf(), tokenId, 1, ethers.constants.AddressZero)
+            contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.vitality.valueOf(), tokenId, 1, ethers.constants.AddressZero)
         ).to.be.revertedWith('LYNKNFT: unsupported payment.')
 
         await contracts.apToken.connect(randomUser1)["mint(uint256)"](envs.AP_PACKAGE.length - 1, {value: envs.AP_PACKAGE[envs.AP_PACKAGE.length - 1][1]})
         await contracts.apToken.connect(randomUser1).approve(contracts.LYNKNFT.address, ethers.constants.MaxUint256)
-
-        amount = BigNumber.from(envs.ATTRIBUTE_DX[0]).sub(nftInfo[Attribute.dexterity.valueOf()]).mul(BigNumber.from(10).pow(decimalUSDT))
-        await contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.dexterity.valueOf(), tokenId, amount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.apToken.address)
-
-        await expect(
-            contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.vitality.valueOf(), tokenId, 1, ethers.constants.AddressZero)
-        ).to.be.revertedWith('LYNKNFT: unsupported payment.')
 
         amount = BigNumber.from(envs.ATTRIBUTE_VA[0]).sub(nftInfo[Attribute.vitality.valueOf()]).mul(BigNumber.from(10).pow(decimalUSDT))
         await contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.vitality.valueOf(), tokenId, amount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.apToken.address)
@@ -182,11 +172,18 @@ describe("main_process", function () {
         amount = BigNumber.from(envs.ATTRIBUTE_IN[0]).sub(nftInfo[Attribute.intellect.valueOf()]).mul(BigNumber.from(10).pow(decimalUSDT))
         await contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.intellect.valueOf(), tokenId, amount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.apToken.address)
 
+        await expect(
+            contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.dexterity.valueOf(), tokenId, 1, ethers.constants.AddressZero)
+        ).to.be.revertedWith('LYNKNFT: unsupported payment.')
+
+        amount = BigNumber.from(envs.ATTRIBUTE_DX[0]).sub(nftInfo[Attribute.dexterity.valueOf()]).mul(BigNumber.from(10).pow(decimalUSDT))
+        await contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.dexterity.valueOf(), tokenId, amount.div(BigNumber.from(10).pow(decimalUSDT)), contracts.apToken.address)
+
         nftInfo = await contracts.LYNKNFT.nftInfoOf(tokenId)
         expect(nftInfo[Attribute.charisma.valueOf()]).to.equal(envs.ATTRIBUTE_CA[0])
-        expect(nftInfo[Attribute.dexterity.valueOf()]).to.equal(envs.ATTRIBUTE_DX[0])
         expect(nftInfo[Attribute.vitality.valueOf()]).to.equal(envs.ATTRIBUTE_VA[0])
         expect(nftInfo[Attribute.intellect.valueOf()]).to.equal(envs.ATTRIBUTE_IN[0])
+        expect(nftInfo[Attribute.dexterity.valueOf()]).to.equal(envs.ATTRIBUTE_DX[0])
 
         expect(await contracts.dbContract.calcTokenLevel(tokenId)).to.equal(1)
     });

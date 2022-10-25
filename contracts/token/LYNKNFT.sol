@@ -145,14 +145,16 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
                 'LYNKNFT: unsupported payment.'
             );
         } else {
-            uint256 preAttrIndex = uint256(_attr) - 1;
-            (uint256 preAttrLevel,) = DBContract(DB_CONTRACT).calcLevel(Attribute(preAttrIndex), nftInfo[_tokenId][preAttrIndex]);
-            (uint256 curAttrLevelAfterUpgrade, uint256 curAttrLevelOverflowAfterUpgrade) = DBContract(DB_CONTRACT).calcLevel(_attr, _point + nftInfo[_tokenId][uint256(_attr)]);
-            require(
-                preAttrLevel > curAttrLevelAfterUpgrade ||
-                (preAttrLevel == curAttrLevelAfterUpgrade && curAttrLevelOverflowAfterUpgrade == 0),
-                'LYNKNFT: level overflow.'
-            );
+            if (Attribute.vitality != _attr) {
+                uint256 preAttrIndex = uint256(_attr) - 1;
+                (uint256 preAttrLevel,) = DBContract(DB_CONTRACT).calcLevel(Attribute(preAttrIndex), nftInfo[_tokenId][preAttrIndex]);
+                (uint256 curAttrLevelAfterUpgrade, uint256 curAttrLevelOverflowAfterUpgrade) = DBContract(DB_CONTRACT).calcLevel(_attr, _point + nftInfo[_tokenId][uint256(_attr)]);
+                require(
+                    preAttrLevel > curAttrLevelAfterUpgrade ||
+                    (preAttrLevel == curAttrLevelAfterUpgrade && curAttrLevelOverflowAfterUpgrade == 0),
+                    'LYNKNFT: level overflow.'
+                );
+            }
 
             require(_payment == DBContract(DB_CONTRACT).AP_TOKEN(), 'LYNKNFT: unsupported payment.');
         }

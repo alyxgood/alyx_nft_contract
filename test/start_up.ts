@@ -390,20 +390,20 @@ export async function nft_level_up(tokenId: number, user: SignerWithAddress, toL
         const decimalUSDT = await contracts.USDT.decimals()
         const decimalAPT = await contracts.apToken.decimals()
 
-        const charismaThreshold = BigNumber.from(envs.ATTRIBUTE_CA[toLevel - 1]).sub(nftInfo[0])
+        const charismaThreshold = BigNumber.from(envs.ATTRIBUTE_CA[toLevel - 1]).sub(nftInfo[Attribute.charisma.valueOf()])
         const charismaThresholdNeedAmount = charismaThreshold.mul(BigNumber.from(10).pow(decimalUSDT))
         await contracts.USDT.connect(user).mint(user.address, charismaThresholdNeedAmount)
         await contracts.USDT.connect(user).approve(contracts.LYNKNFT.address, charismaThresholdNeedAmount)
         await contracts.LYNKNFT.connect(user).upgrade(Attribute.charisma.valueOf(), tokenId, charismaThreshold, contracts.USDT.address)
 
-        const dexterityThreshold = BigNumber.from(envs.ATTRIBUTE_DX[toLevel - 1]).sub(nftInfo[1])
-        const dexterityThresholdNeedAmount = dexterityThreshold.mul(BigNumber.from(10).pow(decimalAPT))
-
-        const vitalityThreshold = BigNumber.from(envs.ATTRIBUTE_VA[toLevel - 1]).sub(nftInfo[2])
+        const vitalityThreshold = BigNumber.from(envs.ATTRIBUTE_VA[toLevel - 1]).sub(nftInfo[Attribute.vitality.valueOf()])
         const vitalityThresholdNeedAmount = vitalityThreshold.mul(BigNumber.from(10).pow(decimalAPT))
 
-        const intellectThreshold = BigNumber.from(envs.ATTRIBUTE_IN[toLevel - 1]).sub(nftInfo[3])
+        const intellectThreshold = BigNumber.from(envs.ATTRIBUTE_IN[toLevel - 1]).sub(nftInfo[Attribute.intellect.valueOf()])
         const intellectThresholdAmount = intellectThreshold.mul(BigNumber.from(10).pow(decimalAPT))
+
+        const dexterityThreshold = BigNumber.from(envs.ATTRIBUTE_DX[toLevel - 1]).sub(nftInfo[Attribute.dexterity.valueOf()])
+        const dexterityThresholdNeedAmount = dexterityThreshold.mul(BigNumber.from(10).pow(decimalAPT))
 
         const totalAPT = dexterityThresholdNeedAmount.add(vitalityThresholdNeedAmount).add(intellectThresholdAmount)
         const maxPackage = envs.AP_PACKAGE[envs.AP_PACKAGE.length - 1]
@@ -414,9 +414,9 @@ export async function nft_level_up(tokenId: number, user: SignerWithAddress, toL
         }
 
         await contracts.apToken.connect(user).approve(contracts.LYNKNFT.address, totalAPT)
-        await contracts.LYNKNFT.connect(user).upgrade(Attribute.dexterity.valueOf(), tokenId, dexterityThreshold, contracts.apToken.address)
         await contracts.LYNKNFT.connect(user).upgrade(Attribute.vitality.valueOf(), tokenId, vitalityThreshold, contracts.apToken.address)
         await contracts.LYNKNFT.connect(user).upgrade(Attribute.intellect.valueOf(), tokenId, intellectThreshold, contracts.apToken.address)
+        await contracts.LYNKNFT.connect(user).upgrade(Attribute.dexterity.valueOf(), tokenId, dexterityThreshold, contracts.apToken.address)
     }
 
     const level = await contracts.dbContract.calcTokenLevel(tokenId)

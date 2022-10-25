@@ -258,7 +258,7 @@ describe("main_process", function () {
         expect(await contracts.staking.claimableOf(users.user2.address)).to.equal(0);
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
             const nftInfo = await contracts.LYNKNFT.nftInfoOf(nftLevels.token_id_by_level[index])
-            assert.ok(nftInfo.length == Attribute.intellect.valueOf() + 1)
+            assert.ok(nftInfo.length == Attribute.dexterity.valueOf() + 1)
             charisma = charisma.add(nftInfo[Attribute.charisma.valueOf()])
             dexterity = dexterity.add(nftInfo[Attribute.dexterity.valueOf()])
 
@@ -343,7 +343,7 @@ describe("main_process", function () {
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
             const tokenId = nftLevels.token_id_by_level[index]
             const nftInfo = await contracts.LYNKNFT.nftInfoOf(tokenId)
-            assert.ok(nftInfo.length == Attribute.intellect.valueOf() + 1)
+            assert.ok(nftInfo.length == Attribute.dexterity.valueOf() + 1)
             charisma = charisma.add(nftInfo[Attribute.charisma.valueOf()])
             dexterity = dexterity.add(nftInfo[Attribute.dexterity.valueOf()])
 

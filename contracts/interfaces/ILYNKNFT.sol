@@ -5,9 +5,9 @@ interface ILYNKNFT {
 
     enum Attribute {
         charisma,
-        dexterity,
         vitality,
-        intellect
+        intellect,
+        dexterity
     }
 
     function nftInfoOf(uint256 tokenId)

@@ -261,11 +261,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.charisma.valueOf(), env.ATTRIBUTE_CA)
             await tx.wait()
         }
-        if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.dexterity.valueOf())) {
-            console.log('setup dexterity level threshold...')
-            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.dexterity.valueOf(), env.ATTRIBUTE_DX)
-            await tx.wait()
-        }
         if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.vitality.valueOf())) {
             console.log('setup vitality level threshold...')
             tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.vitality.valueOf(), env.ATTRIBUTE_VA)
@@ -274,6 +269,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.intellect.valueOf())) {
             console.log('setup intellect level threshold...')
             tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.intellect.valueOf(), env.ATTRIBUTE_IN)
+            await tx.wait()
+        }
+        if ((await dbProxyAttached.attributeLevelThresholdNum()).eq(Attribute.dexterity.valueOf())) {
+            console.log('setup dexterity level threshold...')
+            tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(Attribute.dexterity.valueOf(), env.ATTRIBUTE_DX)
             await tx.wait()
         }
 

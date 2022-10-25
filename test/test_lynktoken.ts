@@ -13,7 +13,7 @@ import {expect} from "chai";
 import {ethers} from "hardhat";
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 
-describe("main_process", function () {
+describe("LYNK TOKEN", function () {
 
     let envs: ENV_FIX
     let state: CONTRACT_STATE

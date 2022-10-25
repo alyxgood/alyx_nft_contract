@@ -14,8 +14,9 @@ import {ethers} from "hardhat";
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {increase, now} from "./helpers/time";
 import {BigNumber} from "ethers";
+import {Attribute} from "../constants/constants";
 
-describe("main_process", function () {
+describe("staking", function () {
 
     let envs: ENV_FIX
     let state: CONTRACT_STATE
@@ -82,13 +83,13 @@ describe("main_process", function () {
 
         let stakeInfo
         stakeInfo = await contracts.staking.miningPowerOf(randomUser1.address)
-        await expect(stakeInfo.charisma).to.equal(nftInfo1[0])
-        await expect(stakeInfo.dexterity).to.equal(nftInfo1[1])
+        await expect(stakeInfo.charisma).to.equal(nftInfo1[Attribute.charisma.valueOf()])
+        await expect(stakeInfo.dexterity).to.equal(nftInfo1[Attribute.dexterity.valueOf()])
 
         await contracts.staking.connect(randomUser1).stake(tokenId2)
         stakeInfo = await contracts.staking.miningPowerOf(randomUser1.address)
-        await expect(stakeInfo.charisma).to.equal(nftInfo1[0].add(nftInfo2[0]))
-        await expect(stakeInfo.dexterity).to.equal(nftInfo1[1].add(nftInfo2[1]))
+        await expect(stakeInfo.charisma).to.equal(nftInfo1[Attribute.charisma.valueOf()].add(nftInfo2[Attribute.charisma.valueOf()]))
+        await expect(stakeInfo.dexterity).to.equal(nftInfo1[Attribute.dexterity.valueOf()].add(nftInfo2[Attribute.dexterity.valueOf()]))
     });
 
     it('should unstake the nft which not belong yours', async function () {
@@ -141,12 +142,12 @@ describe("main_process", function () {
         unStakedTime = await now()
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, randomUser1.address, rewardRate(nftInfo1[0], nftInfo1[1]).mul(unStakedTime.sub(stakedTime)))
+            .withArgs(ethers.constants.AddressZero, randomUser1.address, rewardRate(nftInfo1[Attribute.charisma.valueOf()], nftInfo1[Attribute.dexterity.valueOf()]).mul(unStakedTime.sub(stakedTime)))
         const balanceLYNKTokenBefore = await contracts.LYNKToken.balanceOf(randomUser1.address)
-        await expect(balanceLYNKTokenBefore).to.equal(rewardRate(nftInfo1[0], nftInfo1[1]).mul(unStakedTime.sub(stakedTime)))
+        await expect(balanceLYNKTokenBefore).to.equal(rewardRate(nftInfo1[Attribute.charisma.valueOf()], nftInfo1[Attribute.dexterity.valueOf()]).mul(unStakedTime.sub(stakedTime)))
 
         await increase(24*60*60)
-        let reward = rewardRate(nftInfo1[0], nftInfo1[1]).mul(24*60*60)
+        let reward = rewardRate(nftInfo1[Attribute.charisma.valueOf()], nftInfo1[Attribute.dexterity.valueOf()]).mul(24*60*60)
 
         const tokenId2 = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser1, contracts, envs, state)
         const nftInfo2 = await contracts.LYNKNFT.nftInfoOf(tokenId2)
@@ -158,7 +159,7 @@ describe("main_process", function () {
         tx = await contracts.staking.connect(randomUser1).claimReward()
         unStakedTime = await now()
 
-        reward = reward.add(rewardRate(nftInfo1[0].add(nftInfo2[0]), nftInfo1[1].add(nftInfo2[1])).mul(unStakedTime.sub(stakedTime)))
+        reward = reward.add(rewardRate(nftInfo1[Attribute.charisma.valueOf()].add(nftInfo2[Attribute.charisma.valueOf()]), nftInfo1[Attribute.dexterity.valueOf()].add(nftInfo2[Attribute.dexterity.valueOf()])).mul(unStakedTime.sub(stakedTime)))
         const balanceLYNKToken = await contracts.LYNKToken.balanceOf(randomUser1.address)
         expect(balanceLYNKToken.sub(reward).sub(balanceLYNKTokenBefore)).to.lt(balanceLYNKToken.mul(3).div(100))
     });

@@ -15,7 +15,7 @@ import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {BigNumber} from "ethers";
 import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
 
-describe("main_process", function () {
+describe("market", function () {
 
     let envs: ENV_FIX
     let state: CONTRACT_STATE
