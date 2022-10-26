@@ -339,6 +339,10 @@ contract DBContract is OwnableUpgradeable {
         return attributeLevelThreshold.length;
     }
 
+    function attributeLevelThresholdNumByIndex(uint256 index) external view returns (uint256) {
+        return attributeLevelThreshold.length > index ? attributeLevelThreshold[index].length : 0;
+    }
+
     function directRequirementsNum() external view returns (uint256) {
         return directRequirements.length;
     }
