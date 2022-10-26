@@ -90,12 +90,12 @@ const main = async (
             await tx.wait()
         }
 
-        if ((await dbProxyAttached.sellingLevelLimit()).eq(env.SELLING_LEVEL_LIMIT)) {
+        if (!(await dbProxyAttached.sellingLevelLimit()).eq(env.SELLING_LEVEL_LIMIT)) {
             console.log('setup selling level limit...')
             tx = await dbProxyAttached.connect(users.operator).setSellingLevelLimit(env.SELLING_LEVEL_LIMIT)
             await tx.wait()
         }
-        if ((await dbProxyAttached.tradingFee()).eq(env.TRADING_FEE)) {
+        if (!(await dbProxyAttached.tradingFee()).eq(env.TRADING_FEE)) {
             console.log('setup trading fee...')
             tx = await dbProxyAttached.connect(users.operator).setTradingFee(env.TRADING_FEE)
             await tx.wait()
@@ -125,52 +125,124 @@ const main = async (
 
         parametersLength = (await dbProxyAttached.performanceRequirementsNum()).toNumber()
         isMatch = parametersLength == env.PERFORMANCE_REQUIREMENTS.length
-        if ((await dbProxyAttached.performanceRequirementsNum()).eq(0)) {
+        if (isMatch) {
+            for (let index = 0; index < parametersLength; index++) {
+                const requirement = await dbProxyAttached.performanceRequirements(index)
+                if (!requirement.eq(env.PERFORMANCE_REQUIREMENTS[index])) {
+                    isMatch = false
+                    break
+                }
+            }
+        }
+        if (!isMatch) {
             console.log('setup performance requirements...')
             tx = await dbProxyAttached.connect(users.operator).setPerformanceRequirements(env.PERFORMANCE_REQUIREMENTS)
             await tx.wait()
         }
-        if ((await dbProxyAttached.socialRewardRatesNum()).eq(0)) {
+
+        parametersLength = (await dbProxyAttached.socialRewardRatesNum()).toNumber()
+        isMatch = parametersLength == env.SOCIAL_REWARD.length
+        if (isMatch) {
+            for (let index = 0; index < parametersLength; index++) {
+                const rate = await dbProxyAttached.socialRewardRates(index)
+                if (!rate.eq(env.SOCIAL_REWARD[index])) {
+                    isMatch = false
+                    break
+                }
+            }
+        }
+        if (!isMatch) {
             console.log('setup social reward rates...')
             tx = await dbProxyAttached.connect(users.operator).setSocialRewardRates(env.SOCIAL_REWARD)
             await tx.wait()
         }
-        if ((await dbProxyAttached.contributionRewardThreshold()).eq(0)) {
+
+        if (!(await dbProxyAttached.contributionRewardThreshold()).eq(env.CONTRIBUTION_THRESHOLD)) {
             console.log('setup contribution reward threshold...')
             tx = await dbProxyAttached.connect(users.operator).setContributionRewardThreshold(env.CONTRIBUTION_THRESHOLD)
             await tx.wait()
         }
-        if ((await dbProxyAttached.contributionRewardAmountsNum()).eq(0)) {
+
+        parametersLength = (await dbProxyAttached.contributionRewardAmountsNum()).toNumber()
+        isMatch = parametersLength == env.CONTRIBUTION_REWARD.length
+        if (isMatch) {
+            for (let index = 0; index < parametersLength; index++) {
+                const amount = await dbProxyAttached.contributionRewardAmounts(index)
+                if (!amount.eq(env.CONTRIBUTION_REWARD[index])) {
+                    isMatch = false
+                    break
+                }
+            }
+        }
+        if (!isMatch) {
             console.log('setup contribution reward amount...')
             tx = await dbProxyAttached.connect(users.operator).setContributionRewardAmounts(env.CONTRIBUTION_REWARD)
             await tx.wait()
         }
 
-        for (let index = 0; index < env.COMMUNITY_REWARD.length; index++) {
-            if ((await dbProxyAttached.communityRewardRatesNumByLevel(index)).eq(0)) {
-                console.log(`setup ${index} community reward...`)
-                tx = await dbProxyAttached.connect(users.operator).setCommunityRewardRates(index, env.COMMUNITY_REWARD[index])
+        for (let indexOuter = 0; indexOuter < env.COMMUNITY_REWARD.length; indexOuter++) {
+            parametersLength = (await dbProxyAttached.communityRewardRatesNumByLevel(indexOuter)).toNumber()
+            isMatch = parametersLength == env.COMMUNITY_REWARD.length
+            if (isMatch) {
+                for (let indexInner = 0; indexInner < parametersLength; indexInner++) {
+                    const reward = await dbProxyAttached.communityRewardRates(indexOuter, indexInner)
+                    if (!reward.eq(env.COMMUNITY_REWARD[indexOuter][indexInner])) {
+                        isMatch = false
+                        break
+                    }
+                }
+            }
+            if (!isMatch) {
+                console.log(`setup ${indexOuter} community reward...`)
+                tx = await dbProxyAttached.connect(users.operator).setCommunityRewardRates(indexOuter, env.COMMUNITY_REWARD[indexOuter])
                 await tx.wait()
             }
         }
 
-        if ((await dbProxyAttached.achievementRewardLevelThreshold()).eq(0)) {
+        if (!(await dbProxyAttached.achievementRewardLevelThreshold()).eq(env.ACHIEVEMENT_LEVEL_THRESHOLD)) {
             console.log('setup achievement reward level threshold...')
             tx = await dbProxyAttached.connect(users.operator).setAchievementRewardLevelThreshold(env.ACHIEVEMENT_LEVEL_THRESHOLD)
             await tx.wait()
         }
-        if ((await dbProxyAttached.achievementRewardDurationThreshold()).eq(0)) {
+
+        if (!(await dbProxyAttached.achievementRewardDurationThreshold()).eq(env.ACHIEVEMENT_DURATION)) {
             console.log('setup achievement reward duration threshold...')
             tx = await dbProxyAttached.connect(users.operator).setAchievementRewardDurationThreshold(env.ACHIEVEMENT_DURATION)
             await tx.wait()
         }
-        if ((await dbProxyAttached.achievementRewardAmountsNum()).eq(0)) {
+
+        parametersLength = (await dbProxyAttached.achievementRewardAmountsNum()).toNumber()
+        isMatch = parametersLength == env.ACHIEVEMENT_REWARD.length
+        if (isMatch) {
+            for (let index = 0; index > parametersLength; index++) {
+                const reward = await dbProxyAttached.achievementRewardAmounts(index)
+                if (!reward.eq(env.ACHIEVEMENT_REWARD[index])) {
+                    isMatch = false
+                    break
+                }
+            }
+        }
+        if (!isMatch) {
             console.log('setup achievement reward amounts...')
             tx = await dbProxyAttached.connect(users.operator).setAchievementRewardAmounts(env.ACHIEVEMENT_REWARD)
             await tx.wait()
         }
 
-        if ((await dbProxyAttached.packageLength()).eq(0)) {
+        parametersLength = (await dbProxyAttached.packageLength()).toNumber()
+        isMatch = parametersLength == env.AP_PACKAGE.length
+        if (isMatch) {
+            for (let indexOuter = 0; indexOuter < env.AP_PACKAGE.length; indexOuter++) {
+                const packagee = await dbProxyAttached.packageByIndex(indexOuter)
+                for (let indexInner = 0; indexInner < packagee.length; indexInner++) {
+                    if (!packagee[indexInner].eq(env.AP_PACKAGE[indexOuter][indexInner])) {
+                        isMatch = false
+                        break
+                    }
+                }
+                if (!isMatch) break
+            }
+        }
+        if (!isMatch) {
             console.log('setup APToken selling package...')
             tx = await dbProxyAttached.connect(users.operator).setSellingPackage(env.AP_PACKAGE)
             await tx.wait()
