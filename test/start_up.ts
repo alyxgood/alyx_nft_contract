@@ -46,6 +46,8 @@ export interface CONTRACT_FIX {
 }
 
 export interface ENV_FIX {
+    environment: string
+    USDT_ADDRESS: string
     MINT_PRICES: string[]
     MAX_MINT_PER_DAY_PER_ADDRESS: string,
     ATTRIBUTE_VA: string[],
@@ -116,6 +118,8 @@ export async function get_user() {
 
 
 export function get_env() {
+    let environment: string
+    let USDT_ADDRESS: string
     let MINT_PRICES: string[]
     let MAX_MINT_PER_DAY_PER_ADDRESS: string
     let ATTRIBUTE_VA: string[]
@@ -136,6 +140,8 @@ export function get_env() {
     let ACHIEVEMENT_DURATION: string
     let ACHIEVEMENT_REWARD: string[]
 
+    environment = process.env.environment ? process.env.environment : 'test'  // prod / test
+    USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
     MINT_PRICES = (process.env.LYNKNFY_PRICES ? process.env.LYNKNFY_PRICES : '10,100,300').split(',')
     MAX_MINT_PER_DAY_PER_ADDRESS = process.env.MAX_MINT_PER_DAY_PER_ADDRESS ? process.env.MAX_MINT_PER_DAY_PER_ADDRESS : '2'
     ATTRIBUTE_CA = (process.env.ATTRIBUTE_CA ? process.env.ATTRIBUTE_CA : '100,500,1000,3000,5000,10000,20000,30000,50000,100000').split(',')
@@ -200,6 +206,8 @@ export function get_env() {
     }
 
     return {
+        environment,
+        USDT_ADDRESS,
         MINT_PRICES,
         MAX_MINT_PER_DAY_PER_ADDRESS,
         ATTRIBUTE_VA,

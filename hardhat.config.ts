@@ -6,6 +6,7 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import 'hardhat-deploy';
+import mintMockUSDT from "./scripts/tasks/mintMockUSDT";
 
 
 dotenv.config();
@@ -83,3 +84,5 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
+
+task("mint-mock-usdt", "Mint mock USDT", mintMockUSDT);
