@@ -1,4 +1,4 @@
-import {HardhatRuntimeEnvironment, TaskArguments} from "hardhat/types";
+import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {ENV_FIX, get_env, get_user, USER_FIX} from "../test/start_up";
 import {DBContract, DBContract__factory} from "../typechain-types";
 import {Attribute} from "../constants/constants";
@@ -17,8 +17,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const dbProxyAttached: DBContract = await dbContractFactory.attach(deploymentsDBContract.address)
 
     let tx;
-    try {
-        if ((await dbProxyAttached.operator()).toLowerCase() != users.operator.address.toLowerCase()) {
+
+    if ((await dbProxyAttached.operator()).toLowerCase() != users.operator.address.toLowerCase()) {
             console.log('setup the operator...')
             tx = await dbProxyAttached.connect(users.owner1).setOperator(users.operator.address)
             await tx.wait()
@@ -246,9 +246,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             tx = await dbProxyAttached.connect(users.operator).setSellingPackage(env.AP_PACKAGE)
             await tx.wait()
         }
-    } catch (e: any) {
-        console.log(e)
-    }
+
 }
 
 export default func
