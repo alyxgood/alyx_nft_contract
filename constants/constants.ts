@@ -13,3 +13,6 @@ export enum Level {
     mythic,
     divine
 }
+
+export const TEST_EVN = 'test'
+export const PROD_EVN = 'prod'

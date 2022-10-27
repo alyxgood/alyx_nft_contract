@@ -6,7 +6,7 @@ import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
 import {APToken, BNFT, DBContract, LYNKNFT, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
 import {BigNumber} from "ethers";
 import {assert, expect} from "chai";
-import {Attribute, Level} from "../constants/constants";
+import {Attribute, Level, TEST_EVN} from "../constants/constants";
 import {increase} from "./helpers/time";
 import {BigNumberish} from "@ethersproject/bignumber/src.ts/bignumber";
 
@@ -140,7 +140,7 @@ export function get_env() {
     let ACHIEVEMENT_DURATION: string
     let ACHIEVEMENT_REWARD: string[]
 
-    environment = process.env.environment ? process.env.environment : 'test'  // prod / test
+    environment = process.env.environment ? process.env.environment : TEST_EVN  // prod / test
     USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
     MINT_PRICES = (process.env.LYNKNFY_PRICES ? process.env.LYNKNFY_PRICES : '10,100,300').split(',')
     MAX_MINT_PER_DAY_PER_ADDRESS = process.env.MAX_MINT_PER_DAY_PER_ADDRESS ? process.env.MAX_MINT_PER_DAY_PER_ADDRESS : '2'
