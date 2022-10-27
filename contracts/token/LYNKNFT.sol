@@ -14,7 +14,9 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     uint256 private randomSeed;
     mapping(uint256 => uint256[]) public nftInfo;
     mapping(address => MintInfo) public mintInfoOf;
+    mapping(string => bool) public nameUsed;
 
+    event Mint(uint256 indexed tokenId, uint256[] nftInfo, string name);
     event Upgrade(uint256 indexed tokenId, Attribute attr, uint256 point);
 
     struct MintInfo {
@@ -37,13 +39,13 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _randomSeedGen();
     }
 
-    function mintWithPermit(uint256 _tokenId, address _payment, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+    function mintWithPermit(uint256 _tokenId, address _payment, string calldata _name, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         IERC20PermitUpgradeable(_payment).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
-        _mint(_tokenId, _payment);
+        _mint(_tokenId, _payment, _name);
     }
 
-    function mint(uint256 _tokenId, address _payment) external {
-        _mint(_tokenId, _payment);
+    function mint(uint256 _tokenId, address _payment, string calldata _name) external {
+        _mint(_tokenId, _payment, _name);
     }
 
     function upgradeWithPermit(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
@@ -100,11 +102,13 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         return mintPrice;
     }
 
-    function _mint(uint256 _tokenId, address _payment) private {
+    function _mint(uint256 _tokenId, address _payment, string calldata _name) private {
         require(
             IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
             'LYNKNFT: not a valid user.'
         );
+        require(!nameUsed[_name], 'LYNKNFT: name already in used.');
+        nameUsed[_name] = true;
 
         MintInfo memory mintInfo = mintInfoOf[_msgSender()];
         if (block.timestamp - mintInfo.lastMintTime >= 1 days) {
@@ -123,6 +127,8 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
         nftInfo[_tokenId] = [ 0, vitality, intellect, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
+
+        emit Mint(_tokenId, nftInfo[_tokenId], _name);
     }
 
     function _upgrade(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment) private {
