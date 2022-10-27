@@ -59,8 +59,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 owner: users.proxy_admin1.address,
                 proxyContract: 'LYNKProxy',
                 execute: {
-                    init: '__LYNKToken_init',
-                    args: []
+                    init: {
+                        methodName: '__LYNKToken_init',
+                        args: []
+                    }
                 }
             }
         }
@@ -95,12 +97,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 owner: users.proxy_admin1.address,
                 proxyContract: 'LYNKProxy',
                 execute: {
-                    methodName: 'initialize',
-                    args: [
-                        lynkNFTProxy.address,
-                        'Staking LYNK',
-                        'sLYNK'
-                    ]
+                    init: {
+                        methodName: 'initialize',
+                        args: [
+                            lynkNFTProxy.address,
+                            'Staking LYNK',
+                            'sLYNK'
+                        ]
+                    }
                 }
             }
         }
@@ -139,8 +143,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 owner: users.proxy_admin1.address,
                 proxyContract: 'LYNKProxy',
                 execute: {
-                    init: '__User_init',
-                    args: []
+                    init: {
+                        methodName: '__User_init',
+                        args: []
+                    }
                 }
             }
         }
