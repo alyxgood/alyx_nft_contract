@@ -1,13 +1,12 @@
 import {HardhatRuntimeEnvironment, TaskArguments} from "hardhat/types";
-import {ENV_FIX, get_env, get_user, USER_FIX} from "../../test/start_up";
-import {DBContract, DBContract__factory} from "../../typechain-types";
-import {Attribute} from "../../constants/constants";
+import {ENV_FIX, get_env, get_user, USER_FIX} from "../test/start_up";
+import {DBContract, DBContract__factory} from "../typechain-types";
+import {Attribute} from "../constants/constants";
 import {Deployment} from "hardhat-deploy/dist/types";
+import {DeployFunction} from "hardhat-deploy/types";
 
-const main = async (
-    _taskArgs: TaskArguments,
-    hre: HardhatRuntimeEnvironment
-) => {
+const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+    // @ts-ignore
     const {deployments, ethers, getNamedAccounts} = hre
     let users: USER_FIX = await get_user()
     const env: ENV_FIX = get_env();
@@ -59,7 +58,7 @@ const main = async (
                 if (isMatch) {
                     for (let indexInner = 0; indexInner < parametersLength; indexInner++) {
                         const threshold = await dbProxyAttached.attributeLevelThreshold(indexOuter, indexInner)
-                        if (!threshold.eq(env.ATTRIBUTE_CA[indexInner])) {
+                        if (!threshold.eq(attrs[indexOuter][indexInner])) {
                             isMatch = false
                             break
                         }
@@ -67,7 +66,7 @@ const main = async (
                 }
             }
             if (!isMatch) {
-                console.log('setup charisma level threshold...')
+                console.log(`setup ${indexOuter} level threshold...`)
                 tx = await dbProxyAttached.connect(users.operator).setAttributeLevelThreshold(indexOuter, attrs[indexOuter])
                 await tx.wait()
             }
@@ -75,7 +74,7 @@ const main = async (
 
         let USDTAddress = env.USDT_ADDRESS
         if (env.environment == 'test') {
-            const deploymentsMockUSDT = await hre.deployments.get("mock_usdt")
+            const deploymentsMockUSDT = await deployments.get("mock_usdt")
             USDTAddress = deploymentsMockUSDT.address
         }
 
@@ -182,7 +181,7 @@ const main = async (
 
         for (let indexOuter = 0; indexOuter < env.COMMUNITY_REWARD.length; indexOuter++) {
             parametersLength = (await dbProxyAttached.communityRewardRatesNumByLevel(indexOuter)).toNumber()
-            isMatch = parametersLength == env.COMMUNITY_REWARD.length
+            isMatch = parametersLength == env.COMMUNITY_REWARD[indexOuter].length
             if (isMatch) {
                 for (let indexInner = 0; indexInner < parametersLength; indexInner++) {
                     const reward = await dbProxyAttached.communityRewardRates(indexOuter, indexInner)
@@ -252,4 +251,6 @@ const main = async (
     }
 }
 
-export default main
+export default func
+func.tags = ['setup_env']
+func.dependencies = ['test_net']

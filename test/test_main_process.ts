@@ -42,7 +42,7 @@ describe("main_process", function () {
         let  state = get_contract_state()
         let envs = get_env()
         let users = await get_user()
-        let  contracts = await set_up_fixture("test_net")
+        let  contracts = await set_up_fixture("setup_env")
         // 1. create fixture
         let userLevels = await set_up_level(users.team_addr.address, contracts, envs, users, state)
         let nftLevels = await set_up_nft_level(users.team_addr.address, users.user1, contracts, envs, state)

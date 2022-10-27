@@ -29,7 +29,7 @@ describe("market", function () {
         const envs = get_env()
         const state = get_contract_state()
         const users = await get_user()
-        const contracts = await set_up_fixture("test_net")
+        const contracts = await set_up_fixture("setup_env")
         return { envs, state, users, contracts };
     }
 
