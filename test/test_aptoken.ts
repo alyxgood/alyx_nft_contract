@@ -34,21 +34,10 @@ describe("ap token", function () {
     });
 
     it("should unregister user can buy apToken?", async function () {
-        // const randomUser = await createRandomSignerAndSendETH(users.deployer1)
-        // await expect(
-        //     contracts.apToken.connect(randomUser)["mint(uint256)"](1, {value: envs.AP_PACKAGE[0][1]})
-        // ).to.be.revertedWith('APToken: not a valid user.')
-
-
-        await contracts.apToken.permit(
-            '0x393e62575b5a72c6998f293468d48cf7c7eebfce',
-            '0x091930c7949816b6ecb557b54c9d5175a5063520',
-            ethers.constants.WeiPerEther,
-            ethers.constants.MaxUint256,
-            '0x1c',
-            '0xb391a0ca6189b162cf63655d7806bdf5421d20bb5ff72727a82d4745491b0e75',
-            '0x1806942097b99ef5d73a5628dbbe99d0a7c6b730d7309f35504fc43dd6bf4004'
-        )
+        const randomUser = await createRandomSignerAndSendETH(users.deployer1)
+        await expect(
+            contracts.apToken.connect(randomUser)["mint(uint256)"](1, {value: envs.AP_PACKAGE[0][1]})
+        ).to.be.revertedWith('APToken: not a valid user.')
     })
 
     it('should buy an invalid package?', async function () {
