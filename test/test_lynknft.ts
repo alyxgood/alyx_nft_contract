@@ -47,7 +47,7 @@ describe("LYNKNFT", function () {
     it("should unregister user can mint LYNKNFT?", async function () {
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address)
+            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
         ).to.be.revertedWith('LYNKNFT: not a valid user.')
     })
 
@@ -60,7 +60,7 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice)
 
-        const tx = await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address)
+        const tx = await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
         await expect(tx)
             .to.emit(contracts.USDT, 'Transfer')
             .withArgs(randomUser.address, users.team_addr.address, mintPrice)
@@ -79,10 +79,10 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice.mul(3))
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice.mul(3))
 
-        await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address)
-        await contracts.LYNKNFT.connect(randomUser).mint(1, contracts.USDT.address)
+        await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+        await contracts.LYNKNFT.connect(randomUser).mint(1, contracts.USDT.address, '1')
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address)
+            contracts.LYNKNFT.connect(randomUser).mint(3, contracts.USDT.address, '3')
         ).to.be.revertedWith('LYNKNFT: cannot mint more in a day.')
     });
 
@@ -95,9 +95,12 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice.mul(2))
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice.mul(2))
 
-        await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address)
+        await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address)
+            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+        ).to.be.revertedWith('LYNKNFT: name already in used.')
+        await expect(
+            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '1')
         ).to.be.revertedWith('ERC721: token already minted')
     });
 
@@ -110,7 +113,7 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice.mul(2))
 
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address)
+            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
         ).to.be.revertedWith('ERC20: transfer amount exceeds balance')
     });
 

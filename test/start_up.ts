@@ -452,7 +452,7 @@ export async function mintLYNKNFTAndCheck(team_addr: string, user: SignerWithAdd
     await contracts.USDT.connect(user).approve(contracts.LYNKNFT.address, mintPrice)
 
     const tokenId = state.LYNKNFT_TOKEN_ID
-    const tx = await contracts.LYNKNFT.connect(user).mint(tokenId, contracts.USDT.address)
+    const tx = await contracts.LYNKNFT.connect(user).mint(tokenId, contracts.USDT.address, `name-${state.LYNKNFT_TOKEN_ID}`)
     await expect(tx)
         .to.emit(contracts.USDT, 'Transfer')
         .withArgs(user.address, team_addr, mintPrice)
