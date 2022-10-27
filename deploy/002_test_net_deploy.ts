@@ -191,8 +191,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     )
 
     // init db contract
-    try {
-        let dbProxyAttached = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(dbProxy.address)
+
+    let dbProxyAttached = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(dbProxy.address)
         if (await dbProxyAttached.LYNKNFT() === ethers.constants.AddressZero) {
             console.log('init the db contract...')
             const tx = await dbProxyAttached.connect(users.owner1).__DBContract_init([
@@ -208,9 +208,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             ])
             await tx.wait()
         }
-    } catch (e: any) {
-        console.log(e)
-    }
+
 }
 
 export default func
