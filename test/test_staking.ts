@@ -5,7 +5,7 @@ import {
     ENV_FIX,
     get_contract_state,
     get_env,
-    get_user, mintLYNKNFTAndCheck,
+    get_user, mintLYNKNFTAndCheck, nft_level_up,
     set_up_fixture,
     USER_FIX,
 } from "./start_up";
@@ -132,6 +132,7 @@ describe("staking", function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         await contracts.user.connect(randomUser1).register(envs.ROOT)
         const tokenId1 = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser1, contracts, envs, state)
+        await nft_level_up(tokenId1, randomUser1, 1, contracts, envs)
         const nftInfo1 = await contracts.LYNKNFT.nftInfoOf(tokenId1)
         await contracts.LYNKNFT.connect(randomUser1).setApprovalForAll(contracts.staking.address, true)
         await contracts.staking.connect(randomUser1).stake(tokenId1)
@@ -150,6 +151,7 @@ describe("staking", function () {
         let reward = rewardRate(nftInfo1[Attribute.charisma.valueOf()], nftInfo1[Attribute.dexterity.valueOf()]).mul(24*60*60)
 
         const tokenId2 = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser1, contracts, envs, state)
+        await nft_level_up(tokenId2, randomUser1, 1, contracts, envs)
         const nftInfo2 = await contracts.LYNKNFT.nftInfoOf(tokenId2)
 
         await contracts.staking.connect(randomUser1).stake(tokenId2)

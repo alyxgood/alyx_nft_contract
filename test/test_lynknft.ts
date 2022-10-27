@@ -35,6 +35,15 @@ describe("LYNKNFT", function () {
         ({ envs, state, users, contracts } = await loadFixture(createFixture));
     });
 
+    it('should set the base url?', async function () {
+        await contracts.dbContract.connect(users.operator).setBaseTokenURI('https://lynknft.com/')
+        const randomUser = await createRandomSignerAndSendETH(users.deployer1)
+        await contracts.user.connect(randomUser).register(envs.ROOT)
+        const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser, contracts, envs, state)
+
+        expect(await contracts.LYNKNFT.tokenURI(tokenId)).to.equal(`https://lynknft.com/${tokenId}`)
+    });
+
     it("should unregister user can mint LYNKNFT?", async function () {
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
         await expect(
