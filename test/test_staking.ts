@@ -36,6 +36,12 @@ describe("staking", function () {
         ({ envs, state, users, contracts } = await loadFixture(createFixture));
     });
 
+    it("should initializer twice?", async function () {
+        await expect(
+            contracts.staking.__Staking_init()
+        ).to.be.revertedWith('Initializable: contract is already initialized')
+    })
+
     it('should stake by the user who not a valid user?', async function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         await expect(

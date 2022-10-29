@@ -34,7 +34,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         __Staking_init_unchained();
     }
 
-    function __Staking_init_unchained() public onlyInitializing {
+    function __Staking_init_unchained() private {
     }
 
     modifier updateReward(address account) {
