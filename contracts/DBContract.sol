@@ -77,7 +77,7 @@ contract DBContract is OwnableUpgradeable {
         __Ownable_init();
     }
 
-    function __DBContract_init_unchained(address[] calldata _addresses) private onlyInitializing {
+    function __DBContract_init_unchained(address[] calldata _addresses) private {
         _setAddresses(_addresses);
     }
 

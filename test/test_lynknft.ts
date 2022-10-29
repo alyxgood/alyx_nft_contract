@@ -154,6 +154,7 @@ describe("LYNKNFT", function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         await contracts.user.connect(randomUser1).register(envs.ROOT)
         const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser1, contracts, envs, state)
+        await expect(contracts.dbContract.calcTokenLevel(tokenId+1)).to.be.revertedWith('DBContract: invalid token ID.')
         expect(await contracts.dbContract.calcTokenLevel(tokenId)).to.equal(0)
 
         await expect(
