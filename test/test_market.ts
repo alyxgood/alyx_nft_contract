@@ -41,6 +41,12 @@ describe("market", function () {
         tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser, contracts, envs, state)
     });
 
+    it("should initializer twice?", async function () {
+        await expect(
+            contracts.market.__Market_init()
+        ).to.be.revertedWith('Initializable: contract is already initialized')
+    })
+
     it('should list by the user who not a valid user?', async function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         await expect(
@@ -157,10 +163,26 @@ describe("market", function () {
 
     it('should take the nft correctly?', async function () {
         const buyer = await createRandomSignerAndSendETH(users.deployer1)
-        await contracts.user.connect(buyer).register(envs.ROOT)
+
+        const tokenId1 = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser, contracts, envs, state)
         await nft_level_up(tokenId, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
+        await nft_level_up(tokenId1, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
         let tx = await contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
         await tx.wait()
+        tx = await contracts.market.connect(randomUser).listNFT(tokenId1, contracts.USDT.address, ethers.constants.WeiPerEther)
+        await tx.wait()
+
+        await expect(
+            contracts.market.connect(buyer).takeNFT(0, tokenId, {value: ethers.constants.WeiPerEther})
+        ).to.be.revertedWith('Market: not a valid user.')
+        await contracts.user.connect(buyer).register(envs.ROOT)
+        await expect(
+            contracts.market.connect(buyer).takeNFT(ethers.constants.MaxUint256, tokenId, {value: ethers.constants.WeiPerEther})
+        ).to.be.revertedWith('Market: index overflow.')
+        await expect(
+            contracts.market.connect(buyer).takeNFT(0, tokenId, {value: ethers.constants.WeiPerEther.sub(1)})
+        ).to.be.revertedWith('Market: value mismatch.')
+
         const sellerBalanceBefore = await randomUser.getBalance()
         const buyerBalanceBefore = await buyer.getBalance()
         tx = await contracts.market.connect(buyer).takeNFT(0, tokenId, {value: ethers.constants.WeiPerEther})
@@ -176,11 +198,25 @@ describe("market", function () {
         await expect(await contracts.LYNKNFT.ownerOf(tokenId)).to.equal(buyer.address)
         await expect(contracts.lLYNKNFT.ownerOf(tokenId))
             .to.be.revertedWith('ERC721: invalid token ID')
-        await expect(contracts.market.listNFTs(0))
-            .to.be.revertedWith('CALL_EXCEPTION')
+
         const fee = ethers.constants.WeiPerEther.mul(BigNumber.from(envs.TRADING_FEE)).div(ethers.constants.WeiPerEther)
         await expect(await randomUser.getBalance()).to.equal(sellerBalanceBefore.add(ethers.constants.WeiPerEther).sub(fee))
         const rx = await tx.wait()
         await expect(await buyer.getBalance()).to.equal(buyerBalanceBefore.sub(ethers.constants.WeiPerEther).sub(rx.gasUsed.mul(rx.effectiveGasPrice)))
+
+        await contracts.USDT.connect(buyer).mint(buyer.address, ethers.constants.WeiPerEther)
+        await contracts.USDT.connect(buyer).approve(contracts.market.address, ethers.constants.WeiPerEther)
+        const sellerUSDTBalanceBefore = await contracts.USDT.balanceOf(randomUser.address)
+        const buyerUSDTBalanceBefore = await contracts.USDT.balanceOf(buyer.address)
+        await contracts.market.connect(buyer).takeNFT(0, tokenId1)
+        const feeUSDT = ethers.constants.WeiPerEther.mul(BigNumber.from(envs.TRADING_FEE)).div(ethers.constants.WeiPerEther)
+        await expect(await contracts.USDT.balanceOf(randomUser.address)).to.equal(sellerUSDTBalanceBefore.add(ethers.constants.WeiPerEther).sub(feeUSDT))
+        await expect(await contracts.USDT.balanceOf(buyer.address)).to.equal(buyerUSDTBalanceBefore.sub(ethers.constants.WeiPerEther))
+        await expect(await contracts.LYNKNFT.ownerOf(tokenId1)).to.equal(buyer.address)
+        await expect(contracts.lLYNKNFT.ownerOf(tokenId1))
+            .to.be.revertedWith('ERC721: invalid token ID')
+
+        await expect(contracts.market.listNFTs(0))
+            .to.be.revertedWith('CALL_EXCEPTION')
     });
 })

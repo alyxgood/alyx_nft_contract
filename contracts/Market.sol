@@ -39,7 +39,7 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
         __Market_init_unchained();
     }
 
-    function __Market_init_unchained() private onlyInitializing {
+    function __Market_init_unchained() private {
     }
 
     function listNFT(uint256 _tokenId, address _acceptToken, uint256 _priceInAcceptToken) external {
@@ -84,7 +84,7 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
 
         require(listInfo.tokenId == _tokenId, 'Market: token id mismatch.');
         require(listInfo.seller == _msgSender(), 'Market: seller mismatch.');
-        require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
+        // require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
 
         if (_listIndex < listNFTNum - 1) {
             listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
