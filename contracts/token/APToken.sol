@@ -17,6 +17,7 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         __APToken_init_unchained();
         __ERC20Permit_init("Attribute Point");
         __ERC20_init("Attribute Point", "AP");
+        __baseContract_init();
     }
 
     function __APToken_init_unchained() public onlyInitializing {
