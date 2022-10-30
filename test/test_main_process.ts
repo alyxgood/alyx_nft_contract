@@ -244,8 +244,23 @@ describe("main_process", function () {
     it("stake NFT", async function () {
         let tx;
 
-        const user2Ref = await createRandomSignerAndSendETH(users.deployer1)
-        await user_level_up(users.team_addr.address, users.deployer1, user2Ref, Level.elite, contracts, envs, state, undefined)
+        const user2Refs = []
+        for (let index = 0; index < envs.COMMUNITY_REWARD[envs.COMMUNITY_REWARD.length - 1].length - 1; index++) {
+            const user2Ref = await createRandomSignerAndSendETH(users.deployer1)
+            await user_level_up(
+                users.team_addr.address,
+                users.deployer1, user2Ref,
+                Level.elite, contracts,
+                envs,
+                state,
+                user2Refs.length === 0 ? userLevels.signer_by_level[Level.divine.valueOf()].address : user2Refs[user2Refs.length - 1].address
+            )
+            user2Refs.push(user2Ref)
+        }
+
+        // const user2Ref = await createRandomSignerAndSendETH(users.deployer1)
+        // await user_level_up(users.team_addr.address, users.deployer1, user2Ref, Level.elite, contracts, envs, state, undefined)
+        const user2Ref = user2Refs[user2Refs.length - 1]
         await contracts.user.connect(users.user2).register(user2Ref.address)
 
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
@@ -326,6 +341,14 @@ describe("main_process", function () {
                 ethers.constants.AddressZero,
                 user2Ref.address,
                 BigNumber.from(envs.COMMUNITY_REWARD[Level.elite.valueOf()][0]).mul(claimable).div(ethers.constants.WeiPerEther)
+            )
+
+        await expect(tx)
+            .to.emit(contracts.LYNKToken, 'Transfer')
+            .withArgs(
+                ethers.constants.AddressZero,
+                userLevels.signer_by_level[Level.divine.valueOf()].address,
+                BigNumber.from(envs.COMMUNITY_REWARD[Level.divine.valueOf()][envs.COMMUNITY_REWARD[envs.COMMUNITY_REWARD.length - 1].length - 1]).mul(claimable).div(ethers.constants.WeiPerEther)
             )
     })
 
