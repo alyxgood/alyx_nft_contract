@@ -161,10 +161,15 @@ describe("user", function () {
     it('should query ref counter of?', async function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         const randomUser2 = await createRandomSignerAndSendETH(users.deployer1)
+        expect(await contracts.user.isValidUser(randomUser1.address)).to.equal(false)
+        expect(await contracts.user.isValidUser(randomUser2.address)).to.equal(false)
+
         expect(await contracts.user.refCounterOf(randomUser1.address, Level.elite.valueOf())).to.equal(0)
         await contracts.user.connect(randomUser1).register(envs.ROOT)
+        expect(await contracts.user.isValidUser(randomUser1.address)).to.equal(true)
         expect(await contracts.user.refCounterOf(randomUser1.address, Level.elite.valueOf())).to.equal(0)
         await contracts.user.connect(randomUser2).register(randomUser1.address)
+        expect(await contracts.user.isValidUser(randomUser2.address)).to.equal(true)
         expect(await contracts.user.refCounterOf(randomUser1.address, Level.elite.valueOf())).to.equal(1)
     });
 })
