@@ -15,6 +15,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     mapping(uint256 => uint256[]) public nftInfo;
     mapping(address => MintInfo) public mintInfoOf;
     mapping(string => bool) public nameUsed;
+    mapping(uint256 => AttributeAddedInfo) public addedVAInfoOf;
 
     event Mint(uint256 indexed tokenId, uint256[] nftInfo, string name);
     event Upgrade(uint256 indexed tokenId, Attribute attr, uint256 point);
@@ -22,6 +23,11 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     struct MintInfo {
         uint128 lastMintTime;
         uint128 mintNumInDuration;
+    }
+
+    struct AttributeAddedInfo {
+        uint128 lastAddedTime;
+        uint128 addedInDuration;
     }
 
     constructor(address dbAddress) baseContract(dbAddress){
@@ -151,7 +157,18 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
                 'LYNKNFT: unsupported payment.'
             );
         } else {
-            if (Attribute.vitality != _attr) {
+            if (Attribute.vitality == _attr) {
+                AttributeAddedInfo memory addedInfo = addedVAInfoOf[_tokenId];
+                if (block.timestamp - addedInfo.lastAddedTime >= 1 days) {
+                    addedInfo.addedInDuration = 0;
+                }
+                require(
+                    addedInfo.addedInDuration + _point <= DBContract(DB_CONTRACT).maxVAAddPerDayPerToken(),
+                        'LYNKNFT: cannot upgrade more in a day.'
+                );
+                addedVAInfoOf[_tokenId].lastAddedTime = uint128(block.timestamp);
+                addedVAInfoOf[_tokenId].addedInDuration = addedInfo.addedInDuration + uint128(_point);
+            } else {
                 uint256 preAttrIndex = uint256(_attr) - 1;
                 (uint256 preAttrLevel,) = DBContract(DB_CONTRACT).calcLevel(Attribute(preAttrIndex), nftInfo[_tokenId][preAttrIndex]);
                 (uint256 curAttrLevelAfterUpgrade, uint256 curAttrLevelOverflowAfterUpgrade) = DBContract(DB_CONTRACT).calcLevel(_attr, _point + nftInfo[_tokenId][uint256(_attr)]);

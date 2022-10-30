@@ -50,6 +50,7 @@ export interface ENV_FIX {
     USDT_ADDRESS: string
     MINT_PRICES: string[]
     MAX_MINT_PER_DAY_PER_ADDRESS: string,
+    MAX_VA_ADD_PER_DAY_PER_TOKEN: string,
     ATTRIBUTE_VA: string[],
     ATTRIBUTE_IN: string[],
     ATTRIBUTE_DX: string[],
@@ -122,6 +123,7 @@ export function get_env() {
     let USDT_ADDRESS: string
     let MINT_PRICES: string[]
     let MAX_MINT_PER_DAY_PER_ADDRESS: string
+    let MAX_VA_ADD_PER_DAY_PER_TOKEN: string
     let ATTRIBUTE_VA: string[]
     let ATTRIBUTE_IN: string[]
     let ATTRIBUTE_DX: string[]
@@ -144,6 +146,7 @@ export function get_env() {
     USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
     MINT_PRICES = (process.env.LYNKNFY_PRICES ? process.env.LYNKNFY_PRICES : '10,100,300').split(',')
     MAX_MINT_PER_DAY_PER_ADDRESS = process.env.MAX_MINT_PER_DAY_PER_ADDRESS ? process.env.MAX_MINT_PER_DAY_PER_ADDRESS : '2'
+    MAX_VA_ADD_PER_DAY_PER_TOKEN = process.env.MAX_VA_ADD_PER_DAY_PER_TOKEN ? process.env.MAX_VA_ADD_PER_DAY_PER_TOKEN : '20'
     ATTRIBUTE_CA = (process.env.ATTRIBUTE_CA ? process.env.ATTRIBUTE_CA : '100,500,1000,3000,5000,10000,20000,30000,50000,100000').split(',')
     ATTRIBUTE_DX = (process.env.ATTRIBUTE_DX ? process.env.ATTRIBUTE_DX : '5,10,15,20,25,30,40,50,60,70,80,100,120').split(',')
     ATTRIBUTE_VA = (process.env.ATTRIBUTE_VA ? process.env.ATTRIBUTE_VA : '10,20,40,80,160,320,640,1280,2560,5120,10240,20480,40960').split(',')
@@ -210,6 +213,7 @@ export function get_env() {
         USDT_ADDRESS,
         MINT_PRICES,
         MAX_MINT_PER_DAY_PER_ADDRESS,
+        MAX_VA_ADD_PER_DAY_PER_TOKEN,
         ATTRIBUTE_VA,
         ATTRIBUTE_IN,
         ATTRIBUTE_DX,
