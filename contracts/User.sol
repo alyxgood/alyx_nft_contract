@@ -3,15 +3,15 @@ pragma solidity 0.8.9;
 
 import "./baseContract.sol";
 import "./interfaces/IUser.sol";
+import "./interfaces/IBNFT.sol";
 import "./interfaces/IERC20Mintable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
+contract User is IUser, baseContract {
 
     mapping(address => UserInfo) public userInfoOf;
     mapping(uint256 => StakeInfo) public stakeNFTs;
@@ -41,18 +41,17 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
     }
 
     function __User_init() public initializer {
-        __ReentrancyGuard_init();
         __baseContract_init();
         __User_init_unchained();
     }
 
-    function __User_init_unchained() public onlyInitializing {
+    function __User_init_unchained() private {
     }
 
     function register(address _refAddr) external {
         require(
-            userInfoOf[_msgSender()].refAddress == address(0) ||
-            _msgSender() == DBContract(DB_CONTRACT).rootAddress(),
+            userInfoOf[_msgSender()].refAddress == address(0) &&
+            _msgSender() != DBContract(DB_CONTRACT).rootAddress(),
                 'User: already register.'
         );
         require(
@@ -72,7 +71,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         return userInfoOf[_userAddr].refAddress != address(0);
     }
 
-    function hookByUpgrade(address _userAddr, uint256 _performance) onlyLYNKNFTContract nonReentrant external {
+    function hookByUpgrade(address _userAddr, uint256 _performance) onlyLYNKNFTContract external {
         if (_performance > 0) {
             address _refAddr = userInfoOf[_userAddr].refAddress;
             uint256 refPerformance = userInfoOf[_refAddr].performance;
@@ -99,13 +98,13 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         }
     }
 
-    function hookByStake(uint256 nftId) onlyStakingContract nonReentrant external {
+    function hookByStake(uint256 nftId) onlyStakingContract external {
         if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
             stakeNFTs[nftId].lastUpdateTime = block.timestamp;
         }
     }
 
-    function hookByUnStake(uint256 nftId) onlyStakingContract nonReentrant external {
+    function hookByUnStake(uint256 nftId) onlyStakingContract external {
         if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
             uint256 lastUpdateTime = stakeNFTs[nftId].lastUpdateTime;
             stakeNFTs[nftId].lastUpdateTime = block.timestamp;
@@ -113,7 +112,7 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         }
     }
 
-    function hookByClaimReward(address _userAddr, uint256 _rewardAmount) onlyStakingContract nonReentrant external {
+    function hookByClaimReward(address _userAddr, uint256 _rewardAmount) onlyStakingContract external {
         address curAddr = userInfoOf[_userAddr].refAddress;
         address lynkAddr = DBContract(DB_CONTRACT).LYNK_TOKEN();
         uint256 maxInvitationLevel = DBContract(DB_CONTRACT).maxInvitationLevel();
@@ -121,18 +120,15 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
             if (curAddr == address(0)) break;
 
             uint256 rate = DBContract(DB_CONTRACT).communityRewardRate(userInfoOf[curAddr].level, index);
-            if (rate > 0) {
-                uint256 reward = rate * _rewardAmount / 1e18;
-
-                userInfoOf[curAddr].communityRev += reward;
-                IERC20Mintable(lynkAddr).mint(curAddr, reward);
-            }
+            uint256 reward = rate * _rewardAmount / 1e18;
+            userInfoOf[curAddr].communityRev += reward;
+            IERC20Mintable(lynkAddr).mint(curAddr, reward);
 
             curAddr = userInfoOf[curAddr].refAddress;
         }
     }
 
-    function claimAchievementReward(uint256[] calldata _nftIds) nonReentrant external {
+    function claimAchievementReward(uint256[] calldata _nftIds) external {
         address LYNKNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
         address bLYNKNFTAddress = DBContract(DB_CONTRACT).STAKING_LYNKNFT();
 
@@ -170,7 +166,11 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
     }
 
     function _auditLevel(address _userAddr) private {
-        require(_userAddr != address(0), 'User: not a valid user.');
+        require(
+            userInfoOf[_userAddr].refAddress != address(0) ||
+            _userAddr == DBContract(DB_CONTRACT).rootAddress(),
+                'User: not a valid user.'
+        );
 
         uint256 curLevelIndex = uint256(userInfoOf[_userAddr].level);
         if (_levelUpAble(_userAddr)) {
@@ -205,11 +205,16 @@ contract User is IUser, ReentrancyGuardUpgradeable, baseContract {
         uint256 durationThreshold = DBContract(DB_CONTRACT).achievementRewardDurationThreshold();
         uint256 rewardAmount = DBContract(DB_CONTRACT).achievementRewardAmounts(uint256(userInfoOf[_userAddr].level));
 
+        address LYNKNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
+        address sLYNKNFTAddress = DBContract(DB_CONTRACT).STAKING_LYNKNFT();
         bool[] memory claimable = new bool[](_nftIds.length);
         uint256 rewardTotalAmount;
         for (uint256 index; index < _nftIds.length; index++) {
             if (DBContract(DB_CONTRACT).hasAchievementReward(_nftIds[index])) {
                 uint256 duration = block.timestamp - stakeNFTs[_nftIds[index]].lastUpdateTime;
+                if (IERC721Upgradeable(LYNKNFTAddress).ownerOf(_nftIds[index]) != sLYNKNFTAddress) {
+                    duration = 0;
+                }
                 if (stakeNFTs[_nftIds[index]].stakedDuration + duration >= durationThreshold) {
                     claimable[index] = true;
                     rewardTotalAmount += rewardAmount;
