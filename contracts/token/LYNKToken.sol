@@ -18,7 +18,7 @@ contract LYNKToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         __baseContract_init();
     }
 
-    function __LYNKToken_init_unchained() public onlyInitializing {
+    function __LYNKToken_init_unchained() private {
     }
 
     function mint(address account, uint256 amount) external onlyUserOrStakingContract {
