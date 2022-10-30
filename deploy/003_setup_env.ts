@@ -1,7 +1,7 @@
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {ENV_FIX, get_env, get_user, USER_FIX} from "../test/start_up";
 import {DBContract, DBContract__factory} from "../typechain-types";
-import {Attribute} from "../constants/constants";
+import {Attribute, PROD_EVN} from "../constants/constants";
 import {Deployment} from "hardhat-deploy/dist/types";
 import {DeployFunction} from "hardhat-deploy/types";
 
@@ -45,6 +45,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         if (!(await dbProxyAttached.maxMintPerDayPerAddress()).eq(env.MAX_MINT_PER_DAY_PER_ADDRESS)) {
             console.log('setup the max mint limit...')
             tx = await dbProxyAttached.connect(users.operator).setMaxMintPerDayPerAddress(env.MAX_MINT_PER_DAY_PER_ADDRESS)
+            await tx.wait()
+        }
+
+        if (!(await dbProxyAttached.maxVAAddPerDayPerToken()).eq(env.MAX_VA_ADD_PER_DAY_PER_TOKEN)) {
+            console.log('setup the max va added...')
+            let value = env.MAX_VA_ADD_PER_DAY_PER_TOKEN
+            if (env.environment !== PROD_EVN) {
+                value = ethers.constants.MaxUint256.toString()
+            }
+
+            tx = await dbProxyAttached.connect(users.operator).setMaxVAAddPerDayPerId(value)
             await tx.wait()
         }
 

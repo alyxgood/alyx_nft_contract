@@ -325,4 +325,34 @@ describe("LYNKNFT", function () {
         )
         expect(await contracts.LYNKNFT.ownerOf(state.LYNKNFT_TOKEN_ID)).to.equal(randomUser1.address)
     });
+
+    it('should limit by the ${maxVAAddPerDayPerToken}', async function () {
+        await contracts.dbContract.connect(users.operator).setMaxVAAddPerDayPerId(envs.MAX_VA_ADD_PER_DAY_PER_TOKEN)
+        const randomUser = await createRandomSignerAndSendETH(users.deployer1)
+        await contracts.user.connect(randomUser).register(envs.ROOT)
+        const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser, contracts, envs, state)
+
+        const decimalAPToken = await contracts.apToken.decimals()
+        await contracts.apToken.connect(randomUser)["mint(uint256)"](envs.AP_PACKAGE.length - 1, {value: BigNumber.from(envs.AP_PACKAGE[envs.AP_PACKAGE.length - 1][1])})
+
+        const amount = BigNumber.from(envs.MAX_VA_ADD_PER_DAY_PER_TOKEN).mul(2).mul(BigNumber.from(10).pow(decimalAPToken))
+        await contracts.apToken.connect(randomUser).approve(contracts.LYNKNFT.address, amount)
+
+        const nftInfoBefore = await contracts.LYNKNFT.nftInfoOf(tokenId)
+        await expect(
+            contracts.LYNKNFT.connect(randomUser).upgrade(Attribute.vitality.valueOf(), tokenId, amount.div(BigNumber.from(10).pow(decimalAPToken)), contracts.apToken.address)
+        ).to.be.revertedWith('LYNKNFT: cannot upgrade more in a day.')
+
+        const halfAmount = amount.div(2)
+        await contracts.LYNKNFT.connect(randomUser).upgrade(Attribute.vitality.valueOf(), tokenId, halfAmount.div(BigNumber.from(10).pow(decimalAPToken)), contracts.apToken.address)
+
+        expect((await contracts.LYNKNFT.nftInfoOf(tokenId))[Attribute.vitality.valueOf()]).to.equal(nftInfoBefore[Attribute.vitality.valueOf()].add(halfAmount.div(BigNumber.from(10).pow(decimalAPToken))))
+        await expect(
+            contracts.LYNKNFT.connect(randomUser).upgrade(Attribute.vitality.valueOf(), tokenId, halfAmount.div(BigNumber.from(10).pow(decimalAPToken)), contracts.apToken.address)
+        ).to.be.revertedWith('LYNKNFT: cannot upgrade more in a day.')
+
+        await increase(24*60*60)
+        await contracts.LYNKNFT.connect(randomUser).upgrade(Attribute.vitality.valueOf(), tokenId, halfAmount.div(BigNumber.from(10).pow(decimalAPToken)), contracts.apToken.address)
+        expect((await contracts.LYNKNFT.nftInfoOf(tokenId))[Attribute.vitality.valueOf()]).to.equal(nftInfoBefore[Attribute.vitality.valueOf()].add(amount.div(BigNumber.from(10).pow(decimalAPToken))))
+    });
 })

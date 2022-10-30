@@ -32,6 +32,7 @@ contract DBContract is OwnableUpgradeable {
     uint256 public maxMintPerDayPerAddress;
     string public baseTokenURI;
     uint256[][] public attributeLevelThreshold;
+    uint256 public maxVAAddPerDayPerToken;
 
     /**************************************************************************
      *****  Market fields  ****************************************************
@@ -126,6 +127,10 @@ contract DBContract is OwnableUpgradeable {
             delete attributeLevelThreshold[uint256(_attr)];
             attributeLevelThreshold[uint256(_attr)] = _thresholds;
         }
+    }
+
+    function setMaxVAAddPerDayPerId(uint256 _maxVAAddPerDayPerId) external onlyOperator {
+        maxVAAddPerDayPerToken = _maxVAAddPerDayPerId;
     }
 
     /**************************************************************************
