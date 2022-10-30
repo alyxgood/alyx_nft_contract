@@ -5,7 +5,7 @@ import {
     ENV_FIX,
     get_contract_state,
     get_env,
-    get_user, mintLYNKNFTAndCheck,
+    get_user, mintLYNKNFTAndCheck, nft_level_up,
     set_up_fixture,
     USER_FIX,
 } from "./start_up";
@@ -14,6 +14,8 @@ import {ethers} from "hardhat";
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {BigNumber} from "ethers";
 import {Attribute} from "../constants/constants";
+import {signERC2612Permit} from "eth-permit";
+import {increase} from "./helpers/time";
 
 describe("LYNKNFT", function () {
 
@@ -34,6 +36,12 @@ describe("LYNKNFT", function () {
     beforeEach(async () => {
         ({ envs, state, users, contracts } = await loadFixture(createFixture));
     });
+
+    it("should initializer twice?", async function () {
+        await expect(
+            contracts.LYNKNFT.__LYNKNFT_init()
+        ).to.be.revertedWith('Initializable: contract is already initialized')
+    })
 
     it('should set the base url?', async function () {
         await contracts.dbContract.connect(users.operator).setBaseTokenURI('https://lynknft.com/')
@@ -57,7 +65,7 @@ describe("LYNKNFT", function () {
         const decimalUSDT = await contracts.USDT.decimals()
         const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
-        expect(
+        await expect(
             contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
         ).to.be.revertedWith('baseContract: insufficient allowance')
     });
@@ -71,7 +79,7 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice)
 
-        const tx = await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+        let tx = await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
         await expect(tx)
             .to.emit(contracts.USDT, 'Transfer')
             .withArgs(randomUser.address, users.team_addr.address, mintPrice)
@@ -79,6 +87,63 @@ describe("LYNKNFT", function () {
             .to.emit(contracts.LYNKNFT, 'Transfer')
             .withArgs(ethers.constants.AddressZero, randomUser.address, 0)
         expect(await contracts.LYNKNFT.ownerOf(0)).to.equal(randomUser.address)
+
+        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
+        const approveParams = await signERC2612Permit(randomUser, contracts.USDT.address, randomUser.address, contracts.LYNKNFT.address, mintPrice.toString())
+        tx = await contracts.LYNKNFT.connect(randomUser).mintWithPermit(
+            1,
+            contracts.USDT.address,
+            '1',
+            mintPrice,
+            approveParams.deadline,
+            approveParams.v,
+            approveParams.r,
+            approveParams.s
+        )
+        await expect(tx)
+            .to.emit(contracts.USDT, 'Approval')
+            .withArgs(randomUser.address, contracts.LYNKNFT.address, mintPrice)
+        await expect(tx)
+            .to.emit(contracts.USDT, 'Transfer')
+            .withArgs(randomUser.address, users.team_addr.address, mintPrice)
+        await expect(tx)
+            .to.emit(contracts.LYNKNFT, 'Transfer')
+            .withArgs(ethers.constants.AddressZero, randomUser.address, 1)
+        expect(await contracts.LYNKNFT.ownerOf(1)).to.equal(randomUser.address)
+
+        await increase(24*60*60)
+
+        const mintPrice1 = BigNumber.from(envs.MINT_PRICES[1]).mul(BigNumber.from(10).pow(decimalUSDT))
+        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice1)
+        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice1)
+        tx = await contracts.LYNKNFT.connect(randomUser).mint(100_000, contracts.USDT.address, '100000')
+        await expect(tx)
+            .to.emit(contracts.USDT, 'Transfer')
+            .withArgs(randomUser.address, users.team_addr.address, mintPrice1)
+        await expect(tx)
+            .to.emit(contracts.LYNKNFT, 'Transfer')
+            .withArgs(ethers.constants.AddressZero, randomUser.address, 100_000)
+        expect(await contracts.LYNKNFT.ownerOf(100_000)).to.equal(randomUser.address)
+
+        const mintPrice2 = BigNumber.from(envs.MINT_PRICES[2]).mul(BigNumber.from(10).pow(decimalUSDT))
+        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice2)
+        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice2)
+        tx = await contracts.LYNKNFT.connect(randomUser).mint(200_000, contracts.USDT.address, '200000')
+        await expect(tx)
+            .to.emit(contracts.USDT, 'Transfer')
+            .withArgs(randomUser.address, users.team_addr.address, mintPrice2)
+        await expect(tx)
+            .to.emit(contracts.LYNKNFT, 'Transfer')
+            .withArgs(ethers.constants.AddressZero, randomUser.address, 200_000)
+        await expect(await contracts.LYNKNFT.ownerOf(200_000)).to.equal(randomUser.address)
+
+        await increase(24*60*60)
+        await expect(
+            contracts.LYNKNFT.connect(randomUser).mint(300_000, contracts.USDT.address, '300000')
+        ).to.be.revertedWith('LYNKNFT: token id too large.')
+        await expect(
+            contracts.LYNKNFT.connect(randomUser).mint(200_001, ethers.constants.AddressZero, '200001')
+        ).to.be.revertedWith('LYNKNFT: unsupported payment.')
     });
 
     it('should mint over ${maxMintPerDayPerAddress} NFT in a day?', async function () {
@@ -210,5 +275,54 @@ describe("LYNKNFT", function () {
         expect(nftInfo[Attribute.dexterity.valueOf()]).to.equal(envs.ATTRIBUTE_DX[0])
 
         expect(await contracts.dbContract.calcTokenLevel(tokenId)).to.equal(1)
+    });
+
+    it('should using LYNKToken?', async function () {
+        const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
+        await contracts.user.connect(randomUser1).register(envs.ROOT)
+        const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser1, contracts, envs, state)
+        await nft_level_up(tokenId, randomUser1, BigNumber.from(envs.ACHIEVEMENT_LEVEL_THRESHOLD).toNumber(), contracts, envs)
+        await contracts.LYNKNFT.connect(randomUser1).approve(contracts.staking.address, tokenId)
+        await contracts.staking.connect(randomUser1).stake(tokenId)
+        await increase(BigNumber.from(envs.ACHIEVEMENT_DURATION))
+        await contracts.staking.connect(randomUser1).claimReward()
+        await contracts.staking.connect(randomUser1).unstake(tokenId)
+        const balanceOfLYNKToken = await contracts.LYNKToken.balanceOf(randomUser1.address)
+        expect(balanceOfLYNKToken).to.gte(ethers.constants.WeiPerEther)
+        const point = ethers.constants.WeiPerEther.div(ethers.constants.WeiPerEther)
+        const nftInfoBefore = await contracts.LYNKNFT.nftInfoOf(tokenId)
+        let approveParams = await signERC2612Permit(randomUser1, contracts.LYNKToken.address, randomUser1.address, contracts.LYNKNFT.address, ethers.constants.WeiPerEther.toString())
+        await contracts.LYNKNFT.connect(randomUser1).upgradeWithPermit(
+            Attribute.charisma.valueOf(),
+            tokenId,
+            point,
+            contracts.LYNKToken.address,
+            ethers.constants.WeiPerEther,
+            approveParams.deadline,
+            approveParams.v,
+            approveParams.r,
+            approveParams.s
+        )
+        const nftInfoAfter = await contracts.LYNKNFT.nftInfoOf(tokenId)
+        expect(nftInfoBefore[Attribute.charisma.valueOf()].add(point)).to.equal(nftInfoAfter[Attribute.charisma.valueOf()])
+        expect(nftInfoBefore[Attribute.vitality.valueOf()]).to.equal(nftInfoAfter[Attribute.vitality.valueOf()])
+        expect(nftInfoBefore[Attribute.intellect.valueOf()]).to.equal(nftInfoAfter[Attribute.intellect.valueOf()])
+        expect(nftInfoBefore[Attribute.dexterity.valueOf()]).to.equal(nftInfoAfter[Attribute.dexterity.valueOf()])
+
+        const decimalLYNKToken = await contracts.LYNKToken.decimals()
+        const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalLYNKToken))
+        expect(balanceOfLYNKToken).to.gte(mintPrice.add(ethers.constants.WeiPerEther))
+        approveParams = await signERC2612Permit(randomUser1, contracts.LYNKToken.address, randomUser1.address, contracts.LYNKNFT.address, mintPrice.toString())
+        await contracts.LYNKNFT.connect(randomUser1).mintWithPermit(
+            state.LYNKNFT_TOKEN_ID,
+            contracts.LYNKToken.address,
+            `name-${state.LYNKNFT_TOKEN_ID}`,
+            mintPrice,
+            approveParams.deadline,
+            approveParams.v,
+            approveParams.r,
+            approveParams.s
+        )
+        expect(await contracts.LYNKNFT.ownerOf(state.LYNKNFT_TOKEN_ID)).to.equal(randomUser1.address)
     });
 })

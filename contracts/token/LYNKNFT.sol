@@ -35,7 +35,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         __baseContract_init();
     }
 
-    function __LYNKNFT_init_unchained() private onlyInitializing {
+    function __LYNKNFT_init_unchained() private {
         _randomSeedGen();
     }
 
