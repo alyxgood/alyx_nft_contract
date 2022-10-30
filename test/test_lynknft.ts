@@ -51,6 +51,17 @@ describe("LYNKNFT", function () {
         ).to.be.revertedWith('LYNKNFT: not a valid user.')
     })
 
+    it('should mint NFT without approve?', async function () {
+        const randomUser = await createRandomSignerAndSendETH(users.deployer1)
+        await contracts.user.connect(randomUser).register(envs.ROOT)
+        const decimalUSDT = await contracts.USDT.decimals()
+        const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
+        await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
+        expect(
+            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+        ).to.be.revertedWith('baseContract: insufficient allowance')
+    });
+
     it('should mint NFT?', async function () {
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
         await contracts.user.connect(randomUser).register(envs.ROOT)

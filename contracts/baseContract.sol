@@ -19,17 +19,6 @@ abstract contract baseContract is ContextUpgradeable {
         DB_CONTRACT = dbContract;
     }
 
-
-    modifier onlyMarketContract() {
-        require(DBContract(DB_CONTRACT).MARKET() == _msgSender(), 'baseContract: caller not the Market contract.');
-        _;
-    }
-
-    modifier onlyApTokenContract() {
-        require(DBContract(DB_CONTRACT).AP_TOKEN() == _msgSender(), 'baseContract: caller not the AP Token contract.');
-        _;
-    }
-
     modifier onlyLYNKNFTContract() {
         require(DBContract(DB_CONTRACT).LYNKNFT() == _msgSender(), 'baseContract: caller not the LYNK NFT contract.');
         _;
@@ -54,8 +43,7 @@ abstract contract baseContract is ContextUpgradeable {
         _;
     }
 
-
-    function __baseContract_init() public initializer {
+    function __baseContract_init() internal {
         __Context_init();
     }
 
