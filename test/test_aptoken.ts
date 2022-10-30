@@ -33,6 +33,12 @@ describe("ap token", function () {
         ({ envs, state, users, contracts } = await loadFixture(createFixture));
     });
 
+    it("should initializer twice?", async function () {
+        await expect(
+            contracts.apToken.__APToken_init()
+        ).to.be.revertedWith('Initializable: contract is already initialized')
+    })
+
     it("should unregister user can buy apToken?", async function () {
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
         await expect(

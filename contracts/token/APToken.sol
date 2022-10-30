@@ -20,7 +20,7 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         __baseContract_init();
     }
 
-    function __APToken_init_unchained() public onlyInitializing {
+    function __APToken_init_unchained() private {
 
     }
 
@@ -31,7 +31,8 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         );
 
         uint256[] memory package = DBContract(DB_CONTRACT).packageByIndex(_indexPackage);
-        require(package.length == 3, 'APToken: unrecognized package.');
+        // only settle if length eq 3. {@link DBContract#setSellingPackage}
+        // require(package.length == 3, 'APToken: unrecognized package.');
 
         _pay(address(uint160(package[0])), _msgSender(), package[1]);
         _mint(_msgSender(), package[2]);
