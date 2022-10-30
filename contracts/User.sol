@@ -120,9 +120,12 @@ contract User is IUser, baseContract {
             if (curAddr == address(0)) break;
 
             uint256 rate = DBContract(DB_CONTRACT).communityRewardRate(userInfoOf[curAddr].level, index);
-            uint256 reward = rate * _rewardAmount / 1e18;
-            userInfoOf[curAddr].communityRev += reward;
-            IERC20Mintable(lynkAddr).mint(curAddr, reward);
+            if (rate > 0) {
+                uint256 reward = rate * _rewardAmount / 1e18;
+
+                userInfoOf[curAddr].communityRev += reward;
+                IERC20Mintable(lynkAddr).mint(curAddr, reward);
+            }
 
             curAddr = userInfoOf[curAddr].refAddress;
         }
