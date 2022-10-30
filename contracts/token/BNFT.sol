@@ -212,14 +212,14 @@ contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
     revert("TRANSFER_NOT_SUPPORTED");
   }
 
-  function _transfer(
-    address from,
-    address to,
-    uint256 tokenId
-  ) internal virtual override(ERC721Upgradeable) {
-    from;
-    to;
-    tokenId;
-    revert("TRANSFER_NOT_SUPPORTED");
-  }
+//  function _transfer(
+//    address from,
+//    address to,
+//    uint256 tokenId
+//  ) internal virtual override(ERC721Upgradeable) {
+//    from;
+//    to;
+//    tokenId;
+//    revert("TRANSFER_NOT_SUPPORTED");
+//  }
 }
