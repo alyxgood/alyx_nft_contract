@@ -327,7 +327,7 @@ describe("LYNKNFT", function () {
     });
 
     it('should limit by the ${maxVAAddPerDayPerToken}', async function () {
-        await contracts.dbContract.connect(users.operator).setMaxVAAddPerDayPerId(envs.MAX_VA_ADD_PER_DAY_PER_TOKEN)
+        await contracts.dbContract.connect(users.operator).setMaxVAAddPerDayPerToken(envs.MAX_VA_ADD_PER_DAY_PER_TOKEN)
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
         await contracts.user.connect(randomUser).register(envs.ROOT)
         const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser, contracts, envs, state)

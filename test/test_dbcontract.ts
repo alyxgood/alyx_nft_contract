@@ -97,6 +97,15 @@ describe("db contract", function () {
         expect(await contracts.dbContract.maxMintPerDayPerAddress()).to.equal(0)
     });
 
+    it('should set the max VA added per day per token', async function () {
+        await expect(
+            contracts.dbContract.setMaxVAAddPerDayPerToken(0)
+        ).to.be.revertedWith('DBContract: caller is not the operator')
+
+        await contracts.dbContract.connect(users.operator).setMaxVAAddPerDayPerToken(0)
+        expect(await contracts.dbContract.maxVAAddPerDayPerToken()).to.equal(0)
+    });
+
     it('should set the base uri?', async function () {
         await expect(
             contracts.dbContract.setBaseTokenURI('https://...')

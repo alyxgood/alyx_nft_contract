@@ -55,7 +55,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 value = ethers.constants.MaxUint256.toString()
             }
 
-            tx = await dbProxyAttached.connect(users.operator).setMaxVAAddPerDayPerId(value)
+            tx = await dbProxyAttached.connect(users.operator).setMaxVAAddPerDayPerToken(value)
             await tx.wait()
         }
 

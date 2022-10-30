@@ -129,8 +129,8 @@ contract DBContract is OwnableUpgradeable {
         }
     }
 
-    function setMaxVAAddPerDayPerId(uint256 _maxVAAddPerDayPerId) external onlyOperator {
-        maxVAAddPerDayPerToken = _maxVAAddPerDayPerId;
+    function setMaxVAAddPerDayPerToken(uint256 _maxVAAddPerDayPerToken) external onlyOperator {
+        maxVAAddPerDayPerToken = _maxVAAddPerDayPerToken;
     }
 
     /**************************************************************************
