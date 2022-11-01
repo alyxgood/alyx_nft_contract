@@ -352,7 +352,7 @@ describe("main_process", function () {
             )
     })
 
-    it('should achievement reward distribute work well?', async function () {
+    it('Is achievement reward distribute work well?', async function () {
         let tx
         let stakeTimestamp, unStakeTimestamp
         let charisma = BigNumber.from(0)
