@@ -73,6 +73,17 @@ const config: HardhatUserConfig = {
         initialIndex: 0,
         count: 14
       }
+    },
+    alyx: {
+      url: process.env.ALYX_RPC,
+      chainId: 1314,
+      gasMultiplier: 1.5,
+      accounts: {
+        mnemonic: process.env.MNEMONIC_ALYX ? process.env.MNEMONIC_ALYX : "test test test test test test test test test test test junk",
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 14
+      }
     }
   },
   gasReporter: {
