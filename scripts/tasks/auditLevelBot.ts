@@ -6,15 +6,16 @@ const main = async (
     _taskArgs: TaskArguments,
     hre: HardhatRuntimeEnvironment
 ) => {
-    const cacheKey = "blockNumber"
+    const deploymentsUser = await hre.deployments.get("User")
+    const deploymentsNFT = await hre.deployments.get("LYNKNFT")
+    
+    const cacheKey = `${deploymentsUser.address} - ${deploymentsNFT.address}`
     const cache = Cache({
         basePath: "./.cache", // Optional. Path where cache files are stored (default).
         ns: "block" // Optional. A grouping namespace for items.
     });
 
     const delayedBlock = process.env.delayed_block_number ? BigNumber.from(process.env.delayed_block_number).toNumber() : 12
-    const deploymentsUser = await hre.deployments.get("User")
-    const deploymentsNFT = await hre.deployments.get("LYNKNFT")
 
     const MockUSDT = await hre.ethers.getContractFactory('User')
     // @ts-ignore
