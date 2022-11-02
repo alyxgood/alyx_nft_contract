@@ -46,6 +46,7 @@
     "@openzeppelin/contracts": "^4.7.3",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "eth-permit": "^0.2.3",
+    "file-system-cache": "^2.0.1",
     "yarn-upgrade-all": "^0.7.1"
   }
 }
