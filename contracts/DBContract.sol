@@ -61,6 +61,8 @@ contract DBContract is OwnableUpgradeable {
      **************************************************************************/
     uint256[][] public sellingPackages;
 
+    uint256 public duration;
+
     /**
      * @dev Throws if called by any account other than the operator.
      */
@@ -245,6 +247,10 @@ contract DBContract is OwnableUpgradeable {
 
             sellingPackages.push(_packages[index]);
         }
+    }
+
+    function setDuration(uint256 _duration) external onlyOperator {
+        duration = _duration;
     }
 
     /**************************************************************************

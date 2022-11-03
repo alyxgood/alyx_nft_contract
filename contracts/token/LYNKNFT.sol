@@ -117,7 +117,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         nameUsed[_name] = true;
 
         MintInfo memory mintInfo = mintInfoOf[_msgSender()];
-        if (block.timestamp - mintInfo.lastMintTime >= 1 days) {
+        if (block.timestamp - mintInfo.lastMintTime >= DBContract(DB_CONTRACT).duration()) {
             mintInfo.mintNumInDuration = 0;
         }
         require(
@@ -159,7 +159,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         } else {
             if (Attribute.vitality == _attr) {
                 AttributeAddedInfo memory addedInfo = addedVAInfoOf[_tokenId];
-                if (block.timestamp - addedInfo.lastAddedTime >= 1 days) {
+                if (block.timestamp - addedInfo.lastAddedTime >= DBContract(DB_CONTRACT).duration()) {
                     addedInfo.addedInDuration = 0;
                 }
                 require(

@@ -68,6 +68,7 @@ export interface ENV_FIX {
     ACHIEVEMENT_LEVEL_THRESHOLD: string,
     ACHIEVEMENT_DURATION: string
     ACHIEVEMENT_REWARD: string[],
+    DURATION: string,
 }
 
 export interface USER_LEVEL_FIX {
@@ -141,6 +142,7 @@ export function get_env() {
     let ACHIEVEMENT_LEVEL_THRESHOLD: string
     let ACHIEVEMENT_DURATION: string
     let ACHIEVEMENT_REWARD: string[]
+    let DURATION: string
 
     environment = process.env.environment ? process.env.environment : TEST_EVN  // prod / test
     USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
@@ -208,6 +210,8 @@ export function get_env() {
         ACHIEVEMENT_REWARD[index] = ethers.utils.parseEther(ACHIEVEMENT_REWARD[index]).toString()
     }
 
+    DURATION = process.env.DURATION ? process.env.DURATION : '86400'
+
     return {
         environment,
         USDT_ADDRESS,
@@ -231,6 +235,7 @@ export function get_env() {
         ACHIEVEMENT_LEVEL_THRESHOLD,
         ACHIEVEMENT_DURATION,
         ACHIEVEMENT_REWARD,
+        DURATION,
     }
 }
 
