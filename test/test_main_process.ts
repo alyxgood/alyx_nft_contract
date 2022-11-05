@@ -419,46 +419,67 @@ describe("main_process", function () {
         const stakingRewardClaimableCalc = rewardRate(charisma, dexterity).mul(stakeDurationTotal)
         expect(stakingRewardClaimable.sub(stakingRewardClaimableCalc)).to.lt(stakingRewardClaimable.mul(3).div(100))
 
-        const achievementReward = await contracts.user.calcAchievementReward(users.user2.address, nftLevels.token_id_by_level)
+        let achievementRewardTotal = BigNumber.from(0)
+        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+            achievementRewardTotal = achievementRewardTotal.add(await contracts.user.calcAchievementReward(users.user2.address, nftLevels.token_id_by_level[index]))
+        }
         const achievementRewardCalc = BigNumber.from(envs.ACHIEVEMENT_REWARD[Level.elite.valueOf()]).mul(nftLevels.token_id_by_level.length - achievementLevelThreshold)
-        assert.ok(
-            achievementReward.length == 2 &&
-            achievementReward[0].length == nftLevels.token_id_by_level.length &&
-            achievementReward[1].eq(achievementRewardCalc)
-        )
+        expect(achievementRewardTotal).to.equal(achievementRewardCalc)
 
         tx = await contracts.staking.connect(users.user2).claimReward()
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
             .withArgs(ethers.constants.AddressZero, users.user2.address, stakingRewardClaimable)
 
-        tx = await contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level)
-        const lastUpdateTime = await now()
-        await expect(tx)
-            .to.emit(contracts.apToken, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, users.user2.address, achievementRewardCalc)
+        let balanceBefore = await contracts.apToken.balanceOf(users.user2.address)
+        const lastUpdateTimes = []
+        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+            if (index < achievementLevelThreshold) {
+                await expect(
+                    contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level[index])
+                ).to.be.revertedWith('User: cannot claim 0.')
+            } else {
+                await contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level[index])
+            }
+            lastUpdateTimes.push(await now())
+        }
+        expect(await contracts.apToken.balanceOf(users.user2.address)).to.equal(balanceBefore.add(achievementRewardCalc))
 
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
             const tokenId = nftLevels.token_id_by_level[index]
             const stakeInfo = await contracts.user.stakeNFTs(tokenId)
             expect(stakeInfo.stakedDuration).to.equal(0)
-            expect(stakeInfo.lastUpdateTime).to.equal(index >= achievementLevelThreshold ? lastUpdateTime : 0)
+            expect(stakeInfo.lastUpdateTime).to.equal(index >= achievementLevelThreshold ? lastUpdateTimes[index] : 0)
         }
 
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
             await contracts.staking.connect(users.user2).stake(nftLevels.token_id_by_level[index])
         }
         await increase(10*24*60*60)
-        tx = await contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level)
-        await expect(tx)
-            .to.emit(contracts.apToken, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, users.user2.address, achievementRewardCalc)
+        balanceBefore = await contracts.apToken.balanceOf(users.user2.address)
+        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+            if (index < achievementLevelThreshold) {
+                await expect(
+                    contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level[index])
+                ).to.be.revertedWith('User: cannot claim 0.')
+            } else {
+                await contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level[index])
+            }
+        }
+        expect(await contracts.apToken.balanceOf(users.user2.address)).to.equal(balanceBefore.add(achievementRewardCalc))
 
         await increase(10*24*60*60)
-        tx = await contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level)
-        await expect(tx)
-            .to.emit(contracts.apToken, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, users.user2.address, achievementRewardCalc)
+        balanceBefore = await contracts.apToken.balanceOf(users.user2.address)
+        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+            if (index < achievementLevelThreshold) {
+                await expect(
+                    contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level[index])
+                ).to.be.revertedWith('User: cannot claim 0.')
+            } else {
+                await contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level[index])
+            }
+        }
+        expect(await contracts.apToken.balanceOf(users.user2.address)).to.equal(balanceBefore.add(achievementRewardCalc))
     });
 
 });
