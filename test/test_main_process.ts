@@ -105,6 +105,7 @@ describe("main_process", function () {
             const LYNKTokenBalanceOfUser2Ref = await contracts.LYNKToken.balanceOf(user2Ref.address)
             const apTokenBalanceOfUser2Ref = await contracts.apToken.balanceOf(user2Ref.address)
 
+            const userInfo = await contracts.user.userInfoOf(user2Ref.address)
             const spentAmount = BigNumber.from(envs.CONTRIBUTION_THRESHOLD).mul(BigNumber.from(10).pow(decimalUSDT))
             await contracts.USDT.connect(users.user2).approve(contracts.LYNKNFT.address, spentAmount)
             tx = await contracts.LYNKNFT.connect(users.user2).upgrade(Attribute.charisma.valueOf(), user2TokenId, envs.CONTRIBUTION_THRESHOLD, contracts.USDT.address)
@@ -117,6 +118,8 @@ describe("main_process", function () {
             await expect(tx)
                 .to.emit(contracts.LYNKToken, 'Transfer')
                 .withArgs(ethers.constants.AddressZero, user2Ref.address, socialRewardAmount)
+            expect((await contracts.user.userInfoOf(user2Ref.address)).socialRev.sub(userInfo.socialRev)).to.equal(socialRewardAmount)
+
             // Contribution Reward
             const contributionRewardAmount = envs.CONTRIBUTION_REWARD[index]
             await expect(tx)
