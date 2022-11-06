@@ -440,7 +440,7 @@ describe("main_process", function () {
         const achievementRewardCalc = BigNumber.from(envs.ACHIEVEMENT_REWARD[Level.elite.valueOf()]).mul(nftLevels.token_id_by_level.length - achievementLevelThreshold)
         expect(achievementRewardTotal).to.equal(achievementRewardCalc)
 
-        const userInfo = await contracts.user.userInfoOf(users.user2.address)
+        let userInfo = await contracts.user.userInfoOf(users.user2.address)
         tx = await contracts.staking.connect(users.user2).claimReward()
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
@@ -459,6 +459,7 @@ describe("main_process", function () {
             }
         }
         expect(await contracts.apToken.balanceOf(users.user2.address)).to.equal(balanceBefore.add(achievementRewardCalc))
+        expect((await contracts.user.userInfoOf(users.user2.address)).achievementRev.sub(userInfo.achievementRev)).to.equal(achievementRewardCalc)
 
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
             const tokenId = nftLevels.token_id_by_level[index]
@@ -471,6 +472,7 @@ describe("main_process", function () {
             await contracts.staking.connect(users.user2).stake(nftLevels.token_id_by_level[index])
         }
         await increase(10*24*60*60)
+        userInfo = await contracts.user.userInfoOf(users.user2.address)
         balanceBefore = await contracts.apToken.balanceOf(users.user2.address)
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
             if (index < achievementLevelThreshold) {
@@ -482,8 +484,10 @@ describe("main_process", function () {
             }
         }
         expect(await contracts.apToken.balanceOf(users.user2.address)).to.equal(balanceBefore.add(achievementRewardCalc))
+        expect((await contracts.user.userInfoOf(users.user2.address)).achievementRev.sub(userInfo.achievementRev)).to.equal(achievementRewardCalc)
 
         await increase(10*24*60*60)
+        userInfo = await contracts.user.userInfoOf(users.user2.address)
         balanceBefore = await contracts.apToken.balanceOf(users.user2.address)
         for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
             if (index < achievementLevelThreshold) {
@@ -495,6 +499,7 @@ describe("main_process", function () {
             }
         }
         expect(await contracts.apToken.balanceOf(users.user2.address)).to.equal(balanceBefore.add(achievementRewardCalc))
+        expect((await contracts.user.userInfoOf(users.user2.address)).achievementRev.sub(userInfo.achievementRev)).to.equal(achievementRewardCalc)
     });
 
 });
