@@ -327,6 +327,7 @@ describe("main_process", function () {
         expect(claimable.sub(claimableCalc)).to.lt(claimable.mul(3).div(100))
 
         // user2 claim reward
+        const userInfo = await contracts.user.userInfoOf(users.user2.address)
         tx = await contracts.staking.connect(users.user2).claimReward()
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
@@ -334,6 +335,7 @@ describe("main_process", function () {
         await expect(tx)
             .to.emit(contracts.staking, 'Claim')
             .withArgs(users.user2.address, claimable)
+        expect((await contracts.user.userInfoOf(users.user2.address)).stakeRev.sub(userInfo.stakeRev)).to.equal(claimable)
 
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
@@ -426,10 +428,12 @@ describe("main_process", function () {
         const achievementRewardCalc = BigNumber.from(envs.ACHIEVEMENT_REWARD[Level.elite.valueOf()]).mul(nftLevels.token_id_by_level.length - achievementLevelThreshold)
         expect(achievementRewardTotal).to.equal(achievementRewardCalc)
 
+        const userInfo = await contracts.user.userInfoOf(users.user2.address)
         tx = await contracts.staking.connect(users.user2).claimReward()
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
             .withArgs(ethers.constants.AddressZero, users.user2.address, stakingRewardClaimable)
+        expect((await contracts.user.userInfoOf(users.user2.address)).stakeRev.sub(userInfo.stakeRev)).to.equal(stakingRewardClaimable)
 
         let balanceBefore = await contracts.apToken.balanceOf(users.user2.address)
         const lastUpdateTimes = []
