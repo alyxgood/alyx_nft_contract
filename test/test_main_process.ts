@@ -331,6 +331,8 @@ describe("main_process", function () {
 
         // user2 claim reward
         const userInfo = await contracts.user.userInfoOf(users.user2.address)
+        const user2RefInfo = await contracts.user.userInfoOf(user2Ref.address)
+        const user2Ref20Info = await contracts.user.userInfoOf(userLevels.signer_by_level[Level.divine.valueOf()].address)
         tx = await contracts.staking.connect(users.user2).claimReward()
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
@@ -340,21 +342,25 @@ describe("main_process", function () {
             .withArgs(users.user2.address, claimable)
         expect((await contracts.user.userInfoOf(users.user2.address)).stakeRev.sub(userInfo.stakeRev)).to.equal(claimable)
 
+        const user2RefReward = BigNumber.from(envs.COMMUNITY_REWARD[Level.elite.valueOf()][0]).mul(claimable).div(ethers.constants.WeiPerEther)
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
             .withArgs(
                 ethers.constants.AddressZero,
                 user2Ref.address,
-                BigNumber.from(envs.COMMUNITY_REWARD[Level.elite.valueOf()][0]).mul(claimable).div(ethers.constants.WeiPerEther)
+                user2RefReward
             )
+        expect((await contracts.user.userInfoOf(user2Ref.address)).communityRev.sub(user2RefInfo.communityRev)).to.equal(user2RefReward)
 
+        const user2Ref20Reward = BigNumber.from(envs.COMMUNITY_REWARD[Level.divine.valueOf()][envs.COMMUNITY_REWARD[envs.COMMUNITY_REWARD.length - 1].length - 1]).mul(claimable).div(ethers.constants.WeiPerEther)
         await expect(tx)
             .to.emit(contracts.LYNKToken, 'Transfer')
             .withArgs(
                 ethers.constants.AddressZero,
                 userLevels.signer_by_level[Level.divine.valueOf()].address,
-                BigNumber.from(envs.COMMUNITY_REWARD[Level.divine.valueOf()][envs.COMMUNITY_REWARD[envs.COMMUNITY_REWARD.length - 1].length - 1]).mul(claimable).div(ethers.constants.WeiPerEther)
+                user2Ref20Reward
             )
+        expect((await contracts.user.userInfoOf(userLevels.signer_by_level[Level.divine.valueOf()].address)).communityRev.sub(user2Ref20Info.communityRev)).to.equal(user2Ref20Reward)
     })
 
     it('Is achievement reward distribute work well?', async function () {
