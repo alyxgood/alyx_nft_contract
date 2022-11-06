@@ -101,15 +101,13 @@ contract User is IUser, baseContract {
     }
 
     function hookByStake(uint256 nftId) onlyStakingContract external {
-        if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
-            stakeNFTs[nftId].lastUpdateTime = block.timestamp;
-        }
+        stakeNFTs[nftId].lastUpdateTime = block.timestamp;
     }
 
     function hookByUnStake(uint256 nftId) onlyStakingContract external {
+        uint256 lastUpdateTime = stakeNFTs[nftId].lastUpdateTime;
+        stakeNFTs[nftId].lastUpdateTime = block.timestamp;
         if (DBContract(DB_CONTRACT).hasAchievementReward(nftId)) {
-            uint256 lastUpdateTime = stakeNFTs[nftId].lastUpdateTime;
-            stakeNFTs[nftId].lastUpdateTime = block.timestamp;
             stakeNFTs[nftId].stakedDuration += block.timestamp - lastUpdateTime;
         }
     }
