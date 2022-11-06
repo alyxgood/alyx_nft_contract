@@ -284,7 +284,7 @@ describe("LYNKNFT", function () {
         await nft_level_up(tokenId, randomUser1, BigNumber.from(envs.ACHIEVEMENT_LEVEL_THRESHOLD).toNumber(), contracts, envs)
         await contracts.LYNKNFT.connect(randomUser1).approve(contracts.staking.address, tokenId)
         await contracts.staking.connect(randomUser1).stake(tokenId)
-        await increase(BigNumber.from(envs.ACHIEVEMENT_DURATION))
+        await increase(30*24*60*60)
         await contracts.staking.connect(randomUser1).claimReward()
         await contracts.staking.connect(randomUser1).unstake(tokenId)
         const balanceOfLYNKToken = await contracts.LYNKToken.balanceOf(randomUser1.address)
