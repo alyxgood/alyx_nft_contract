@@ -204,7 +204,8 @@ export function get_env() {
     }
 
     ACHIEVEMENT_LEVEL_THRESHOLD = process.env.ACHIEVEMENT_LEVEL_THRESHOLD ? process.env.ACHIEVEMENT_LEVEL_THRESHOLD : '2'
-    ACHIEVEMENT_DURATION = BigNumber.from(process.env.ACHIEVEMENT_DURATION ? process.env.ACHIEVEMENT_DURATION : '10').mul(BigNumber.from(24*60*60)).toString()
+    // change unit to hours
+    ACHIEVEMENT_DURATION = BigNumber.from(process.env.ACHIEVEMENT_DURATION ? process.env.ACHIEVEMENT_DURATION : '240').mul(BigNumber.from(60*60)).toString()
     ACHIEVEMENT_REWARD = (process.env.ACHIEVEMENT_REWARD ? process.env.ACHIEVEMENT_REWARD : '10,20,40,60,80,100').split(',')
     for (let index = 0; index < ACHIEVEMENT_REWARD.length; index++) {
         ACHIEVEMENT_REWARD[index] = ethers.utils.parseEther(ACHIEVEMENT_REWARD[index]).toString()

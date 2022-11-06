@@ -90,6 +90,7 @@ contract User is IUser, baseContract {
             if (threshold > 0) {
                 amount = (((refPerformance + _performance) / threshold) - (refPerformance / threshold)) * DBContract(DB_CONTRACT).contributionRewardAmounts(refLevel);
                 if (amount > 0) {
+                    userInfoOf[_refAddr].contributionRev += amount;
                     IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_refAddr, amount);
                 }
             }
@@ -130,6 +131,8 @@ contract User is IUser, baseContract {
 
             curAddr = userInfoOf[curAddr].refAddress;
         }
+
+        userInfoOf[_userAddr].stakeRev += _rewardAmount;
     }
 
     function claimAchievementReward(uint256 _nftId) external {
