@@ -74,11 +74,12 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
         emit List(_msgSender(), _tokenId, index, _acceptToken, _priceInAcceptToken);
     }
 
-    function cancelList(uint256 _listIndex, uint256 _tokenId) external {
+    function cancelList(uint256 _tokenId) external {
+        uint256 listIndex = listIndexByTokenId[_tokenId];
         uint256 listNFTNum = listNFTs.length;
-        require(listNFTNum > _listIndex, 'Market: index overflow.');
+        require(listNFTNum > listIndex, 'Market: index overflow.');
 
-        ListInfo memory listInfo = listNFTs[_listIndex];
+        ListInfo memory listInfo = listNFTs[listIndex];
         address lynkNFTAddress = DBContract(DB_CONTRACT).LYNKNFT();
         address bLYNKNFTAddress = DBContract(DB_CONTRACT).LISTED_LYNKNFT();
 
@@ -86,9 +87,9 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
         require(listInfo.seller == _msgSender(), 'Market: seller mismatch.');
         // require(IERC721Upgradeable(bLYNKNFTAddress).ownerOf(_tokenId) == _msgSender(), 'Market: not the owner.');
 
-        if (_listIndex < listNFTNum - 1) {
-            listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
-            listIndexByTokenId[listNFTs[_listIndex].tokenId] = _listIndex;
+        if (listIndex < listNFTNum - 1) {
+            listNFTs[listIndex] = listNFTs[listNFTNum - 1];
+            listIndexByTokenId[listNFTs[listIndex].tokenId] = listIndex;
         }
         listNFTs.pop();
         delete listIndexByTokenId[listNFTNum - 1];
@@ -96,23 +97,24 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
         IBNFT(bLYNKNFTAddress).burn(_tokenId);
         IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
 
-        emit Cancel(_tokenId, _listIndex);
+        emit Cancel(_tokenId, listIndex);
     }
 
-    function takeNFT(uint256 _listIndex, uint256 _tokenId) payable external {
+    function takeNFT(uint256 _tokenId) payable external {
         require(
             IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
                 'Market: not a valid user.'
         );
 
+        uint256 listIndex = listIndexByTokenId[_tokenId];
         uint256 listNFTNum = listNFTs.length;
-        require(listNFTNum > _listIndex, 'Market: index overflow.');
-        ListInfo memory listInfo = listNFTs[_listIndex];
+        require(listNFTNum > listIndex, 'Market: index overflow.');
+        ListInfo memory listInfo = listNFTs[listIndex];
         require(listInfo.tokenId == _tokenId, 'Market: token id mismatch.');
 
-        if (_listIndex < listNFTNum - 1) {
-            listNFTs[_listIndex] = listNFTs[listNFTNum - 1];
-            listIndexByTokenId[listNFTs[_listIndex].tokenId] = _listIndex;
+        if (listIndex < listNFTNum - 1) {
+            listNFTs[listIndex] = listNFTs[listNFTNum - 1];
+            listIndexByTokenId[listNFTs[listIndex].tokenId] = listIndex;
         }
         listNFTs.pop();
         delete listIndexByTokenId[listNFTNum - 1];
@@ -133,7 +135,7 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
         IBNFT(bLYNKNFTAddress).burn(_tokenId);
         IERC721Upgradeable(lynkNFTAddress).safeTransferFrom(address(this), _msgSender(), _tokenId);
 
-        emit Take(_msgSender(), _tokenId, _listIndex);
+        emit Take(_msgSender(), _tokenId, listIndex);
     }
 
     function onSellNum() external view returns (uint256) {
