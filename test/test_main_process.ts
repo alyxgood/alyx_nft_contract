@@ -194,7 +194,7 @@ describe("main_process", function () {
             const lastNFTInfo = await contracts.market.listNFTs(listNFTNum.sub(1))
             const tokenId = nftLevels.token_id_by_level[levelLimit];
             const listIndex = await contracts.market.listIndexByTokenId(tokenId)
-            tx = await contracts.market.connect(users.user2).cancelList(listIndex, tokenId)
+            tx = await contracts.market.connect(users.user2).cancelList(tokenId)
             await expect(tx)
                 .to.emit(contracts.lLYNKNFT, 'Transfer')
                 .withArgs(users.user2.address, ethers.constants.AddressZero, tokenId)
@@ -223,7 +223,7 @@ describe("main_process", function () {
             const balanceOfTeamBefore = await users.team_addr.getBalance()
 
             const nftInfo = await contracts.market.listNFTs(index)
-            tx = await contracts.market.connect(users.user5).takeNFT(index, nftInfo.tokenId, {value: nftInfo.priceInAcceptToken})
+            tx = await contracts.market.connect(users.user5).takeNFT(nftInfo.tokenId, {value: nftInfo.priceInAcceptToken})
             await expect(tx)
                 .to.emit(contracts.lLYNKNFT, 'Transfer')
                 .withArgs(nftInfo.seller, ethers.constants.AddressZero, nftInfo.tokenId)
