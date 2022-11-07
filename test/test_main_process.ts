@@ -119,6 +119,7 @@ describe("main_process", function () {
                 .to.emit(contracts.LYNKToken, 'Transfer')
                 .withArgs(ethers.constants.AddressZero, user2Ref.address, socialRewardAmount)
             expect((await contracts.user.userInfoOf(user2Ref.address)).socialRev.sub(userInfo.socialRev)).to.equal(socialRewardAmount)
+            expect((await contracts.user.userInfoOf(user2Ref.address)).performance.sub(userInfo.performance)).to.equal(envs.CONTRIBUTION_THRESHOLD)
 
             // Contribution Reward
             const contributionRewardAmount = envs.CONTRIBUTION_REWARD[index]
