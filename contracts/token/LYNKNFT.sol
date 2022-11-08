@@ -119,12 +119,12 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         MintInfo memory mintInfo = mintInfoOf[_msgSender()];
         if (block.timestamp - mintInfo.lastMintTime >= DBContract(DB_CONTRACT).duration()) {
             mintInfo.mintNumInDuration = 0;
+            mintInfoOf[_msgSender()].lastMintTime = uint128(block.timestamp);
         }
         require(
             mintInfo.mintNumInDuration < DBContract(DB_CONTRACT).maxMintPerDayPerAddress(),
             'LYNKNFT: cannot mint more in a day.'
         );
-        mintInfoOf[_msgSender()].lastMintTime = uint128(block.timestamp);
         mintInfoOf[_msgSender()].mintNumInDuration = mintInfo.mintNumInDuration + 1;
 
         uint256 mintPrice = _mintPrice(_tokenId, _payment);
@@ -161,12 +161,12 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
                 AttributeAddedInfo memory addedInfo = addedVAInfoOf[_tokenId];
                 if (block.timestamp - addedInfo.lastAddedTime >= DBContract(DB_CONTRACT).duration()) {
                     addedInfo.addedInDuration = 0;
+                    addedVAInfoOf[_tokenId].lastAddedTime = uint128(block.timestamp);
                 }
                 require(
                     addedInfo.addedInDuration + _point <= DBContract(DB_CONTRACT).maxVAAddPerDayPerToken(),
                         'LYNKNFT: cannot upgrade more in a day.'
                 );
-                addedVAInfoOf[_tokenId].lastAddedTime = uint128(block.timestamp);
                 addedVAInfoOf[_tokenId].addedInDuration = addedInfo.addedInDuration + uint128(_point);
             } else {
                 uint256 preAttrIndex = uint256(_attr) - 1;
