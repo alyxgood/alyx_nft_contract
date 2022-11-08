@@ -52,6 +52,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await tx.wait()
     }
 
+    console.log(`fetching baseTokenURI...`)
+    if (await dbProxyAttached.baseTokenURI() !== env.TOKEN_BASE_URI) {
+        console.log('setup the base uri...')
+        tx = await dbProxyAttached.connect(users.operator).setBaseTokenURI(env.TOKEN_BASE_URI)
+        await tx.wait()
+    }
+
     console.log(`fetching maxVAAddPerDayPerToken...`)
     if (!(await dbProxyAttached.maxVAAddPerDayPerToken()).eq(env.MAX_VA_ADD_PER_DAY_PER_TOKEN)) {
         console.log('setup the max va added...')
