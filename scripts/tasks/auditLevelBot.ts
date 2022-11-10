@@ -17,9 +17,10 @@ const main = async (
 
     const delayedBlock = process.env.delayed_block_number ? BigNumber.from(process.env.delayed_block_number).toNumber() : 12
 
-    const MockUSDT = await hre.ethers.getContractFactory('User')
+    const User = await hre.ethers.getContractFactory('User')
+    const LYNKNFT = await hre.ethers.getContractFactory('LYNKNFT')
     // @ts-ignore
-    let user: User = MockUSDT.attach(deploymentsUser.address)
+    let user: User = User.attach(deploymentsUser.address)
 
     while (true){
         try {
@@ -52,7 +53,7 @@ const main = async (
                 let currentAddress
                 if (logs[index].address === deploymentsUser.address) {
                     try {
-                        const event = MockUSDT.interface.parseLog(logs[index])
+                        const event = User.interface.parseLog(logs[index])
                         if (event.eventFragment.name == "Register") {
                             currentAddress = event.args["account"]
                             info(`${currentAddress} Register by ${event.args["ref"]}`)
@@ -66,7 +67,7 @@ const main = async (
                 }
                 if (logs[index].address === deploymentsNFT.address) {
                     try {
-                        const event = MockUSDT.interface.parseLog(logs[index])
+                        const event = LYNKNFT.interface.parseLog(logs[index])
                         if (event.eventFragment.name == "Upgrade") {
                             currentAddress = (await hre.ethers.provider.getTransaction(logs[index].transactionHash)).from
                             info(`${currentAddress} Upgrade ${event.args["attr"]} attr ${event.args["point"]} point`)
