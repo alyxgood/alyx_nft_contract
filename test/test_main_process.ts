@@ -307,7 +307,7 @@ describe("main_process", function () {
 
         await increase(24*60*60)
         const unStakeTimestamp = await now()
-        for (let index = nftLevels.token_id_by_level.length - 1; index >= 0 ; index--) {
+        for (let index = nftLevels.token_id_by_level.length - 1; index >= 1 ; index--) {
             const tokenId = nftLevels.token_id_by_level[index];
 
             tx = await contracts.staking.connect(users.user2).unstake(tokenId)
@@ -424,7 +424,7 @@ describe("main_process", function () {
 
         const lastUpdateTimes = new Array(nftLevels.token_id_by_level.length)
         unStakeTimestamp = await now()
-        for (let index = nftLevels.token_id_by_level.length - 1; index >= 0; index--) {
+        for (let index = nftLevels.token_id_by_level.length - 1; index >= 1; index--) {
             await contracts.staking.connect(users.user2).unstake(nftLevels.token_id_by_level[index])
             lastUpdateTimes[index] = await now()
         }
@@ -462,14 +462,14 @@ describe("main_process", function () {
         expect(await contracts.apToken.balanceOf(users.user2.address)).to.equal(balanceBefore.add(achievementRewardCalc))
         expect((await contracts.user.userInfoOf(users.user2.address)).achievementRev.sub(userInfo.achievementRev)).to.equal(achievementRewardCalc)
 
-        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+        for (let index = 1; index < nftLevels.token_id_by_level.length; index++) {
             const tokenId = nftLevels.token_id_by_level[index]
             const stakeInfo = await contracts.user.stakeNFTs(tokenId)
             expect(stakeInfo.stakedDuration).to.equal(0)
             expect(stakeInfo.lastUpdateTime).to.equal(lastUpdateTimes[index])
         }
 
-        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+        for (let index = 1; index < nftLevels.token_id_by_level.length; index++) {
             await contracts.staking.connect(users.user2).stake(nftLevels.token_id_by_level[index])
         }
         await increase(10*24*60*60)
@@ -490,7 +490,7 @@ describe("main_process", function () {
         await increase(10*24*60*60)
         userInfo = await contracts.user.userInfoOf(users.user2.address)
         balanceBefore = await contracts.apToken.balanceOf(users.user2.address)
-        for (let index = 0; index < nftLevels.token_id_by_level.length; index++) {
+        for (let index = 1; index < nftLevels.token_id_by_level.length; index++) {
             if (index < achievementLevelThreshold) {
                 await expect(
                     contracts.user.connect(users.user2).claimAchievementReward(nftLevels.token_id_by_level[index])

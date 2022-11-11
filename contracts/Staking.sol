@@ -104,9 +104,22 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         miningPowerOf[_msgSender()].dexterity -= dexterity;
 
         IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUnStake(nftId);
+
+        // claim reward if the last NFT is claiming.
+        if (IERC721Upgradeable(bLYNKNFTAddress).balanceOf(_msgSender()) == 0 && rewardOf[_msgSender()] > 0) {
+            _claimReward();
+        }
     }
 
     function claimReward() external updateReward(_msgSender()) {
+        _claimReward();
+    }
+
+    function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
+
+    function _claimReward() private {
         uint256 claimable = rewardOf[_msgSender()];
         require(claimable > 0, 'Staking: cannot claim 0.');
 
@@ -116,10 +129,6 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         emit Claim(_msgSender(), claimable);
 
         IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByClaimReward(_msgSender(), claimable);
-    }
-
-    function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {
-        return this.onERC721Received.selector;
     }
 
     function _rewardRate(uint256 charisma, uint256 dexterity) private pure returns (uint256) {
