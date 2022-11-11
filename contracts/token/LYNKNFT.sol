@@ -164,7 +164,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
                     addedVAInfoOf[_tokenId].lastAddedTime = uint128(block.timestamp);
                 }
                 require(
-                    addedInfo.addedInDuration + _point <= DBContract(DB_CONTRACT).maxVAAddPerDayPerToken(),
+                    addedInfo.addedInDuration + _point <= DBContract(DB_CONTRACT).maxVAAddPerDayByTokenId(_tokenId),
                         'LYNKNFT: cannot upgrade more in a day.'
                 );
                 addedVAInfoOf[_tokenId].addedInDuration = addedInfo.addedInDuration + uint128(_point);

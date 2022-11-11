@@ -71,6 +71,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await tx.wait()
     }
 
+    console.log(`fetching maxVAAddPerDayPerTokensNum...`)
+    parametersLength = (await dbProxyAttached.maxVAAddPerDayPerTokensNum()).toNumber()
+    isMatch = parametersLength == env.MAX_VA_ADD_PER_DAY_PER_TOKENS.length
+    if (isMatch) {
+        for (let index = 0; index < parametersLength; index++) {
+            console.log(`fetching maxVAAddPerDayPerTokens ${index}...`)
+            const maxVAAddPerDayPerToken = await dbProxyAttached.maxVAAddPerDayPerTokens(index)
+            if (!maxVAAddPerDayPerToken.eq(env.MAX_VA_ADD_PER_DAY_PER_TOKENS[index])) {
+                isMatch = false
+                break
+            }
+        }
+    }
+    if (!isMatch) {
+        console.log('setup the maxVAAddPerDayPerTokens...')
+        let values = env.MAX_VA_ADD_PER_DAY_PER_TOKENS
+        if (env.environment !== PROD_EVN) {
+            for (let index = 0; index < values.length; index++) {
+                values[index] = ethers.constants.MaxUint256.toString()
+            }
+        }
+        tx = await dbProxyAttached.connect(users.operator).setMaxVAAddPerDayPerTokens(values)
+        await tx.wait()
+    }
+
     const attrs = [env.ATTRIBUTE_CA, env.ATTRIBUTE_VA, env.ATTRIBUTE_IN, env.ATTRIBUTE_DX]
     for (let indexOuter = 0; indexOuter < Attribute.dexterity.valueOf() + 1; indexOuter++) {
         console.log(`fetching attributeLevelThresholdNum ${indexOuter}...`)

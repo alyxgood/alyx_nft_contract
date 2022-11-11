@@ -327,7 +327,7 @@ describe("LYNKNFT", function () {
     });
 
     it('should limit by the ${maxVAAddPerDayPerToken}', async function () {
-        await contracts.dbContract.connect(users.operator).setMaxVAAddPerDayPerToken(envs.MAX_VA_ADD_PER_DAY_PER_TOKEN)
+        await contracts.dbContract.connect(users.operator).setMaxVAAddPerDayPerTokens(envs.MAX_VA_ADD_PER_DAY_PER_TOKENS)
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
         await contracts.user.connect(randomUser).register(envs.ROOT)
         const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser, contracts, envs, state)
@@ -335,7 +335,7 @@ describe("LYNKNFT", function () {
         const decimalAPToken = await contracts.apToken.decimals()
         await contracts.apToken.connect(randomUser)["mint(uint256)"](envs.AP_PACKAGE.length - 1, {value: BigNumber.from(envs.AP_PACKAGE[envs.AP_PACKAGE.length - 1][1])})
 
-        const amount = BigNumber.from(envs.MAX_VA_ADD_PER_DAY_PER_TOKEN).mul(2).mul(BigNumber.from(10).pow(decimalAPToken))
+        const amount = BigNumber.from(envs.MAX_VA_ADD_PER_DAY_PER_TOKENS[0]).mul(2).mul(BigNumber.from(10).pow(decimalAPToken))
         await contracts.apToken.connect(randomUser).approve(contracts.LYNKNFT.address, amount)
 
         const nftInfoBefore = await contracts.LYNKNFT.nftInfoOf(tokenId)

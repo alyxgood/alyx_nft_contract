@@ -32,6 +32,7 @@ contract DBContract is OwnableUpgradeable {
     uint256 public maxMintPerDayPerAddress;
     string public baseTokenURI;
     uint256[][] public attributeLevelThreshold;
+    // @Deprecated
     uint256 public maxVAAddPerDayPerToken;
 
     /**************************************************************************
@@ -62,6 +63,8 @@ contract DBContract is OwnableUpgradeable {
     uint256[][] public sellingPackages;
 
     uint256 public duration;
+
+    uint256[] public maxVAAddPerDayPerTokens;
 
     /**
      * @dev Throws if called by any account other than the operator.
@@ -131,8 +134,14 @@ contract DBContract is OwnableUpgradeable {
         }
     }
 
+    // @Deprecated
     function setMaxVAAddPerDayPerToken(uint256 _maxVAAddPerDayPerToken) external onlyOperator {
         maxVAAddPerDayPerToken = _maxVAAddPerDayPerToken;
+    }
+
+    function setMaxVAAddPerDayPerTokens(uint256[] calldata _maxVAAddPerDayPerTokens) external onlyOperator {
+        delete maxVAAddPerDayPerTokens;
+        maxVAAddPerDayPerTokens = _maxVAAddPerDayPerTokens;
     }
 
     /**************************************************************************
@@ -376,6 +385,17 @@ contract DBContract is OwnableUpgradeable {
 
     function achievementRewardAmountsNum() external view returns (uint256) {
         return achievementRewardAmounts.length;
+    }
+
+    function maxVAAddPerDayPerTokensNum() external view returns (uint256) {
+        return maxVAAddPerDayPerTokens.length;
+    }
+
+    function maxVAAddPerDayByTokenId(uint256 _tokenId) external view returns (uint256) {
+        uint256 tokenLevel = _calcTokenLevel(_tokenId);
+        if (tokenLevel > maxVAAddPerDayPerTokens.length - 1) return 0;
+
+        return maxVAAddPerDayPerTokens[tokenLevel];
     }
 
 }
