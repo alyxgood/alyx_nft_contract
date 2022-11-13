@@ -95,7 +95,15 @@ contract User is IUser, baseContract {
                 }
             }
 
-            userInfoOf[_refAddr].performance += _performance;
+            address currentAddress = _refAddr;
+            uint256 performanceThreshold = DBContract(DB_CONTRACT).performanceThreshold();
+            for (uint256 index = 0; index < performanceThreshold; index++) {
+                if (currentAddress == address(0)) {
+                    break;
+                }
+                userInfoOf[currentAddress].performance += _performance;
+                currentAddress = userInfoOf[currentAddress].refAddress;
+            }
             _auditLevel(_refAddr);
         }
     }

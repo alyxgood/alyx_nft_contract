@@ -326,6 +326,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.operator).setDuration(env.DURATION)
         await tx.wait()
     }
+
+    console.log(`fetching the performanceThreshold...`)
+    if (!(await dbProxyAttached.performanceThreshold()).eq(env.PERFORMANCE_THRESHOLD)) {
+        console.log('setup the performanceThreshold...')
+        tx = await dbProxyAttached.connect(users.operator).setPerformanceThreshold(env.PERFORMANCE_THRESHOLD)
+        await tx.wait()
+    }
 }
 
 export default func

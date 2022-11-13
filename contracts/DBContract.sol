@@ -65,6 +65,7 @@ contract DBContract is OwnableUpgradeable {
     uint256 public duration;
 
     uint256[] public maxVAAddPerDayPerTokens;
+    uint256 public performanceThreshold;
 
     /**
      * @dev Throws if called by any account other than the operator.
@@ -194,6 +195,10 @@ contract DBContract is OwnableUpgradeable {
 
         delete performanceRequirements;
         performanceRequirements = _requirements;
+    }
+
+    function setPerformanceThreshold(uint256 _performanceThreshold) external onlyOperator {
+        performanceThreshold = _performanceThreshold;
     }
 
     // e.g. 100% = 1e18
