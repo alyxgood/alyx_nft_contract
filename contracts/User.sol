@@ -20,6 +20,10 @@ contract User is IUser, baseContract {
     event LevelUp(address indexed account, Level level);
     event ClaimAchievementReward(address indexed account, uint256 indexed nftId, uint256 amount);
 
+    event SocialRewardDistribute(address indexed account, address invitee, uint256 amount);
+    event CommunityRewardDistribute(address indexed account, address invitee, uint256 amount);
+    event ContributionRewardDistribute(address indexed account, address invitee, uint256 amount);
+
     struct UserInfo {
         Level level;
         address refAddress;
@@ -84,6 +88,7 @@ contract User is IUser, baseContract {
             amount = (_performance * (10 ** IERC20MetadataUpgradeable(DBContract(DB_CONTRACT).LYNK_TOKEN()).decimals()) * rate) / 1e18;
             userInfoOf[_refAddr].socialRev += amount;
             IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_refAddr, amount);
+            emit SocialRewardDistribute(_refAddr, _userAddr, amount);
 
             // distribute contribution reward
             uint256 threshold = DBContract(DB_CONTRACT).contributionRewardThreshold();
@@ -92,6 +97,7 @@ contract User is IUser, baseContract {
                 if (amount > 0) {
                     userInfoOf[_refAddr].contributionRev += amount;
                     IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_refAddr, amount);
+                    emit ContributionRewardDistribute(_refAddr, _userAddr, amount);
                 }
             }
 
@@ -133,6 +139,7 @@ contract User is IUser, baseContract {
 
                 userInfoOf[curAddr].communityRev += reward;
                 IERC20Mintable(lynkAddr).mint(curAddr, reward);
+                emit CommunityRewardDistribute(curAddr, _userAddr, reward);
             }
 
             curAddr = userInfoOf[curAddr].refAddress;
