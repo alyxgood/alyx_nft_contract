@@ -17,7 +17,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     mapping(string => bool) public nameUsed;
     mapping(uint256 => AttributeAddedInfo) public addedVAInfoOf;
 
-    event Mint(uint256 indexed tokenId, uint256[] nftInfo, string name);
+    event Mint(uint256 indexed tokenId, uint256[] nftInfo, string name, address payment, uint256 amount);
     event Upgrade(uint256 indexed tokenId, Attribute attr, uint256 point);
 
     struct MintInfo {
@@ -134,7 +134,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         nftInfo[_tokenId] = [ 0, vitality, intellect, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _tokenId);
 
-        emit Mint(_tokenId, nftInfo[_tokenId], _name);
+        emit Mint(_tokenId, nftInfo[_tokenId], _name, _payment, mintPrice);
     }
 
     function _upgrade(Attribute _attr, uint256 _tokenId, uint256 _point, address _payment) private {
