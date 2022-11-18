@@ -72,6 +72,13 @@ export interface ENV_FIX {
     ACHIEVEMENT_REWARD: string[],
     DURATION: string,
     PERFORMANCE_THRESHOLD: string
+    EARLY_BIRD_INIT_CA: string,
+    EARLY_BIRD_MINT_START_ID: string,
+    EARLY_BIRD_MINT_END_ID: string,
+    EARLY_BIRD_MINT_PAYMENT: string,
+    EARLY_BIRD_MINT_PRICE_IN_PAYMENT: string,
+    EARLY_BIRD_MINT_ENABLE: boolean,
+    COMMON_MINT_ENABLE: boolean,
 }
 
 export interface USER_LEVEL_FIX {
@@ -149,6 +156,13 @@ export function get_env() {
     let ACHIEVEMENT_REWARD: string[]
     let DURATION: string
     let PERFORMANCE_THRESHOLD: string
+    let EARLY_BIRD_INIT_CA: string
+    let EARLY_BIRD_MINT_START_ID: string
+    let EARLY_BIRD_MINT_END_ID: string
+    let EARLY_BIRD_MINT_PAYMENT: string
+    let EARLY_BIRD_MINT_PRICE_IN_PAYMENT: string
+    let EARLY_BIRD_MINT_ENABLE: boolean
+    let COMMON_MINT_ENABLE: boolean
 
     environment = process.env.environment ? process.env.environment : TEST_EVN  // prod / test
     USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
@@ -221,6 +235,14 @@ export function get_env() {
 
     DURATION = process.env.DURATION ? process.env.DURATION : '86400'
     PERFORMANCE_THRESHOLD = process.env.PERFORMANCE_THRESHOLD ? process.env.PERFORMANCE_THRESHOLD : '20'
+    
+    EARLY_BIRD_INIT_CA = process.env.EARLY_BIRD_INIT_CA ? process.env.EARLY_BIRD_INIT_CA : '10000'
+    EARLY_BIRD_MINT_START_ID = process.env.EARLY_BIRD_MINT_START_ID ? process.env.EARLY_BIRD_MINT_START_ID : '300000'
+    EARLY_BIRD_MINT_END_ID = process.env.EARLY_BIRD_MINT_END_ID ? process.env.EARLY_BIRD_MINT_END_ID : '300200'
+    EARLY_BIRD_MINT_PAYMENT = process.env.EARLY_BIRD_MINT_PAYMENT ? process.env.EARLY_BIRD_MINT_PAYMENT : '0x000000000000000000000000000000000000dEaD'
+    EARLY_BIRD_MINT_PRICE_IN_PAYMENT = ethers.utils.parseEther(process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT ? process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT : '5000').toString()
+    EARLY_BIRD_MINT_ENABLE = process.env.EARLY_BIRD_MINT_ENABLE === 'true'
+    COMMON_MINT_ENABLE = process.env.COMMON_MINT_ENABLE === 'true'
 
     return {
         environment,
@@ -249,6 +271,13 @@ export function get_env() {
         ACHIEVEMENT_REWARD,
         DURATION,
         PERFORMANCE_THRESHOLD,
+        EARLY_BIRD_INIT_CA,
+        EARLY_BIRD_MINT_START_ID,
+        EARLY_BIRD_MINT_END_ID,
+        EARLY_BIRD_MINT_PAYMENT,
+        EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
+        EARLY_BIRD_MINT_ENABLE,
+        COMMON_MINT_ENABLE,
     }
 }
 

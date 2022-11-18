@@ -333,6 +333,38 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.operator).setPerformanceThreshold(env.PERFORMANCE_THRESHOLD)
         await tx.wait()
     }
+    
+    console.log(`fetching the earlyBirdInitCA...`)
+    if (!(await dbProxyAttached.earlyBirdInitCA()).eq(env.EARLY_BIRD_INIT_CA)) {
+        console.log('setup the earlyBirdInitCA...')
+        tx = await dbProxyAttached.connect(users.operator).setEarlyBirdInitCA(env.EARLY_BIRD_INIT_CA)
+        await tx.wait()
+    }
+
+    console.log(`fetching the earlyBirdMintIdRange...`)
+    const idRange = await dbProxyAttached.earlyBirdMintIdRange()
+    if (!idRange[0].eq(env.EARLY_BIRD_MINT_START_ID) || !idRange[1].eq(env.EARLY_BIRD_MINT_END_ID)) {
+        console.log('setup the earlyBirdMintIdRange...')
+        tx = await dbProxyAttached.connect(users.operator).setEarlyBirdMintIdRange(env.EARLY_BIRD_MINT_START_ID, env.EARLY_BIRD_MINT_END_ID)
+        await tx.wait()
+    }
+
+    console.log(`fetching the mint price...`)
+    const mintPrice = await dbProxyAttached.earlyBirdMintPrice()
+    if (mintPrice[0].toLocaleLowerCase() !== env.EARLY_BIRD_MINT_PAYMENT.toLocaleLowerCase() || !mintPrice[1].eq(env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)) {
+        console.log('setup the earlyBirdMintPrice...')
+        tx = await dbProxyAttached.connect(users.operator).setEarlyBirdMintPrice(env.EARLY_BIRD_MINT_PAYMENT, env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
+        await tx.wait()
+    }
+
+    console.log(`fetching the switch...`)
+    const earlyBirdEnable = await dbProxyAttached.earlyBirdMintEnable()
+    const commonEnable = await dbProxyAttached.commonMintEnable()
+    if (earlyBirdEnable !== env.EARLY_BIRD_MINT_ENABLE || commonEnable !== env.COMMON_MINT_ENABLE) {
+        console.log('setup the switch...')
+        tx = await dbProxyAttached.connect(users.operator).setSwitch(env.EARLY_BIRD_MINT_ENABLE, env.COMMON_MINT_ENABLE)
+        await tx.wait()
+    }
 }
 
 export default func
