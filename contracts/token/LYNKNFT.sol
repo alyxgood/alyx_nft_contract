@@ -59,6 +59,11 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _earlyBirdMint(_name);
     }
 
+    function earlyMintable() external view returns (bool) {
+        return 
+            DBContract(DB_CONTRACT).earlyBirdMintEnable() && earlyBirdNextId < DBContract(DB_CONTRACT).earlyBirdMintEndId();
+    }
+
     function mintWithPermit(uint256 _tokenId, address _payment, string calldata _name, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         IERC20PermitUpgradeable(_payment).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
         _mint(_tokenId, _payment, _name);
