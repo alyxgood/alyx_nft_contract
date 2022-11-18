@@ -67,6 +67,15 @@ contract DBContract is OwnableUpgradeable {
     uint256[] public maxVAAddPerDayPerTokens;
     uint256 public performanceThreshold;
 
+    // early bird plan, id range: [startId, endId)
+    uint256 public earlyBirdInitCA;
+    uint256 public earlyBirdMintStartId;
+    uint256 public earlyBirdMintEndId;
+    address public earlyBirdMintPayment;
+    uint256 public earlyBirdMintPriceInPayment;
+    bool public earlyBirdMintEnable;
+    bool public commonMintEnable;
+
     /**
      * @dev Throws if called by any account other than the operator.
      */
@@ -113,6 +122,27 @@ contract DBContract is OwnableUpgradeable {
 
     function setBaseTokenURI(string calldata _baseTokenURI) external onlyOperator {
         baseTokenURI = _baseTokenURI;
+    }
+
+    function setEarlyBirdInitCA(uint256 _earlyBirdInitCA) external onlyOperator {
+        earlyBirdInitCA = _earlyBirdInitCA;
+    }
+
+    function setEarlyBirdMintIdRange(uint256 _earlyBirdMintStartId, uint256 _earlyBirdMintEndId) external onlyOperator {
+        require(_earlyBirdMintEndId > _earlyBirdMintStartId, 'DBContract: invalid id range.');
+        earlyBirdMintStartId = _earlyBirdMintStartId;
+        earlyBirdMintEndId = _earlyBirdMintEndId;
+    }
+
+    function setEarlyBirdMintPrice(address _earlyBirdMintPayment, uint256 _earlyBirdMintPriceInPayment) external onlyOperator {
+        require(_earlyBirdMintPayment != address(0), 'DBContract: payment cannot be 0.');
+        earlyBirdMintPayment = _earlyBirdMintPayment;
+        earlyBirdMintPriceInPayment = _earlyBirdMintPriceInPayment;
+    }
+
+    function setSwitch(bool _earlyBirdMintEnable, bool _commonMintEnable) external onlyOperator {
+        earlyBirdMintEnable = _earlyBirdMintEnable;
+        commonMintEnable = _commonMintEnable;
     }
 
     /**
@@ -401,6 +431,14 @@ contract DBContract is OwnableUpgradeable {
         if (tokenLevel > maxVAAddPerDayPerTokens.length - 1) return 0;
 
         return maxVAAddPerDayPerTokens[tokenLevel];
+    }
+
+    function earlyBirdMintIdRange() external view returns (uint256, uint256) {
+        return (earlyBirdMintStartId, earlyBirdMintEndId);
+    }
+
+    function earlyBirdMintPrice() external view returns (address, uint256) {
+        return (earlyBirdMintPayment, earlyBirdMintPriceInPayment);
     }
 
 }

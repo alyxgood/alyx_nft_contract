@@ -18,5 +18,6 @@ interface IUser {
     function hookByClaimReward(address _userAddr, uint256 _rewardAmount) external;
     function hookByStake(uint256 nftId) external;
     function hookByUnStake(uint256 nftId) external;
+    function registerByEarlyPlan(address _userAddr) external;
 
 }
