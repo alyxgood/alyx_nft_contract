@@ -64,6 +64,8 @@ contract User is IUser, baseContract {
     }
 
     function register(address _refAddr) external {
+        require(DBContract(DB_CONTRACT).commonMintEnable(), 'User: cannot register yet.');
+
         require(
             userInfoOf[_msgSender()].refAddress == address(0) &&
             _msgSender() != DBContract(DB_CONTRACT).rootAddress(),
