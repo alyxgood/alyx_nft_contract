@@ -124,7 +124,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     let USDTAddress = env.USDT_ADDRESS
-    if (env.environment == 'test') {
+    if (env.environment !== PROD_EVN) {
         const deploymentsMockUSDT = await deployments.get("mock_usdt")
         USDTAddress = deploymentsMockUSDT.address
     }
@@ -360,9 +360,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`fetching the switch...`)
     const earlyBirdEnable = await dbProxyAttached.earlyBirdMintEnable()
     const commonEnable = await dbProxyAttached.commonMintEnable()
-    if (earlyBirdEnable !== env.EARLY_BIRD_MINT_ENABLE || commonEnable !== env.COMMON_MINT_ENABLE) {
+    let envEarlyBirdEnable = env.EARLY_BIRD_MINT_ENABLE
+    let envCommonMintEnable = env.COMMON_MINT_ENABLE
+    if (env.environment !== PROD_EVN) {
+        envEarlyBirdEnable = true
+        envCommonMintEnable = true
+    }
+    if (earlyBirdEnable !== envEarlyBirdEnable || commonEnable !== envCommonMintEnable) {
         console.log('setup the switch...')
-        tx = await dbProxyAttached.connect(users.operator).setSwitch(env.EARLY_BIRD_MINT_ENABLE, env.COMMON_MINT_ENABLE)
+        tx = await dbProxyAttached.connect(users.operator).setSwitch(envEarlyBirdEnable, envCommonMintEnable)
         await tx.wait()
     }
 }
