@@ -351,9 +351,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     console.log(`fetching the mint price...`)
     const mintPrice = await dbProxyAttached.earlyBirdMintPrice()
-    if (mintPrice[0].toLocaleLowerCase() !== env.EARLY_BIRD_MINT_PAYMENT.toLocaleLowerCase() || !mintPrice[1].eq(env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)) {
+    let earlyBirdMintPayment = env.EARLY_BIRD_MINT_PAYMENT
+    if (env.environment !== PROD_EVN) {
+        earlyBirdMintPayment = USDTAddress
+    }
+    if (mintPrice[0].toLocaleLowerCase() !== earlyBirdMintPayment.toLocaleLowerCase() || !mintPrice[1].eq(env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)) {
         console.log('setup the earlyBirdMintPrice...')
-        tx = await dbProxyAttached.connect(users.operator).setEarlyBirdMintPrice(env.EARLY_BIRD_MINT_PAYMENT, env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
+        tx = await dbProxyAttached.connect(users.operator).setEarlyBirdMintPrice(earlyBirdMintPayment, env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await tx.wait()
     }
 
