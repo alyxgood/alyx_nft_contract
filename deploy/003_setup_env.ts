@@ -375,6 +375,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.operator).setSwitch(envEarlyBirdEnable, envCommonMintEnable)
         await tx.wait()
     }
+
+    console.log(`fetching the wl num...`)
+    const wlNum = await dbProxyAttached.wlNum()
+    if (!wlNum.eq(env.WL_NUM)) {
+        console.log('setup the wl num...')
+        tx = await dbProxyAttached.connect(users.operator).setWlNum(env.WL_NUM)
+        await tx.wait()
+    }
+
+    const unWls: string[] = []
+    for (let index = 0; index < env.EARLY_BIRD_MINT_WL.length; index++) {
+        console.log(`fetching wl ${env.EARLY_BIRD_MINT_WL[index]} ...`)
+        const isWl = await dbProxyAttached.earlyBirdMintWlOf(env.EARLY_BIRD_MINT_WL[index])
+        if (!isWl) unWls.push(env.EARLY_BIRD_MINT_WL[index]);
+    }
+    if (unWls.length > 0) {
+        console.log('setup the wls ...')
+        tx = await dbProxyAttached.connect(users.operator).setWls(unWls)
+        await tx.wait()
+    }
 }
 
 export default func

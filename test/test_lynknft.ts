@@ -358,6 +358,8 @@ describe("LYNKNFT", function () {
 
     it('should early bird mint while disable?', async function () {
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
+        await contracts.dbContract.setWls([randomUser.address])
+
         await contracts.dbContract.connect(users.operator).setSwitch(false, false)
         await expect(
             contracts.user.connect(randomUser).register(envs.ROOT)
@@ -372,6 +374,8 @@ describe("LYNKNFT", function () {
 
     it('should early bird mint while the id gt endID?', async function () {
         const randomUser = await createRandomSignerAndSendETH(users.deployer1)
+        await contracts.dbContract.setWls([randomUser.address])
+        
         await contracts.dbContract.connect(users.operator).setEarlyBirdMintIdRange(0, 1)
         await contracts.USDT.connect(randomUser).mint(randomUser.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
 

@@ -79,6 +79,8 @@ export interface ENV_FIX {
     EARLY_BIRD_MINT_PRICE_IN_PAYMENT: string,
     EARLY_BIRD_MINT_ENABLE: boolean,
     COMMON_MINT_ENABLE: boolean,
+    WL_NUM: string,
+    EARLY_BIRD_MINT_WL: string[]
 }
 
 export interface USER_LEVEL_FIX {
@@ -163,6 +165,8 @@ export function get_env() {
     let EARLY_BIRD_MINT_PRICE_IN_PAYMENT: string
     let EARLY_BIRD_MINT_ENABLE: boolean
     let COMMON_MINT_ENABLE: boolean
+    let WL_NUM: string
+    let EARLY_BIRD_MINT_WL: string[]
 
     environment = process.env.environment ? process.env.environment : TEST_EVN  // prod / test
     USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
@@ -243,6 +247,8 @@ export function get_env() {
     EARLY_BIRD_MINT_PRICE_IN_PAYMENT = ethers.utils.parseEther(process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT ? process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT : '5000').toString()
     EARLY_BIRD_MINT_ENABLE = process.env.EARLY_BIRD_MINT_ENABLE === 'true'
     COMMON_MINT_ENABLE = process.env.COMMON_MINT_ENABLE === 'true'
+    WL_NUM = process.env.WL_NUM ? process.env.WL_NUM : '20'
+    EARLY_BIRD_MINT_WL = process.env.EARLY_BIRD_MINT_WL ? process.env.EARLY_BIRD_MINT_WL.split(',') : [ethers.constants.AddressZero]
 
     return {
         environment,
@@ -278,6 +284,8 @@ export function get_env() {
         EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
         EARLY_BIRD_MINT_ENABLE,
         COMMON_MINT_ENABLE,
+        WL_NUM,
+        EARLY_BIRD_MINT_WL,
     }
 }
 
