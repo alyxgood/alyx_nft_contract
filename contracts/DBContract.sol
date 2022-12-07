@@ -76,6 +76,9 @@ contract DBContract is OwnableUpgradeable {
     bool public earlyBirdMintEnable;
     bool public commonMintEnable;
 
+    uint256 public wlNum;
+    mapping(address => bool) public earlyBirdMintWlOf;
+
     /**
      * @dev Throws if called by any account other than the operator.
      */
@@ -143,6 +146,17 @@ contract DBContract is OwnableUpgradeable {
     function setSwitch(bool _earlyBirdMintEnable, bool _commonMintEnable) external onlyOperator {
         earlyBirdMintEnable = _earlyBirdMintEnable;
         commonMintEnable = _commonMintEnable;
+    }
+
+    function setWlNum(uint256 _wlNum) external onlyOperator {
+        // require(wlNum == 0);
+        wlNum = _wlNum;
+    }
+
+    function setWls(address[] calldata _wls) external onlyOperator {
+        for (uint i = 0; i < _wls.length; i++) {
+            earlyBirdMintWlOf[_wls[i]] = true;
+        }
     }
 
     /**

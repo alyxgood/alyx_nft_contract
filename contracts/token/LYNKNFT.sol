@@ -18,6 +18,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     mapping(uint256 => AttributeAddedInfo) public addedVAInfoOf;
 
     uint256 public earlyBirdNextId;
+    uint256 public earlyBirdWlMintNum;
 
     event Mint(uint256 indexed tokenId, uint256[] nftInfo, string name, address payment, uint256 amount);
     event Upgrade(uint256 indexed tokenId, Attribute attr, uint256 point);
@@ -48,15 +49,41 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     }
 
     function earlyBirdMintWIthPermit(string calldata _name, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+        require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
+        require(earlyBirdWlMintNum < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
+
+        IERC20PermitUpgradeable(
+            DBContract(DB_CONTRACT).earlyBirdMintPayment()
+        ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
+        earlyBirdWlMintNum++;
+        
+        _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress(), _name);
+    }
+
+    function earlyBirdMint(string calldata _name) external {
+        require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
+        require(earlyBirdWlMintNum < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
+        earlyBirdWlMintNum++;
+        
+        _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress(), _name);
+    }
+
+    function refEarlyBirdMintWIthPermit(address _refAddress, string calldata _name, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+        // require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: not in the wl.');
+        require(_refAddress != DBContract(DB_CONTRACT).rootAddress(), 'LYNKNFT: not in the wl.');
+
         IERC20PermitUpgradeable(
             DBContract(DB_CONTRACT).earlyBirdMintPayment()
         ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
         
-        _earlyBirdMint(_name);
+        _earlyBirdMint(_refAddress, _name);
     }
 
-    function earlyBirdMint(string calldata _name) external {
-        _earlyBirdMint(_name);
+    function refEarlyBirdMint(address _refAddress, string calldata _name) external {
+        // require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: not in the wl.');
+        require(_refAddress != DBContract(DB_CONTRACT).rootAddress(), 'LYNKNFT: not in the wl.');
+        
+        _earlyBirdMint(_refAddress, _name);
     }
 
     function earlyMintable() external view returns (bool) {
@@ -127,15 +154,21 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         return mintPrice;
     }
 
-    function _earlyBirdMint(string calldata _name) private {
+    function _earlyBirdMint(address _refAddress, string calldata _name) private {
         require(DBContract(DB_CONTRACT).earlyBirdMintEnable(), 'LYNKNFT: cannot mint yet.');
+
+        address userContractAddress = DBContract(DB_CONTRACT).USER_INFO();
+        require(!IUser(userContractAddress).isValidUser(_msgSender()), 'LYNKNFT: already minted.');
+        IUser(userContractAddress).registerByEarlyPlan(_msgSender(), _refAddress);
+
         require(!nameUsed[_name], 'LYNKNFT: name already in used.');
         nameUsed[_name] = true;
 
         (uint256 startId, uint256 endId) = DBContract(DB_CONTRACT).earlyBirdMintIdRange();
         uint256 _earlyBirdCurrentId = earlyBirdNextId;
         if (_earlyBirdCurrentId < startId) _earlyBirdCurrentId = startId;
-        require(_earlyBirdCurrentId < endId, 'LYNKNFT: sold out.');
+        // require(_earlyBirdCurrentId < endId, 'LYNKNFT: sold out.');
+        require(_earlyBirdCurrentId + (DBContract(DB_CONTRACT).wlNum() - earlyBirdWlMintNum) < endId, 'LYNKNFT: sold out.');
 
         (address payment, uint256 price) = DBContract(DB_CONTRACT).earlyBirdMintPrice();
         _pay(payment, _msgSender(), price);
@@ -144,11 +177,6 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         nftInfo[_earlyBirdCurrentId] = [ DBContract(DB_CONTRACT).earlyBirdInitCA(), 0, 0, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _earlyBirdCurrentId);
         emit Mint(_earlyBirdCurrentId, nftInfo[_earlyBirdCurrentId], _name, payment, price);
-
-        address userContractAddress = DBContract(DB_CONTRACT).USER_INFO();
-        if (!IUser(userContractAddress).isValidUser(_msgSender())) {
-            IUser(userContractAddress).registerByEarlyPlan(_msgSender());
-        }
     }
 
     function _mint(uint256 _tokenId, address _payment, string calldata _name) private {

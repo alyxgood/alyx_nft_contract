@@ -53,22 +53,22 @@ contract User is IUser, baseContract {
     function __User_init_unchained() private {
     }
 
-    function registerByEarlyPlan(address _userAddr) external onlyLYNKNFTContract {
+    function registerByEarlyPlan(address _userAddr, address _refAddr) external onlyLYNKNFTContract {
         require(userInfoOf[_userAddr].refAddress == address(0), 'User: already register.');
 
-        address rootAddress = DBContract(DB_CONTRACT).rootAddress();
-        userInfoOf[_userAddr].refAddress = rootAddress;
-        userInfoOf[rootAddress].refCounterOf[0] += 1;
-        
-        emit Register(_userAddr, rootAddress);
+        _register(_userAddr, _refAddr);
     }
 
     function register(address _refAddr) external {
         require(DBContract(DB_CONTRACT).commonMintEnable(), 'User: cannot register yet.');
 
+        _register(_msgSender(), _refAddr);
+    }
+
+    function _register(address _userAddr, address _refAddr) private {
         require(
-            userInfoOf[_msgSender()].refAddress == address(0) &&
-            _msgSender() != DBContract(DB_CONTRACT).rootAddress(),
+            userInfoOf[_userAddr].refAddress == address(0) &&
+            _userAddr != DBContract(DB_CONTRACT).rootAddress(),
                 'User: already register.'
         );
         require(
@@ -77,9 +77,9 @@ contract User is IUser, baseContract {
                 'User: the ref not a valid ref address.'
         );
 
-        userInfoOf[_msgSender()].refAddress = _refAddr;
+        userInfoOf[_userAddr].refAddress = _refAddr;
         userInfoOf[_refAddr].refCounterOf[0] += 1;
-        emit Register(_msgSender(), _refAddr);
+        emit Register(_userAddr, _refAddr);
 
         _auditLevel(_refAddr);
     }
