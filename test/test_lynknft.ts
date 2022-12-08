@@ -414,6 +414,10 @@ describe("LYNKNFT", function () {
         await contracts.dbContract.connect(users.operator).setWls([randomUser1.address, randomUser2.address])
         await contracts.dbContract.connect(users.operator).setEarlyBirdMintIdRange(0, 4)
 
+        const info1 = await contracts.LYNKNFT.earlyMintInfo();
+        expect(info1._totalNum).to.be.equal(4)
+        expect(info1._remainNum).to.be.equal(4)
+
         await contracts.USDT.connect(randomUser1).mint(randomUser1.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await contracts.USDT.connect(randomUser2).mint(randomUser2.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await contracts.USDT.connect(randomUser3).mint(randomUser3.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
@@ -561,5 +565,9 @@ describe("LYNKNFT", function () {
                 approveParams4.s
             )
         ).to.be.revertedWith('LYNKNFT: already minted.')
+
+        const info2 = await contracts.LYNKNFT.earlyMintInfo();
+        expect(info2._totalNum).to.be.equal(4)
+        expect(info2._remainNum).to.be.equal(0)
     })
 })

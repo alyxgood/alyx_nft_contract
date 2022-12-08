@@ -17,8 +17,8 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     mapping(string => bool) public nameUsed;
     mapping(uint256 => AttributeAddedInfo) public addedVAInfoOf;
 
-    uint256 public earlyBirdNextId;
-    uint256 public earlyBirdWlMintNum;
+    uint256 public earlyBirdCounter;
+    uint256 public earlyBirdWlCounter;
 
     event Mint(uint256 indexed tokenId, uint256[] nftInfo, string name, address payment, uint256 amount);
     event Upgrade(uint256 indexed tokenId, Attribute attr, uint256 point);
@@ -50,20 +50,20 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
     function earlyBirdMintWIthPermit(string calldata _name, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
-        require(earlyBirdWlMintNum < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
+        require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
 
         IERC20PermitUpgradeable(
             DBContract(DB_CONTRACT).earlyBirdMintPayment()
         ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
-        earlyBirdWlMintNum++;
+        earlyBirdWlCounter++;
         
         _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress(), _name);
     }
 
     function earlyBirdMint(string calldata _name) external {
         require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
-        require(earlyBirdWlMintNum < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
-        earlyBirdWlMintNum++;
+        require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
+        earlyBirdWlCounter++;
         
         _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress(), _name);
     }
@@ -86,9 +86,10 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _earlyBirdMint(_refAddress, _name);
     }
 
-    function earlyMintable() external view returns (bool) {
-        return 
-            DBContract(DB_CONTRACT).earlyBirdMintEnable() && earlyBirdNextId < DBContract(DB_CONTRACT).earlyBirdMintEndId();
+    function earlyMintInfo() external view returns (uint256 _totalNum, uint256 _remainNum) {
+        (uint256 _startId, uint256 _endId) = DBContract(DB_CONTRACT).earlyBirdMintIdRange();
+        _totalNum = _endId - _startId;
+        _remainNum = _totalNum - earlyBirdCounter;
     }
 
     function mintWithPermit(uint256 _tokenId, address _payment, string calldata _name, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
@@ -164,16 +165,15 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         require(!nameUsed[_name], 'LYNKNFT: name already in used.');
         nameUsed[_name] = true;
 
-        (uint256 startId, uint256 endId) = DBContract(DB_CONTRACT).earlyBirdMintIdRange();
-        uint256 _earlyBirdCurrentId = earlyBirdNextId;
-        if (_earlyBirdCurrentId < startId) _earlyBirdCurrentId = startId;
+        (uint256 _startId, uint256 _endId) = DBContract(DB_CONTRACT).earlyBirdMintIdRange();
+        uint256 _earlyBirdCurrentId = _startId + earlyBirdCounter;
         // require(_earlyBirdCurrentId < endId, 'LYNKNFT: sold out.');
-        require(_earlyBirdCurrentId + (DBContract(DB_CONTRACT).wlNum() - earlyBirdWlMintNum) < endId, 'LYNKNFT: sold out.');
+        require(_earlyBirdCurrentId + (DBContract(DB_CONTRACT).wlNum() - earlyBirdWlCounter) < _endId, 'LYNKNFT: sold out.');
+        earlyBirdCounter++;
 
         (address payment, uint256 price) = DBContract(DB_CONTRACT).earlyBirdMintPrice();
         _pay(payment, _msgSender(), price);
 
-        earlyBirdNextId = _earlyBirdCurrentId + 1;
         nftInfo[_earlyBirdCurrentId] = [ DBContract(DB_CONTRACT).earlyBirdInitCA(), 0, 0, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _earlyBirdCurrentId);
         emit Mint(_earlyBirdCurrentId, nftInfo[_earlyBirdCurrentId], _name, payment, price);
