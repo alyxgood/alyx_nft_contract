@@ -156,6 +156,9 @@ contract DBContract is OwnableUpgradeable {
     function setWls(address[] calldata _wls) external onlyOperator {
         for (uint i = 0; i < _wls.length; i++) {
             earlyBirdMintWlOf[_wls[i]] = true;
+            if (!IUser(USER_INFO).isValidUser(_wls[i])) {
+                IUser(USER_INFO).registerByEarlyPlan(_wls[i], rootAddress);   
+            }
         }
     }
 

@@ -19,6 +19,15 @@ abstract contract baseContract is ContextUpgradeable {
         DB_CONTRACT = dbContract;
     }
 
+    modifier onlyLYNKNFTOrDBContract() {
+        require(
+            DBContract(DB_CONTRACT).LYNKNFT() == _msgSender() ||
+            DB_CONTRACT == _msgSender(),
+                'baseContract: caller not the LYNK NFT contract.'
+        );
+        _;
+    }
+
     modifier onlyLYNKNFTContract() {
         require(DBContract(DB_CONTRACT).LYNKNFT() == _msgSender(), 'baseContract: caller not the LYNK NFT contract.');
         _;

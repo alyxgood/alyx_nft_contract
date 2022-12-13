@@ -18,7 +18,9 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     mapping(uint256 => AttributeAddedInfo) public addedVAInfoOf;
 
     uint256 public earlyBirdCounter;
+    // @Deprecated
     uint256 public earlyBirdWlCounter;
+    mapping(address => bool) public earlyBirdMintedOf;
 
     event Mint(uint256 indexed tokenId, uint256[] nftInfo, string name, address payment, uint256 amount);
     event Upgrade(uint256 indexed tokenId, Attribute attr, uint256 point);
@@ -50,20 +52,20 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
     function earlyBirdMintWIthPermit(string calldata _name, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
-        require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
+        // require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
 
         IERC20PermitUpgradeable(
             DBContract(DB_CONTRACT).earlyBirdMintPayment()
         ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
-        earlyBirdWlCounter++;
+        // earlyBirdWlCounter++;
         
         _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress(), _name);
     }
 
     function earlyBirdMint(string calldata _name) external {
         require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
-        require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
-        earlyBirdWlCounter++;
+        // require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
+        // earlyBirdWlCounter++;
         
         _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress(), _name);
     }
@@ -159,17 +161,22 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     function _earlyBirdMint(address _refAddress, string calldata _name) private {
         require(DBContract(DB_CONTRACT).earlyBirdMintEnable(), 'LYNKNFT: cannot mint yet.');
 
+        require(!earlyBirdMintedOf[_msgSender()], 'LYNKNFT: already minted.');
+        earlyBirdMintedOf[_msgSender()] = true;
+        
         address userContractAddress = DBContract(DB_CONTRACT).USER_INFO();
-        require(!IUser(userContractAddress).isValidUser(_msgSender()), 'LYNKNFT: already minted.');
-        IUser(userContractAddress).registerByEarlyPlan(_msgSender(), _refAddress);
+        // require(!IUser(userContractAddress).isValidUser(_msgSender()), 'LYNKNFT: already minted.');
+        if (!IUser(userContractAddress).isValidUser(_msgSender())) {
+            IUser(userContractAddress).registerByEarlyPlan(_msgSender(), _refAddress);   
+        }
 
         require(!nameUsed[_name], 'LYNKNFT: name already in used.');
         nameUsed[_name] = true;
 
         (uint256 _startId, uint256 _endId) = DBContract(DB_CONTRACT).earlyBirdMintIdRange();
         uint256 _earlyBirdCurrentId = _startId + earlyBirdCounter;
-        // require(_earlyBirdCurrentId < endId, 'LYNKNFT: sold out.');
-        require(_earlyBirdCurrentId + (DBContract(DB_CONTRACT).wlNum() - earlyBirdWlCounter) < _endId, 'LYNKNFT: sold out.');
+        require(_earlyBirdCurrentId < _endId, 'LYNKNFT: sold out.');
+        // require(_earlyBirdCurrentId + (DBContract(DB_CONTRACT).wlNum() - earlyBirdWlCounter) < _endId, 'LYNKNFT: sold out.');
         earlyBirdCounter++;
 
         (address payment, uint256 price) = DBContract(DB_CONTRACT).earlyBirdMintPrice();

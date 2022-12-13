@@ -530,7 +530,7 @@ describe("LYNKNFT", function () {
 
         await expect(
             contracts.LYNKNFT.connect(randomUser2).earlyBirdMint('2')
-        ).to.be.revertedWith('LYNKNFT: wl num limit.')
+        ).to.be.revertedWith('LYNKNFT: already minted.')
         await expect(
             contracts.LYNKNFT.connect(randomUser2).earlyBirdMintWIthPermit(
                 '2',
@@ -540,7 +540,7 @@ describe("LYNKNFT", function () {
                 approveParams2.r,
                 approveParams2.s
             )
-        ).to.be.revertedWith('LYNKNFT: wl num limit.')
+        ).to.be.revertedWith('LYNKNFT: already minted.')
 
         await contracts.USDT.connect(randomUser4).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await contracts.LYNKNFT.connect(randomUser4).refEarlyBirdMint(randomUser2.address, '3')

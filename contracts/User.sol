@@ -53,7 +53,7 @@ contract User is IUser, baseContract {
     function __User_init_unchained() private {
     }
 
-    function registerByEarlyPlan(address _userAddr, address _refAddr) external onlyLYNKNFTContract {
+    function registerByEarlyPlan(address _userAddr, address _refAddr) external onlyLYNKNFTOrDBContract {
         require(userInfoOf[_userAddr].refAddress == address(0), 'User: already register.');
 
         _register(_userAddr, _refAddr);

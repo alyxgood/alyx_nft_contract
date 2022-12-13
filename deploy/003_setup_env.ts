@@ -135,12 +135,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.operator).setAcceptToken(USDTAddress)
         await tx.wait()
     }
-    console.log(`fetching isAcceptToken zero...`)
-    if (!(await dbProxyAttached.isAcceptToken(ethers.constants.AddressZero))) {
-        console.log('accept origin token...')
-        tx = await dbProxyAttached.connect(users.operator).setAcceptToken(ethers.constants.AddressZero)
-        await tx.wait()
-    }
+    // console.log(`fetching isAcceptToken zero...`)
+    // if (!(await dbProxyAttached.isAcceptToken(ethers.constants.AddressZero))) {
+    //     console.log('accept origin token...')
+    //     tx = await dbProxyAttached.connect(users.operator).setAcceptToken(ethers.constants.AddressZero)
+    //     await tx.wait()
+    // }
 
     console.log(`fetching sellingLevelLimit...`)
     if (!(await dbProxyAttached.sellingLevelLimit()).eq(env.SELLING_LEVEL_LIMIT)) {
