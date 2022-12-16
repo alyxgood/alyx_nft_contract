@@ -144,6 +144,12 @@ describe("LYNKNFT", function () {
         await expect(
             contracts.LYNKNFT.connect(randomUser).mint(200_002, ethers.constants.AddressZero, '200_002')
         ).to.be.revertedWith('LYNKNFT: unsupported payment.')
+        await expect(
+            contracts.LYNKNFT.connect(randomUser).mint(200_002, contracts.USDT.address, '1')
+        ).to.be.revertedWith('LYNKNFT: reversed name.')
+        await expect(
+            contracts.LYNKNFT.connect(randomUser).mint(1, contracts.USDT.address, '200_003')
+        ).to.be.revertedWith('LYNKNFT: reverse token id.')
     });
 
     it('should mint over ${maxMintPerDayPerAddress} NFT in a day?', async function () {
