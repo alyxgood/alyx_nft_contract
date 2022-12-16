@@ -198,6 +198,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
             'LYNKNFT: not a valid user.'
         );
         require(!nameUsed[_name], 'LYNKNFT: name already in used.');
+        require(!_isReverseName(_name), 'LYNKNFT: reversed name.');
         nameUsed[_name] = true;
 
         MintInfo memory mintInfo = mintInfoOf[_msgSender()];
@@ -275,5 +276,17 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
         // dealing with the ref things.
         IUser(DBContract(DB_CONTRACT).USER_INFO()).hookByUpgrade(_msgSender(), Attribute.charisma == _attr ? _point : 0);
+    }
+
+    function _isReverseName(string memory _name) private pure returns (bool) {
+        bytes memory b = bytes(_name);
+        uint256 _nameUint = 0;
+        for(uint256 i = 0; i < b.length; i++) {
+            if(uint8(b[i]) < 48 || uint8(b[i]) > 57) {
+                return false;
+            }
+            _nameUint = _nameUint * 10 + (uint8(b[i]) - 48);
+        }
+        return _nameUint < 100000;
     }
 }
