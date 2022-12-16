@@ -133,18 +133,18 @@ describe("user", function () {
         const tokenId = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser1, contracts, envs, state)
         await nft_level_up(tokenId, randomUser1, (await contracts.dbContract.achievementRewardLevelThreshold()).toNumber(), contracts, envs)
         await expect(
-            contracts.user.connect(randomUser1).claimAchievementReward([tokenId])
+            contracts.user.connect(randomUser1).claimAchievementReward(tokenId)
         ).to.be.revertedWith('User: cannot claim 0.')
 
         await contracts.LYNKNFT.connect(randomUser1).approve(contracts.staking.address, tokenId)
         await contracts.staking.connect(randomUser1).stake(tokenId)
         await expect(
-            contracts.user.connect(randomUser2).claimAchievementReward([tokenId])
+            contracts.user.connect(randomUser2).claimAchievementReward(tokenId)
         ).to.be.revertedWith('User: not the owner.')
 
         await increase(await contracts.dbContract.achievementRewardDurationThreshold())
         const apTokenBalanceOfBefore = await contracts.apToken.balanceOf(randomUser1.address)
-        await contracts.user.connect(randomUser1).claimAchievementReward([tokenId])
+        await contracts.user.connect(randomUser1).claimAchievementReward(tokenId)
         expect(await contracts.apToken.balanceOf(randomUser1.address)).to.gt(apTokenBalanceOfBefore)
     });
 

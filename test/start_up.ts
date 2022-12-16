@@ -96,7 +96,7 @@ export function get_contract_state() {
     let HOLDER_LIST: Map<string, number[]>
     let INVITEE_LIST: Map<string, SignerWithAddress[]>
 
-    LYNKNFT_TOKEN_ID = BigNumber.from(0)
+    LYNKNFT_TOKEN_ID = BigNumber.from(100_000)
     HOLDER_LIST = new Map<string, number[]>()
     INVITEE_LIST = new Map<string, SignerWithAddress[]>()
 

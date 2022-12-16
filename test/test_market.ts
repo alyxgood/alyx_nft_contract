@@ -50,7 +50,7 @@ describe("market", function () {
     it('should list by the user who not a valid user?', async function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         await expect(
-            contracts.market.connect(randomUser1).listNFT(0, ethers.constants.AddressZero, 0)
+            contracts.market.connect(randomUser1).listNFT(0, contracts.USDT.address, 0)
         ).to.be.revertedWith('Market: not a valid user.')
     });
 
@@ -61,19 +61,19 @@ describe("market", function () {
         await contracts.LYNKNFT.connect(randomUser1).setApprovalForAll(contracts.market.address, true)
 
         await expect(
-            contracts.market.connect(randomUser1).listNFT(tokenId, ethers.constants.AddressZero, 0)
+            contracts.market.connect(randomUser1).listNFT(tokenId, contracts.USDT.address, 0)
         ).to.be.revertedWith('Market: not the owner.')
         await expect(
             contracts.market.connect(randomUser).listNFT(tokenId, contracts.apToken.address, 0)
         ).to.be.revertedWith('Market: unsupported token.')
         await expect(
-            contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, 0)
+            contracts.market.connect(randomUser).listNFT(tokenId, contracts.USDT.address, 0)
         ).to.be.revertedWith('Market: Cannot trade yet.')
     });
 
     it('should list nft?', async function () {
         await nft_level_up(tokenId, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
-        const tx = await contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+        const tx = await contracts.market.connect(randomUser).listNFT(tokenId, contracts.USDT.address, ethers.constants.WeiPerEther)
         await expect(tx)
             .to.emit(contracts.LYNKNFT, 'Transfer')
             .withArgs(randomUser.address, contracts.market.address, tokenId)
@@ -89,7 +89,7 @@ describe("market", function () {
         const listInfo = await contracts.market.listNFTs(0)
         expect(listInfo.tokenId).to.equal(tokenId)
         expect(listInfo.seller).to.equal(randomUser.address)
-        expect(listInfo.acceptToken).to.equal(ethers.constants.AddressZero)
+        expect(listInfo.acceptToken).to.equal(contracts.USDT.address)
         expect(listInfo.priceInAcceptToken).to.equal(ethers.constants.WeiPerEther)
     });
 
@@ -97,7 +97,7 @@ describe("market", function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
 
         await nft_level_up(tokenId, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
-        await contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+        await contracts.market.connect(randomUser).listNFT(tokenId, contracts.USDT.address, ethers.constants.WeiPerEther)
 
         await expect(
             contracts.market.connect(randomUser1).cancelList(tokenId)
@@ -109,7 +109,7 @@ describe("market", function () {
 
     it('should cancel the nft correctly?', async function () {
         await nft_level_up(tokenId, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
-        await contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+        await contracts.market.connect(randomUser).listNFT(tokenId, contracts.USDT.address, ethers.constants.WeiPerEther)
         const tx = await contracts.market.connect(randomUser).cancelList(tokenId)
 
         await expect(tx)
@@ -131,7 +131,7 @@ describe("market", function () {
     it('should take by the user who not a valid user?', async function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         await expect(
-            contracts.market.connect(randomUser1).listNFT(0, ethers.constants.AddressZero, 0)
+            contracts.market.connect(randomUser1).listNFT(0, contracts.USDT.address, 0)
         ).to.be.revertedWith('Market: not a valid user.')
     });
 
@@ -139,23 +139,9 @@ describe("market", function () {
         const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
         await contracts.user.connect(randomUser1).register(envs.ROOT)
         await nft_level_up(tokenId, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
-        await contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+        await contracts.market.connect(randomUser).listNFT(tokenId, contracts.USDT.address, ethers.constants.WeiPerEther)
         await expect(contracts.market.connect(randomUser1).takeNFT(tokenId+1))
             .to.be.revertedWith('Market: token id mismatch.')
-    });
-
-    it('should take the nft with sending lower or higher value?', async function () {
-        const randomUser1 = await createRandomSignerAndSendETH(users.deployer1)
-        await contracts.user.connect(randomUser1).register(envs.ROOT)
-        await nft_level_up(tokenId, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
-        await contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
-
-        await expect(
-            contracts.market.connect(randomUser1).takeNFT(tokenId, {value: ethers.constants.WeiPerEther.sub(1)})
-        ).to.be.revertedWith('Market: value mismatch.')
-        await expect(
-            contracts.market.connect(randomUser1).takeNFT(tokenId, {value: ethers.constants.WeiPerEther.add(1)})
-        ).to.be.revertedWith('Market: value mismatch.')
     });
 
     it('should take the nft correctly?', async function () {
@@ -164,22 +150,21 @@ describe("market", function () {
         const tokenId1 = await mintLYNKNFTAndCheck(users.team_addr.address, randomUser, contracts, envs, state)
         await nft_level_up(tokenId, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
         await nft_level_up(tokenId1, randomUser, BigNumber.from(envs.SELLING_LEVEL_LIMIT).toNumber(), contracts, envs)
-        let tx = await contracts.market.connect(randomUser).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+        let tx = await contracts.market.connect(randomUser).listNFT(tokenId, contracts.USDT.address, ethers.constants.WeiPerEther)
         await tx.wait()
         tx = await contracts.market.connect(randomUser).listNFT(tokenId1, contracts.USDT.address, ethers.constants.WeiPerEther)
         await tx.wait()
 
         await expect(
-            contracts.market.connect(buyer).takeNFT(tokenId, {value: ethers.constants.WeiPerEther})
+            contracts.market.connect(buyer).takeNFT(tokenId)
         ).to.be.revertedWith('Market: not a valid user.')
         await contracts.user.connect(buyer).register(envs.ROOT)
-        await expect(
-            contracts.market.connect(buyer).takeNFT(tokenId, {value: ethers.constants.WeiPerEther.sub(1)})
-        ).to.be.revertedWith('Market: value mismatch.')
 
-        const sellerBalanceBefore = await randomUser.getBalance()
-        const buyerBalanceBefore = await buyer.getBalance()
-        tx = await contracts.market.connect(buyer).takeNFT(tokenId, {value: ethers.constants.WeiPerEther})
+        await contracts.USDT.connect(buyer).mint(buyer.address, ethers.constants.WeiPerEther)
+        await contracts.USDT.connect(buyer).approve(contracts.market.address, ethers.constants.WeiPerEther)
+        const sellerBalanceBefore = await contracts.USDT.balanceOf(randomUser.address)
+        const buyerBalanceBefore = await contracts.USDT.balanceOf(buyer.address)
+        tx = await contracts.market.connect(buyer).takeNFT(tokenId)
         await expect(tx)
             .to.emit(contracts.lLYNKNFT, 'Transfer')
             .withArgs(randomUser.address, ethers.constants.AddressZero, tokenId)
@@ -194,9 +179,9 @@ describe("market", function () {
             .to.be.revertedWith('ERC721: invalid token ID')
 
         const fee = ethers.constants.WeiPerEther.mul(BigNumber.from(envs.TRADING_FEE)).div(ethers.constants.WeiPerEther)
-        await expect(await randomUser.getBalance()).to.equal(sellerBalanceBefore.add(ethers.constants.WeiPerEther).sub(fee))
+        await expect(await contracts.USDT.balanceOf(randomUser.address)).to.equal(sellerBalanceBefore.add(ethers.constants.WeiPerEther).sub(fee))
         const rx = await tx.wait()
-        await expect(await buyer.getBalance()).to.equal(buyerBalanceBefore.sub(ethers.constants.WeiPerEther).sub(rx.gasUsed.mul(rx.effectiveGasPrice)))
+        await expect(await contracts.USDT.balanceOf(buyer.address)).to.equal(buyerBalanceBefore.sub(ethers.constants.WeiPerEther))
 
         await contracts.USDT.connect(buyer).mint(buyer.address, ethers.constants.WeiPerEther)
         await contracts.USDT.connect(buyer).approve(contracts.market.address, ethers.constants.WeiPerEther)

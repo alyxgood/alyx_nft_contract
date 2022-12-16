@@ -14,7 +14,7 @@ import {ethers} from "hardhat";
 import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
 import {BNFTTest} from "../typechain-types";
 
-describe("ap token", function () {
+describe("BNFT", function () {
 
     let envs: ENV_FIX
     let state: CONTRACT_STATE

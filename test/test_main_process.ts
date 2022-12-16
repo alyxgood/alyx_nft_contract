@@ -160,13 +160,13 @@ describe("main_process", function () {
 
             if (index < levelLimit) {
                 await expect(
-                    contracts.market.connect(users.user2).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+                    contracts.market.connect(users.user2).listNFT(tokenId, contracts.USDT.address, ethers.constants.WeiPerEther)
                 ).revertedWith('Market: Cannot trade yet.')
 
                 continue
             }
 
-            tx = await contracts.market.connect(users.user2).listNFT(tokenId, ethers.constants.AddressZero, ethers.constants.WeiPerEther)
+            tx = await contracts.market.connect(users.user2).listNFT(tokenId, contracts.USDT.address, ethers.constants.WeiPerEther)
             await expect(tx)
                 .to.emit(contracts.LYNKNFT, 'Transfer')
                 .withArgs(users.user2.address, contracts.market.address, tokenId)
@@ -180,7 +180,7 @@ describe("main_process", function () {
             const listInfo = await contracts.market.listNFTs(listNFTNum)
             expect(listInfo.seller).to.equal(users.user2.address)
             expect(listInfo.tokenId).to.equal(tokenId)
-            expect(listInfo.acceptToken).to.equal(ethers.constants.AddressZero)
+            expect(listInfo.acceptToken).to.equal(contracts.USDT.address)
             expect(listInfo.priceInAcceptToken).to.equal(ethers.constants.WeiPerEther)
 
             expect(await contracts.market.listIndexByTokenId(tokenId)).to.equal(listNFTNum)
@@ -217,13 +217,15 @@ describe("main_process", function () {
 
         // user5 register & buy
         await user_level_up(users.team_addr.address, users.deployer1, users.user5, Level.elite, contracts, envs, state, undefined)
+        await contracts.USDT.connect(users.user5).mint(users.user5.address, ethers.constants.WeiPerEther.mul(100000))
+        await contracts.USDT.connect(users.user5).approve(contracts.market.address, ethers.constants.WeiPerEther.mul(100000))
         for (let index = listNFTNum.toNumber() - 1; index >= 0; index--) {
-            const balanceOfSellerBefore = await users.user2.getBalance()
-            const balanceOfBuyerBefore = await users.user5.getBalance()
-            const balanceOfTeamBefore = await users.team_addr.getBalance()
+            const balanceOfSellerBefore = await contracts.USDT.balanceOf(users.user2.address)
+            const balanceOfBuyerBefore = await contracts.USDT.balanceOf(users.user5.address)
+            const balanceOfTeamBefore = await contracts.USDT.balanceOf(users.team_addr.address)
 
             const nftInfo = await contracts.market.listNFTs(index)
-            tx = await contracts.market.connect(users.user5).takeNFT(nftInfo.tokenId, {value: nftInfo.priceInAcceptToken})
+            tx = await contracts.market.connect(users.user5).takeNFT(nftInfo.tokenId)
             await expect(tx)
                 .to.emit(contracts.lLYNKNFT, 'Transfer')
                 .withArgs(nftInfo.seller, ethers.constants.AddressZero, nftInfo.tokenId)
@@ -238,10 +240,10 @@ describe("main_process", function () {
             const fee = nftInfo.priceInAcceptToken.mul(BigNumber.from(envs.TRADING_FEE)).div(ethers.constants.WeiPerEther)
             // Gas fee
             expect(
-                balanceOfBuyerBefore.sub(nftInfo.priceInAcceptToken).sub(await users.user5.getBalance())
-            ).to.equal(tx.gasUsed.mul(tx.effectiveGasPrice))
-            expect(await users.team_addr.getBalance()).to.equal(balanceOfTeamBefore.add(fee))
-            expect(await users.user2.getBalance()).to.equal(balanceOfSellerBefore.add(nftInfo.priceInAcceptToken.sub(fee)))
+                balanceOfBuyerBefore.sub(nftInfo.priceInAcceptToken).sub(await contracts.USDT.balanceOf(users.user5.address))
+            ).to.equal(0)
+            expect(await contracts.USDT.balanceOf(users.team_addr.address)).to.equal(balanceOfTeamBefore.add(fee))
+            expect(await contracts.USDT.balanceOf(users.user2.address)).to.equal(balanceOfSellerBefore.add(nftInfo.priceInAcceptToken.sub(fee)))
         }
     })
 

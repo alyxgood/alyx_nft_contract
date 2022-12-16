@@ -66,7 +66,7 @@ describe("LYNKNFT", function () {
         const mintPrice = BigNumber.from(envs.MINT_PRICES[0]).mul(BigNumber.from(10).pow(decimalUSDT))
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+            contracts.LYNKNFT.connect(randomUser).mint(state.LYNKNFT_TOKEN_ID, contracts.USDT.address, 'testname')
         ).to.be.revertedWith('baseContract: insufficient allowance')
     });
 
@@ -79,21 +79,21 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice)
 
-        let tx = await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+        let tx = await contracts.LYNKNFT.connect(randomUser).mint(100_001, contracts.USDT.address, '100_001')
         await expect(tx)
             .to.emit(contracts.USDT, 'Transfer')
             .withArgs(randomUser.address, users.team_addr.address, mintPrice)
         await expect(tx)
             .to.emit(contracts.LYNKNFT, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, randomUser.address, 0)
-        expect(await contracts.LYNKNFT.ownerOf(0)).to.equal(randomUser.address)
+            .withArgs(ethers.constants.AddressZero, randomUser.address, 100_001)
+        expect(await contracts.LYNKNFT.ownerOf(100_001)).to.equal(randomUser.address)
 
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice)
         const approveParams = await signERC2612Permit(randomUser, contracts.USDT.address, randomUser.address, contracts.LYNKNFT.address, mintPrice.toString())
         tx = await contracts.LYNKNFT.connect(randomUser).mintWithPermit(
-            1,
+            100_002,
             contracts.USDT.address,
-            '1',
+            '100_002',
             mintPrice,
             approveParams.deadline,
             approveParams.v,
@@ -108,41 +108,41 @@ describe("LYNKNFT", function () {
             .withArgs(randomUser.address, users.team_addr.address, mintPrice)
         await expect(tx)
             .to.emit(contracts.LYNKNFT, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, randomUser.address, 1)
-        expect(await contracts.LYNKNFT.ownerOf(1)).to.equal(randomUser.address)
+            .withArgs(ethers.constants.AddressZero, randomUser.address, 100_002)
+        expect(await contracts.LYNKNFT.ownerOf(100_002)).to.equal(randomUser.address)
 
         await increase(24*60*60)
 
         const mintPrice1 = BigNumber.from(envs.MINT_PRICES[1]).mul(BigNumber.from(10).pow(decimalUSDT))
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice1)
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice1)
-        tx = await contracts.LYNKNFT.connect(randomUser).mint(100_000, contracts.USDT.address, '100000')
+        tx = await contracts.LYNKNFT.connect(randomUser).mint(200_001, contracts.USDT.address, '200_001')
         await expect(tx)
             .to.emit(contracts.USDT, 'Transfer')
             .withArgs(randomUser.address, users.team_addr.address, mintPrice1)
         await expect(tx)
             .to.emit(contracts.LYNKNFT, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, randomUser.address, 100_000)
-        expect(await contracts.LYNKNFT.ownerOf(100_000)).to.equal(randomUser.address)
+            .withArgs(ethers.constants.AddressZero, randomUser.address, 200_001)
+        expect(await contracts.LYNKNFT.ownerOf(200_001)).to.equal(randomUser.address)
 
         const mintPrice2 = BigNumber.from(envs.MINT_PRICES[2]).mul(BigNumber.from(10).pow(decimalUSDT))
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice2)
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice2)
-        tx = await contracts.LYNKNFT.connect(randomUser).mint(200_000, contracts.USDT.address, '200000')
+        tx = await contracts.LYNKNFT.connect(randomUser).mint(300_001, contracts.USDT.address, '300_001')
         await expect(tx)
             .to.emit(contracts.USDT, 'Transfer')
             .withArgs(randomUser.address, users.team_addr.address, mintPrice2)
         await expect(tx)
             .to.emit(contracts.LYNKNFT, 'Transfer')
-            .withArgs(ethers.constants.AddressZero, randomUser.address, 200_000)
-        await expect(await contracts.LYNKNFT.ownerOf(200_000)).to.equal(randomUser.address)
+            .withArgs(ethers.constants.AddressZero, randomUser.address, 300_001)
+        await expect(await contracts.LYNKNFT.ownerOf(300_001)).to.equal(randomUser.address)
 
         await increase(24*60*60)
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(300_000, contracts.USDT.address, '300000')
+            contracts.LYNKNFT.connect(randomUser).mint(400_000, contracts.USDT.address, '400_000')
         ).to.be.revertedWith('LYNKNFT: token id too large.')
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(200_001, ethers.constants.AddressZero, '200001')
+            contracts.LYNKNFT.connect(randomUser).mint(200_002, ethers.constants.AddressZero, '200_002')
         ).to.be.revertedWith('LYNKNFT: unsupported payment.')
     });
 
@@ -155,10 +155,10 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice.mul(3))
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice.mul(3))
 
-        await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
-        await contracts.LYNKNFT.connect(randomUser).mint(1, contracts.USDT.address, '1')
+        await contracts.LYNKNFT.connect(randomUser).mint(100_001, contracts.USDT.address, '100_001')
+        await contracts.LYNKNFT.connect(randomUser).mint(100_002, contracts.USDT.address, '100_002')
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(3, contracts.USDT.address, '3')
+            contracts.LYNKNFT.connect(randomUser).mint(100_003, contracts.USDT.address, '100_003')
         ).to.be.revertedWith('LYNKNFT: cannot mint more in a day.')
     });
 
@@ -171,12 +171,12 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, mintPrice.mul(2))
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice.mul(2))
 
-        await contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+        await contracts.LYNKNFT.connect(randomUser).mint(100_001, contracts.USDT.address, '100_001')
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+            contracts.LYNKNFT.connect(randomUser).mint(100_001, contracts.USDT.address, '100_001')
         ).to.be.revertedWith('LYNKNFT: name already in used.')
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '1')
+            contracts.LYNKNFT.connect(randomUser).mint(100_001, contracts.USDT.address, '100_002')
         ).to.be.revertedWith('ERC721: token already minted')
     });
 
@@ -189,7 +189,7 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, mintPrice.mul(2))
 
         await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+            contracts.LYNKNFT.connect(randomUser).mint(100_001, contracts.USDT.address, '100_001')
         ).to.be.revertedWith('ERC20: transfer amount exceeds balance')
     });
 
@@ -361,14 +361,14 @@ describe("LYNKNFT", function () {
         await contracts.dbContract.connect(users.operator).setWls([randomUser.address])
         await contracts.dbContract.connect(users.operator).setSwitch(false, false)
 
+        // await expect(
+        //     contracts.user.connect(randomUser).register(envs.ROOT)
+        // ).to.be.revertedWith('User: cannot register yet.')
         await expect(
-            contracts.user.connect(randomUser).register(envs.ROOT)
-        ).to.be.revertedWith('User: cannot register yet.')
-        await expect(
-            contracts.LYNKNFT.connect(randomUser).mint(0, contracts.USDT.address, '0')
+            contracts.LYNKNFT.connect(randomUser).mint(100_001, contracts.USDT.address, '100_001')
         ).to.be.revertedWith('LYNKNFT: cannot mint yet.')
         await expect(
-            contracts.LYNKNFT.connect(randomUser).earlyBirdMint('0')
+            contracts.LYNKNFT.connect(randomUser).earlyBirdMint()
         ).to.be.revertedWith('LYNKNFT: cannot mint yet.')
     })
 
@@ -381,7 +381,6 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser).mint(randomUser.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         const approveParams = await signERC2612Permit(randomUser, contracts.USDT.address, randomUser.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await contracts.LYNKNFT.connect(randomUser).earlyBirdMintWIthPermit(
-            '0', 
             envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
             approveParams.deadline,
             approveParams.v,
@@ -397,10 +396,7 @@ describe("LYNKNFT", function () {
 
         const anotherRandomUser = await createRandomSignerAndSendETH(users.deployer1)
         await expect(
-            contracts.LYNKNFT.connect(anotherRandomUser).refEarlyBirdMint(randomUser.address, '0')
-        ).to.be.revertedWith('LYNKNFT: name already in used.')
-        await expect(
-            contracts.LYNKNFT.connect(anotherRandomUser).refEarlyBirdMint(randomUser.address, '1')
+            contracts.LYNKNFT.connect(anotherRandomUser).refEarlyBirdMint(randomUser.address)
         ).to.be.revertedWith('LYNKNFT: sold out.')
     })
 
@@ -423,48 +419,20 @@ describe("LYNKNFT", function () {
         await contracts.USDT.connect(randomUser3).mint(randomUser3.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await contracts.USDT.connect(randomUser4).mint(randomUser4.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
 
-        let approveParams1 = await signERC2612Permit(randomUser1, contracts.USDT.address, randomUser1.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
-        let approveParams2 = await signERC2612Permit(randomUser2, contracts.USDT.address, randomUser2.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
-        let approveParams3 = await signERC2612Permit(randomUser3, contracts.USDT.address, randomUser3.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
-        let approveParams4 = await signERC2612Permit(randomUser4, contracts.USDT.address, randomUser4.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
+        await contracts.USDT.connect(randomUser1).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
+        await contracts.USDT.connect(randomUser2).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
+        await contracts.USDT.connect(randomUser3).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
+        await contracts.USDT.connect(randomUser4).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
 
         await expect(
-            contracts.LYNKNFT.connect(randomUser3).earlyBirdMintWIthPermit(
-                '0', 
-                envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-                approveParams3.deadline,
-                approveParams3.v,
-                approveParams3.r,
-                approveParams3.s
-            )
-        ).to.be.revertedWith('LYNKNFT: not in the wl.')
-        await expect(
-            contracts.LYNKNFT.connect(randomUser3).earlyBirdMint('0')
-        ).to.be.revertedWith('LYNKNFT: not in the wl.')
+            contracts.LYNKNFT.connect(randomUser3).earlyBirdMint()
+        ).to.be.revertedWith('LYNKNFT: not a valid address.')
 
         await expect(
-            contracts.LYNKNFT.connect(randomUser3).refEarlyBirdMint(envs.ROOT, '0')
-        ).to.be.revertedWith('LYNKNFT: not in the wl.')
-        await expect(
-            contracts.LYNKNFT.connect(randomUser3).refEarlyBirdMintWIthPermit(
-                envs.ROOT,
-                '0', 
-                envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-                approveParams3.deadline,
-                approveParams3.v,
-                approveParams3.r,
-                approveParams3.s
-            )
-        ).to.be.revertedWith('LYNKNFT: not in the wl.')
+            contracts.LYNKNFT.connect(randomUser3).refEarlyBirdMint(envs.ROOT)
+        ).to.be.revertedWith('LYNKNFT: ref address not in the wl.')
         
-        await contracts.LYNKNFT.connect(randomUser1).earlyBirdMintWIthPermit(
-            '0', 
-            envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-            approveParams1.deadline,
-            approveParams1.v,
-            approveParams1.r,
-            approveParams1.s
-        )
+        await contracts.LYNKNFT.connect(randomUser1).earlyBirdMint()
         expect(
             await contracts.LYNKNFT.ownerOf(0)
         ).to.be.equal(randomUser1.address)
@@ -472,30 +440,14 @@ describe("LYNKNFT", function () {
             (await contracts.user.userInfoOf(randomUser1.address)).refAddress
         ).to.be.equal(envs.ROOT)
 
-        approveParams1 = await signERC2612Permit(randomUser1, contracts.USDT.address, randomUser1.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await expect(
-            contracts.LYNKNFT.connect(randomUser1).earlyBirdMintWIthPermit(
-                '0', 
-                envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-                approveParams1.deadline,
-                approveParams1.v,
-                approveParams1.r,
-                approveParams1.s
-            )
+            contracts.LYNKNFT.connect(randomUser1).earlyBirdMint()
         ).to.be.revertedWith('LYNKNFT: already minted.')
         await expect(
-            contracts.LYNKNFT.connect(randomUser1).earlyBirdMint('0')
+            contracts.LYNKNFT.connect(randomUser1).earlyBirdMint()
         ).to.be.revertedWith('LYNKNFT: already minted.')
 
-        await contracts.LYNKNFT.connect(randomUser3).refEarlyBirdMintWIthPermit(
-            randomUser1.address,
-            '1', 
-            envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-            approveParams3.deadline,
-            approveParams3.v,
-            approveParams3.r,
-            approveParams3.s
-        )
+        await contracts.LYNKNFT.connect(randomUser3).refEarlyBirdMint(randomUser1.address)
         expect(
             await contracts.LYNKNFT.ownerOf(1)
         ).to.be.equal(randomUser3.address)
@@ -503,24 +455,15 @@ describe("LYNKNFT", function () {
             (await contracts.user.userInfoOf(randomUser3.address)).refAddress
         ).to.be.equal(randomUser1.address)
 
-        approveParams3 = await signERC2612Permit(randomUser3, contracts.USDT.address, randomUser3.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         await expect(
-            contracts.LYNKNFT.connect(randomUser3).refEarlyBirdMintWIthPermit(
-                randomUser1.address,
-                '1', 
-                envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-                approveParams3.deadline,
-                approveParams3.v,
-                approveParams3.r,
-                approveParams3.s
-            )
+            contracts.LYNKNFT.connect(randomUser3).refEarlyBirdMint(randomUser1.address)
         ).to.be.revertedWith('LYNKNFT: already minted.')
         await expect(
-            contracts.LYNKNFT.connect(randomUser1).refEarlyBirdMint(randomUser1.address, '1')
+            contracts.LYNKNFT.connect(randomUser1).refEarlyBirdMint(randomUser1.address)
         ).to.be.revertedWith('LYNKNFT: already minted.')
 
         await contracts.USDT.connect(randomUser2).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
-        await contracts.LYNKNFT.connect(randomUser2).earlyBirdMint('2')
+        await contracts.LYNKNFT.connect(randomUser2).earlyBirdMint()
         expect(
             await contracts.LYNKNFT.ownerOf(2)
         ).to.be.equal(randomUser2.address)
@@ -529,21 +472,14 @@ describe("LYNKNFT", function () {
         ).to.be.equal(envs.ROOT)
 
         await expect(
-            contracts.LYNKNFT.connect(randomUser2).earlyBirdMint('2')
+            contracts.LYNKNFT.connect(randomUser2).earlyBirdMint()
         ).to.be.revertedWith('LYNKNFT: already minted.')
         await expect(
-            contracts.LYNKNFT.connect(randomUser2).earlyBirdMintWIthPermit(
-                '2',
-                envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-                approveParams2.deadline,
-                approveParams2.v,
-                approveParams2.r,
-                approveParams2.s
-            )
+            contracts.LYNKNFT.connect(randomUser2).earlyBirdMint()
         ).to.be.revertedWith('LYNKNFT: already minted.')
 
         await contracts.USDT.connect(randomUser4).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
-        await contracts.LYNKNFT.connect(randomUser4).refEarlyBirdMint(randomUser2.address, '3')
+        await contracts.LYNKNFT.connect(randomUser4).refEarlyBirdMint(randomUser2.address)
         expect(
             await contracts.LYNKNFT.ownerOf(3)
         ).to.be.equal(randomUser4.address)
@@ -552,18 +488,7 @@ describe("LYNKNFT", function () {
         ).to.be.equal(randomUser2.address)
 
         await expect(
-            contracts.LYNKNFT.connect(randomUser4).refEarlyBirdMint(randomUser2.address, '3')
-        ).to.be.revertedWith('LYNKNFT: already minted.')
-        await expect(
-            contracts.LYNKNFT.connect(randomUser4).refEarlyBirdMintWIthPermit(
-                randomUser2.address,
-                '3',
-                envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-                approveParams4.deadline,
-                approveParams4.v,
-                approveParams4.r,
-                approveParams4.s
-            )
+            contracts.LYNKNFT.connect(randomUser4).refEarlyBirdMint(randomUser2.address)
         ).to.be.revertedWith('LYNKNFT: already minted.')
 
         const info2 = await contracts.LYNKNFT.earlyMintInfo();

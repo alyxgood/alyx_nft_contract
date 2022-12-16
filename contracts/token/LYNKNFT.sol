@@ -87,7 +87,11 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
     function refEarlyBirdMint(address _refAddress) external {
         // require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: not in the wl.');
-        require(!IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()), 'LYNKNFT: please call with earlyBirdMint.');
+        require(
+            !IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()) ||
+            earlyBirdMintedOf[_msgSender()],
+                'LYNKNFT: please call with earlyBirdMint.'
+        );
         require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: ref address not in the wl.');
         
         _earlyBirdMint(_refAddress);
