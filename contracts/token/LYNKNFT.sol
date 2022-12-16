@@ -63,7 +63,11 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     }
 
     function earlyBirdMint() external {
-        require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
+        require(
+            DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()) || 
+            IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
+                'LYNKNFT: not a valid address.'
+        );
         // require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
         // earlyBirdWlCounter++;
         
@@ -83,7 +87,8 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
     function refEarlyBirdMint(address _refAddress) external {
         // require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: not in the wl.');
-        require(_refAddress != DBContract(DB_CONTRACT).rootAddress(), 'LYNKNFT: not in the wl.');
+        require(!IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()), 'LYNKNFT: please call with earlyBirdMint.');
+        require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: ref address not in the wl.');
         
         _earlyBirdMint(_refAddress);
     }
