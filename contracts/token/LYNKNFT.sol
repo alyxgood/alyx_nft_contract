@@ -159,7 +159,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
             mintPrice = DBContract(DB_CONTRACT).mintPrices(0) * (10 ** decimal);
         }
         require(_tokenId >= 100_000, 'LYNKNFT: reverse token id.');
-        require(_tokenId < 300_000, 'LYNKNFT: token id too large.');
+        require(_tokenId < 400_000, 'LYNKNFT: token id too large.');
 
         return mintPrice;
     }
