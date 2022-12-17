@@ -50,17 +50,17 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _randomSeedGen();
     }
 
-    function earlyBirdMintWIthPermit(uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
-        require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
-        // require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
+    // function earlyBirdMintWIthPermit(uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+    //     require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()), 'LYNKNFT: not in the wl.');
+    //     // require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
 
-        IERC20PermitUpgradeable(
-            DBContract(DB_CONTRACT).earlyBirdMintPayment()
-        ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
-        // earlyBirdWlCounter++;
+    //     IERC20PermitUpgradeable(
+    //         DBContract(DB_CONTRACT).earlyBirdMintPayment()
+    //     ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
+    //     // earlyBirdWlCounter++;
         
-        _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress());
-    }
+    //     _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress());
+    // }
 
     function earlyBirdMint() external {
         require(
@@ -74,16 +74,16 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress());
     }
 
-    function refEarlyBirdMintWIthPermit(address _refAddress, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
-        // require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: not in the wl.');
-        require(_refAddress != DBContract(DB_CONTRACT).rootAddress(), 'LYNKNFT: not in the wl.');
+    // function refEarlyBirdMintWIthPermit(address _refAddress, uint256 _amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+    //     // require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: not in the wl.');
+    //     require(_refAddress != DBContract(DB_CONTRACT).rootAddress(), 'LYNKNFT: not in the wl.');
 
-        IERC20PermitUpgradeable(
-            DBContract(DB_CONTRACT).earlyBirdMintPayment()
-        ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
+    //     IERC20PermitUpgradeable(
+    //         DBContract(DB_CONTRACT).earlyBirdMintPayment()
+    //     ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
         
-        _earlyBirdMint(_refAddress);
-    }
+    //     _earlyBirdMint(_refAddress);
+    // }
 
     function refEarlyBirdMint(address _refAddress) external {
         // require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: not in the wl.');

@@ -385,14 +385,9 @@ describe("LYNKNFT", function () {
         await contracts.dbContract.connect(users.operator).setEarlyBirdMintIdRange(0, 1)
 
         await contracts.USDT.connect(randomUser).mint(randomUser.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
+        await contracts.USDT.connect(randomUser).approve(contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
         const approveParams = await signERC2612Permit(randomUser, contracts.USDT.address, randomUser.address, contracts.LYNKNFT.address, envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT)
-        await contracts.LYNKNFT.connect(randomUser).earlyBirdMintWIthPermit(
-            envs.EARLY_BIRD_MINT_PRICE_IN_PAYMENT,
-            approveParams.deadline,
-            approveParams.v,
-            approveParams.r,
-            approveParams.s
-        )
+        await contracts.LYNKNFT.connect(randomUser).earlyBirdMint()
         expect(
             await contracts.LYNKNFT.ownerOf(0)
         ).to.be.equal(randomUser.address)
