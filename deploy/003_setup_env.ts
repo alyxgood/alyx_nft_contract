@@ -395,6 +395,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.operator).setWls(unWls)
         await tx.wait()
     }
+
+    console.log(`fetching the lynkPriceInALYX...`)
+    const lynkPriceInALYX = await dbProxyAttached.lynkPriceInALYX()
+    if(!lynkPriceInALYX.eq(env.LYNK_PRICE_IN_ALYX)) {
+        console.log(`setup the lynkPriceInALYX...`)
+        tx = await dbProxyAttached.connect(users.operator).setLynkPriceInALYX(env.LYNK_PRICE_IN_ALYX)
+        await tx.wait()
+    }
 }
 
 export default func

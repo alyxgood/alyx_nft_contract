@@ -190,6 +190,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }
     )
 
+    await deploy(
+        'Swap',
+        {
+            from: users.owner1.address,
+            args: [dbProxy.address],
+            log: true,
+            proxy: {
+                owner: users.proxy_admin1.address,
+                proxyContract: 'LYNKProxy',
+                execute: {
+                    init: {
+                        methodName: '__Swap_init',
+                        args: []
+                    }
+                }
+            }
+        }
+    )
+
     // init db contract
 
     let dbProxyAttached = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(dbProxy.address)
