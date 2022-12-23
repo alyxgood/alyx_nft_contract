@@ -212,7 +212,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // init db contract
 
     let dbProxyAttached = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(dbProxy.address)
-        if (await dbProxyAttached.LYNKNFT() !== ethers.constants.AddressZero) {
+        if (await dbProxyAttached.LYNKNFT() === ethers.constants.AddressZero) {
             console.log('init the db contract...')
             let teamAddr = users.team_addr.address
             if (env.environment === PROD_EVN) {
