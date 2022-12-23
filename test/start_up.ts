@@ -82,6 +82,7 @@ export interface ENV_FIX {
     WL_NUM: string,
     EARLY_BIRD_MINT_WL: string[]
     LYNK_PRICE_IN_ALYX: string
+    TEAM_ADDRESS: string
 }
 
 export interface USER_LEVEL_FIX {
@@ -169,6 +170,7 @@ export function get_env() {
     let WL_NUM: string
     let EARLY_BIRD_MINT_WL: string[]
     let LYNK_PRICE_IN_ALYX: string
+    let TEAM_ADDRESS: string
 
     environment = process.env.environment ? process.env.environment : TEST_EVN  // prod / test
     USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
@@ -252,6 +254,7 @@ export function get_env() {
     WL_NUM = process.env.WL_NUM ? process.env.WL_NUM : '20'
     EARLY_BIRD_MINT_WL = process.env.EARLY_BIRD_MINT_WL ? process.env.EARLY_BIRD_MINT_WL.split(',') : [ethers.constants.AddressZero]
     LYNK_PRICE_IN_ALYX = process.env.LYNK_PRICE_IN_ALYX ? process.env.LYNK_PRICE_IN_ALYX : '0'
+    TEAM_ADDRESS = process.env.TEAM_ADDRESS ? process.env.TEAM_ADDRESS : ethers.constants.AddressZero
 
     return {
         environment,
@@ -290,6 +293,7 @@ export function get_env() {
         WL_NUM,
         EARLY_BIRD_MINT_WL,
         LYNK_PRICE_IN_ALYX,
+        TEAM_ADDRESS,
     }
 }
 
