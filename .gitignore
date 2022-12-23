@@ -10,3 +10,6 @@ cache
 artifacts
 
 .DS_Store
+
+.env_prod
+.env_test

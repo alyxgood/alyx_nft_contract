@@ -2,7 +2,7 @@ import {DeployFunction} from 'hardhat-deploy/types';
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {DBContract, MockERC20} from "../typechain-types";
 import {ENV_FIX, get_env, get_user, USER_FIX} from "../test/start_up";
-import {PROD_EVN} from "../constants/constants";
+import {PROD_EVN, TEST_EVN} from "../constants/constants";
 
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -12,9 +12,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     let users: USER_FIX = await get_user()
     let env: ENV_FIX = get_env()
 
-    let USDTAddress = (await deployments.get('mock_usdt')).address
-    if (env.environment === PROD_EVN) {
-        USDTAddress = env.USDT_ADDRESS
+    let USDTAddress = env.USDT_ADDRESS
+    if (env.environment === TEST_EVN) {
+        USDTAddress = (await deployments.get('mock_usdt')).address
     }
 
     const dbProxy = await deploy(
