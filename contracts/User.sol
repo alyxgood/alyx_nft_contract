@@ -15,6 +15,8 @@ contract User is IUser, baseContract {
 
     mapping(address => UserInfo) public userInfoOf;
     mapping(uint256 => StakeInfo) public stakeNFTs;
+    mapping(address => uint256) public contributionOf;
+    mapping(address => uint256) public achievementCounter;
 
     event Register(address indexed account, address ref);
     event LevelUp(address indexed account, Level level);
@@ -91,12 +93,11 @@ contract User is IUser, baseContract {
     function hookByUpgrade(address _userAddr, uint256 _performance) onlyLYNKNFTContract external {
         if (_performance > 0) {
             address _refAddr = userInfoOf[_userAddr].refAddress;
-            uint256 refPerformance = userInfoOf[_refAddr].performance;
-            uint256 refLevel = uint256(userInfoOf[_refAddr].level);
+            uint256 _refLevel = uint256(userInfoOf[_refAddr].level);
 
             uint256 amount;
             // distribute social reward
-            uint256 rate = DBContract(DB_CONTRACT).socialRewardRates(refLevel);
+            uint256 rate = DBContract(DB_CONTRACT).socialRewardRates(_refLevel);
             amount = (_performance * (10 ** IERC20MetadataUpgradeable(DBContract(DB_CONTRACT).LYNK_TOKEN()).decimals()) * rate) / 1e18;
             userInfoOf[_refAddr].socialRev += amount;
             IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_refAddr, amount);
@@ -105,13 +106,15 @@ contract User is IUser, baseContract {
             // distribute contribution reward
             uint256 threshold = DBContract(DB_CONTRACT).contributionRewardThreshold();
             if (threshold > 0) {
-                amount = (((refPerformance + _performance) / threshold) - (refPerformance / threshold)) * DBContract(DB_CONTRACT).contributionRewardAmounts(refLevel);
+                uint256 _contribution = contributionOf[_refAddr];
+                amount = (((_contribution + _performance) / threshold) - (_contribution / threshold)) * DBContract(DB_CONTRACT).contributionRewardAmounts(_refLevel);
                 if (amount > 0) {
                     userInfoOf[_refAddr].contributionRev += amount;
                     IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_refAddr, amount);
                     emit ContributionRewardDistribute(_refAddr, _userAddr, amount);
                 }
             }
+            contributionOf[_refAddr] += _performance;
 
             address currentAddress = _refAddr;
             uint256 performanceThreshold = DBContract(DB_CONTRACT).performanceThreshold();
@@ -176,6 +179,7 @@ contract User is IUser, baseContract {
         stakeNFTs[_nftId].stakedDuration = 0;
         stakeNFTs[_nftId].lastUpdateTime = block.timestamp;
 
+        achievementCounter[_msgSender()]++;
         userInfoOf[_msgSender()].achievementRev += rewardAmount;
         IERC20Mintable(DBContract(DB_CONTRACT).AP_TOKEN()).mint(_msgSender(), rewardAmount);
 
