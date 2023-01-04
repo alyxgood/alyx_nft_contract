@@ -83,7 +83,7 @@ contract User is IUser, baseContract {
         userInfoOf[_refAddr].refCounterOf[0] += 1;
         emit Register(_userAddr, _refAddr);
 
-        _auditLevel(_refAddr);
+        // _auditLevel(_refAddr);
     }
 
     function isValidUser(address _userAddr) view external returns (bool) {
@@ -125,7 +125,7 @@ contract User is IUser, baseContract {
                 userInfoOf[currentAddress].performance += _performance;
                 currentAddress = userInfoOf[currentAddress].refAddress;
             }
-            _auditLevel(_refAddr);
+            // _auditLevel(_refAddr);
         }
     }
 

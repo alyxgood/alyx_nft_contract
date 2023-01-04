@@ -283,7 +283,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     parametersLength = (await dbProxyAttached.achievementRewardAmountsNum()).toNumber()
     isMatch = parametersLength == env.ACHIEVEMENT_REWARD.length
     if (isMatch) {
-        for (let index = 0; index > parametersLength; index++) {
+        for (let index = 0; index < parametersLength; index++) {
             console.log(`fetching achievementRewardAmountsNum ${index}...`)
             const reward = await dbProxyAttached.achievementRewardAmounts(index)
             if (!reward.eq(env.ACHIEVEMENT_REWARD[index])) {
