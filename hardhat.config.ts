@@ -107,6 +107,17 @@ const config: HardhatUserConfig = {
         initialIndex: 0,
         count: 14
       }
+    },
+    sepolia: {
+      url: process.env.SEPOLIA_RPC,
+      chainId: 11155111,
+      gasMultiplier: 1.5,
+      accounts: {
+        mnemonic: process.env.MNEMONIC_SEPOLIA ? process.env.MNEMONIC_SEPOLIA : "test test test test test test test test test test test junk",
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 14
+      }
     }
   },
   gasReporter: {
