@@ -68,6 +68,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }
     )
 
+    const alyxTokenProxy = await deploy(
+        'ALYXToken',
+        {
+            from: users.owner1.address,
+            args: [dbProxy.address],
+            log: true,
+            proxy: {
+                owner: users.proxy_admin1.address,
+                proxyContract: 'LYNKProxy',
+                execute: {
+                    init: {
+                        methodName: '__ALYXToken_init',
+                        args: []
+                    }
+                }
+            }
+        }
+    )
+
     const lynkNFTProxy = await deploy(
         'LYNKNFT',
         {

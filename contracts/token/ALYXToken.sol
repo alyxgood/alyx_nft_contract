@@ -14,6 +14,7 @@ contract ALYXToken is ERC20PermitUpgradeable, OwnableUpgradeable, baseContract, 
 
     function __ALYXToken_init() public initializer {
         __ALYXToken_init_unchained();
+        __Ownable_init();
         __ERC20Permit_init("ALYX Token");
         __ERC20_init("ALYX Token", "ALYX");
         __baseContract_init();

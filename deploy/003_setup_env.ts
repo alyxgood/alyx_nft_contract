@@ -1,6 +1,6 @@
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {ENV_FIX, get_env, get_user, USER_FIX} from "../test/start_up";
-import {DBContract, DBContract__factory} from "../typechain-types";
+import {DBContract, DBContract__factory, Swap, Swap__factory} from "../typechain-types";
 import {Attribute, PROD_EVN} from "../constants/constants";
 import {Deployment} from "hardhat-deploy/dist/types";
 import {DeployFunction} from "hardhat-deploy/types";
@@ -401,6 +401,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if(!lynkPriceInALYX.eq(env.LYNK_PRICE_IN_ALYX)) {
         console.log(`setup the lynkPriceInALYX...`)
         tx = await dbProxyAttached.connect(users.operator).setLynkPriceInALYX(env.LYNK_PRICE_IN_ALYX)
+        await tx.wait()
+    }
+
+    const deploymentsSwap: Deployment = await deployments.get("Swap_Proxy")
+    // @ts-ignore
+    const swapFactory: Swap__factory = await hre.ethers.getContractFactory('Swap')
+    const swapProxyAttached: Swap = await swapFactory.attach(deploymentsSwap.address)
+    console.log(`fetching the alyx address..`)
+    const alyxAddress = (await deployments.get("ALYXToken_Proxy")).address
+    const alyxAddressFetched = await swapProxyAttached.alyxAddress()
+    if (alyxAddress.toLowerCase() !== alyxAddressFetched.toLowerCase()) {
+        console.log(`setup the alyx address...`)
+        tx = await swapProxyAttached.connect(users.operator).setALYXAddress(alyxAddress)
         await tx.wait()
     }
 }
