@@ -11,6 +11,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 contract Swap is baseContract, ReentrancyGuardUpgradeable {
 
     address public alyxAddress;
+    event SwapEvent(address indexed account, uint256 amountIn,uint256 _amountOut);
+
 
     constructor(address dbContract) baseContract(dbContract) {
 
@@ -33,7 +35,7 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
     function swap(uint256 _amountIn) external nonReentrant {
         address lynkAddress = DBContract(DB_CONTRACT).LYNK_TOKEN();
         require(IERC20Upgradeable(lynkAddress).balanceOf(_msgSender()) >= _amountIn, 'insufficient LRT.');
-        
+
         uint256 priceInALYX = DBContract(DB_CONTRACT).lynkPriceInALYX();
         require(priceInALYX > 0, 'must init first.');
         uint256 _amountOut = _amountIn * priceInALYX / 1 ether;
@@ -41,6 +43,7 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
 
         _pay(lynkAddress, _msgSender(), _amountIn);
         SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(alyxAddress), _msgSender(), _amountOut);
+        emit SwapEvent(_msgSender(),_amountIn,_amountOut);
         // AddressUpgradeable.sendValue(payable(_msgSender()), _amountOut);
     }
 
