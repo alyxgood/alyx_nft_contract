@@ -273,9 +273,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
     console.log(`fetching achievementRewardDurationThreshold...`)
-    if (!(await dbProxyAttached.achievementRewardDurationThreshold()).eq(env.ACHIEVEMENT_DURATION)) {
+    if (!(await dbProxyAttached.achievementRewardDurationThreshold()).eq(env.DURATION)) {
         console.log('setup achievement reward duration threshold...')
-        tx = await dbProxyAttached.connect(users.operator).setAchievementRewardDurationThreshold(env.ACHIEVEMENT_DURATION)
+        tx = await dbProxyAttached.connect(users.operator).setAchievementRewardDurationThreshold(env.DURATION)
         await tx.wait()
     }
 
