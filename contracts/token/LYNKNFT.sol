@@ -267,6 +267,14 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
                     (preAttrLevel == curAttrLevelAfterUpgrade && curAttrLevelOverflowAfterUpgrade == 0),
                     'LYNKNFT: level overflow.'
                 );
+                if (Attribute.intellect == _attr) {
+                    (uint256 vaAttrLevel,) = DBContract(DB_CONTRACT).calcLevel(Attribute.charisma, nftInfo[_tokenId][uint256(Attribute.charisma)]);
+                    require(
+                        vaAttrLevel > curAttrLevelAfterUpgrade ||
+                        (vaAttrLevel == curAttrLevelAfterUpgrade && curAttrLevelOverflowAfterUpgrade == 0),
+                        'LYNKNFT: level overflow.'
+                    );
+                }
             }
 
             require(_payment == DBContract(DB_CONTRACT).AP_TOKEN(), 'LYNKNFT: unsupported payment.');

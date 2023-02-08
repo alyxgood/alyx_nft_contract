@@ -3,7 +3,7 @@ import {deployments, ethers} from "hardhat";
 
 import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
 
-import {APToken, BNFT, DBContract, LYNKNFT, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
+import {ALYXToken, APToken, BNFT, DBContract, LYNKNFT, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
 import {BigNumber} from "ethers";
 import {assert, expect} from "chai";
 import {Attribute, Level, TEST_EVN} from "../constants/constants";
@@ -43,6 +43,7 @@ export interface CONTRACT_FIX {
     user: User,
     staking: Staking,
     market: Market,
+    ALYXToken: ALYXToken
 }
 
 export interface ENV_FIX {
@@ -312,6 +313,7 @@ export async function set_up_fixture(fix_name: string) {
         User: (await deployments.get('User_Proxy')).address,
         Staking: (await deployments.get('Staking_Proxy')).address,
         Market: (await deployments.get('Market_Proxy')).address,
+        ALYXToken: (await deployments.get('ALYXToken_Proxy')).address,
     };
 
 
@@ -325,6 +327,7 @@ export async function set_up_fixture(fix_name: string) {
     const user = <User> await (await ethers.getContractFactory('User')).attach(contracts.User)
     const staking = <Staking> await (await ethers.getContractFactory('Staking')).attach(contracts.Staking)
     const market = <Market> await (await ethers.getContractFactory('Market')).attach(contracts.Market)
+    const ALYXToken = <ALYXToken> await (await ethers.getContractFactory('ALYXToken')).attach(contracts.ALYXToken)
 
 
     return {
@@ -337,7 +340,8 @@ export async function set_up_fixture(fix_name: string) {
         lLYNKNFT,
         user,
         staking,
-        market
+        market,
+        ALYXToken
     };
 
 }

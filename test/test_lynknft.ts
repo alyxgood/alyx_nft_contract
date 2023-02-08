@@ -230,6 +230,26 @@ describe("LYNKNFT", function () {
         await expect(
             contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.intellect.valueOf(), tokenId, 1, ethers.constants.AddressZero)
         ).to.be.revertedWith('LYNKNFT: level overflow.')
+
+        const decimalAPToken = await contracts.apToken.decimals()
+        const amountAPToken = BigNumber.from(envs.ATTRIBUTE_VA[0]).mul(BigNumber.from(10).pow(decimalAPToken))
+        await contracts.dbContract.connect(users.operator).setSellingPackage([[ethers.constants.AddressZero, 0, amountAPToken],[ethers.constants.AddressZero, 0, amountAPToken],[ethers.constants.AddressZero, 0, amountAPToken]])
+
+        await contracts.apToken.connect(randomUser1)["mint(uint256)"](0)
+        await contracts.apToken.connect(randomUser1).approve(contracts.LYNKNFT.address, amountAPToken)
+        await contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.vitality.valueOf(), tokenId, envs.ATTRIBUTE_VA[0], contracts.apToken.address)
+        await expect(
+            contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.intellect.valueOf(), tokenId, 1, ethers.constants.AddressZero)
+        ).to.be.revertedWith('LYNKNFT: level overflow.')
+
+        const decimalUSDT = await contracts.USDT.decimals()
+        const amountUSDT = BigNumber.from(envs.ATTRIBUTE_CA[0]).mul(BigNumber.from(10).pow(decimalUSDT))
+        await contracts.USDT.connect(randomUser1).mint(randomUser1.address, amountUSDT)
+        await contracts.USDT.connect(randomUser1).approve(contracts.LYNKNFT.address, amountUSDT)
+        await contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.charisma.valueOf(), tokenId, envs.ATTRIBUTE_CA[0], contracts.USDT.address)
+        await expect(
+            contracts.LYNKNFT.connect(randomUser1).upgrade(Attribute.intellect.valueOf(), tokenId, 1, ethers.constants.AddressZero)
+        ).to.be.revertedWith('LYNKNFT: unsupported payment.')
     });
 
     it('should upgrade by paying other token?', async function () {
