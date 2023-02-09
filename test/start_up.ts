@@ -3,7 +3,7 @@ import {deployments, ethers} from "hardhat";
 
 import {SignerWithAddress} from "hardhat-deploy-ethers/signers";
 
-import {ALYXToken, APToken, BNFT, DBContract, LYNKNFT, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
+import {APToken, BNFT, DBContract, LRTToken, LYNKNFT, LYNKToken, Market, MockERC20, Staking, User} from "../typechain-types";
 import {BigNumber} from "ethers";
 import {assert, expect} from "chai";
 import {Attribute, Level, TEST_EVN} from "../constants/constants";
@@ -36,14 +36,14 @@ export interface CONTRACT_FIX {
     USDT: MockERC20,
     dbContract: DBContract,
     apToken: APToken,
-    LYNKToken: LYNKToken,
+    LYNKToken: LRTToken,
     LYNKNFT: LYNKNFT,
     sLYNKNFT: BNFT,
     lLYNKNFT: BNFT,
     user: User,
     staking: Staking,
     market: Market,
-    ALYXToken: ALYXToken
+    ALYXToken: LYNKToken
 }
 
 export interface ENV_FIX {
@@ -320,14 +320,14 @@ export async function set_up_fixture(fix_name: string) {
     const USDT = <MockERC20> await (await ethers.getContractFactory("MockERC20")).attach(contracts.USDT)
     const dbContract = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(contracts.DBContract)
     const apToken = <APToken> await (await ethers.getContractFactory('APToken')).attach(contracts.APToken)
-    const LYNKToken = <LYNKToken> await (await ethers.getContractFactory('LYNKToken')).attach(contracts.LYNKToken)
+    const LYNKToken = <LRTToken> await (await ethers.getContractFactory('LRTToken')).attach(contracts.LYNKToken)
     const LYNKNFT = <LYNKNFT> await (await ethers.getContractFactory('LYNKNFT')).attach(contracts.LYNKNFT)
     const sLYNKNFT = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.sLYNKNFT)
     const lLYNKNFT = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.lLYNKNFT)
     const user = <User> await (await ethers.getContractFactory('User')).attach(contracts.User)
     const staking = <Staking> await (await ethers.getContractFactory('Staking')).attach(contracts.Staking)
     const market = <Market> await (await ethers.getContractFactory('Market')).attach(contracts.Market)
-    const ALYXToken = <ALYXToken> await (await ethers.getContractFactory('ALYXToken')).attach(contracts.ALYXToken)
+    const ALYXToken = <LYNKToken> await (await ethers.getContractFactory('LYNKToken')).attach(contracts.ALYXToken)
 
 
     return {
