@@ -52,6 +52,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const lynkTokenProxy = await deploy(
         'LYNKToken',
         {
+            contract: 'LRTToken',
             from: users.owner1.address,
             args: [dbProxy.address],
             log: true,
@@ -60,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 proxyContract: 'LYNKProxy',
                 execute: {
                     init: {
-                        methodName: '__LYNKToken_init',
+                        methodName: '__LRTToken_init',
                         args: []
                     }
                 }
@@ -71,6 +72,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const alyxTokenProxy = await deploy(
         'ALYXToken',
         {
+            contract: 'LYNKToken',
             from: users.owner1.address,
             args: [dbProxy.address],
             log: true,
@@ -79,7 +81,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 proxyContract: 'LYNKProxy',
                 execute: {
                     init: {
-                        methodName: '__ALYXToken_init',
+                        methodName: '__LYNKToken_init',
                         args: []
                     }
                 }
