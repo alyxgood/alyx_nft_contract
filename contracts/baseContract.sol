@@ -59,7 +59,7 @@ abstract contract baseContract is ContextUpgradeable {
     function _pay(address _payment, address _payer, uint256 _amount) internal {
         if (address(0) == _payment) {
             require(msg.value == _amount, 'baseContract: invalid value.');
-            AddressUpgradeable.sendValue(DBContract(DB_CONTRACT).TEAM_ADDR(), _amount);
+            AddressUpgradeable.sendValue(payable(DBContract(DB_CONTRACT).TEAM_ADDR()), _amount);
             return;
         }
 
