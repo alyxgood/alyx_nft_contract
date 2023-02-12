@@ -31,12 +31,12 @@ contract LRTToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         if(value)
             Wl[addr]=true;
         else
-            delete WL[addr];
+            delete Wl[addr];
     }
 
     function _beforeTokenTransfer (address from,address to,uint256 amount)internal virtual override
     {
-        require(Wl[from] || WL[to],"not in wl");
+        require(Wl[from] || Wl[to],"not in wl");
     }
 
 }

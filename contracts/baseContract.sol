@@ -71,5 +71,12 @@ abstract contract baseContract is ContextUpgradeable {
         IERC20Upgradeable(_payment).safeTransferFrom(_payer, DBContract(DB_CONTRACT).TEAM_ADDR(), _amount);
 
     }
+    /**
+     * @dev Throws if called by any account other than the operator.
+     */
+    modifier onlyOperator() {
+        require( DBContract(DB_CONTRACT).operator() == _msgSender(), "baseContract: caller is not the operator");
+        _;
+    }
 
 }
