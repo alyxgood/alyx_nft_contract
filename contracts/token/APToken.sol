@@ -11,7 +11,11 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20Pe
 
 contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
 
+
+
     constructor(address dbAddress) baseContract(dbAddress) { }
+
+    mapping(address => bool) public Wl;
 
     function __APToken_init() public initializer {
         __APToken_init_unchained();
@@ -41,5 +45,17 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
     function mint(address account, uint256 amount) external onlyUserContract {
         _mint(account, amount);
     }
+
+    function setWL(address addr,bool value) external onlyOperator{
+        if(value)
+        Wl[addr]=true;
+        else
+        delete WL[addr];
+    }
+
+   function _beforeTokenTransfer (address from,address to,uint256 amount)internal virtual override
+   {
+       require(Wl[from] || WL[to],"not in wl");
+   }
 
 }
