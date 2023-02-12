@@ -1,6 +1,6 @@
-import {HardhatRuntimeEnvironment} from "hardhat/types";
+import {HardhatRuntimeEnvironment, TaskArguments} from "hardhat/types";
 import {ENV_FIX, get_env, get_user, USER_FIX} from "../test/start_up";
-import {DBContract, DBContract__factory, Swap, Swap__factory} from "../typechain-types";
+import {APToken, DBContract, DBContract__factory, LRTToken, Swap, Swap__factory} from "../typechain-types";
 import {Attribute, PROD_EVN} from "../constants/constants";
 import {Deployment} from "hardhat-deploy/dist/types";
 import {DeployFunction} from "hardhat-deploy/types";
@@ -333,7 +333,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.operator).setPerformanceThreshold(env.PERFORMANCE_THRESHOLD)
         await tx.wait()
     }
-    
+
     console.log(`fetching the earlyBirdInitCA...`)
     if (!(await dbProxyAttached.earlyBirdInitCA()).eq(env.EARLY_BIRD_INIT_CA)) {
         console.log('setup the earlyBirdInitCA...')
@@ -416,7 +416,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await swapProxyAttached.connect(users.operator).setALYXAddress(alyxAddress)
         await tx.wait()
     }
+
+    let APToken_Proxy_addr =  (await deployments.get('APToken_Proxy')).address;
+    let LRT_Token_Proxy_addr =  (await deployments.get('LYNKNFT_Proxy')).address;
+    const apToken = <APToken> await (await ethers.getContractFactory('APToken')).attach(APToken_Proxy_addr);
+    const LRToken = <LRTToken> await (await ethers.getContractFactory('LRTToken')).attach(LRT_Token_Proxy_addr);
+
+    let team_address = await dbProxyAttached.TEAM_ADDR();
+    if(!await apToken.Wl(team_address))
+    {
+        console.log(`setup apToken white list...`)
+        let tx = await apToken.connect(users.operator).setWL(team_address,true);
+        await tx.wait()
+    }
+
+    if(!await LRToken.Wl(team_address))
+    {
+        console.log(`setup LRToken white list...`)
+        let tx = await LRToken.connect(users.operator).setWL(team_address,true);
+        await tx.wait()
+    }
 }
+
 
 export default func
 func.tags = ['setup_env']

@@ -489,6 +489,7 @@ export async function nft_level_up(tokenId: number, user: SignerWithAddress, toL
         const needPackageNum = totalAPT.div(BigNumber.from(maxPackage[2])).add(1).toNumber()
 
         for (let index = 0; index < needPackageNum; index++) {
+            // @ts-ignore
             await contracts.apToken.connect(user)["mint(uint256)"](envs.AP_PACKAGE.length - 1, {value: BigNumber.from(maxPackage[1])})
         }
 
