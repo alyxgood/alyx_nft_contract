@@ -9,7 +9,6 @@ import 'hardhat-deploy';
 import mintMockUSDT from "./scripts/tasks/mintMockUSDT";
 import auditLevelBot from "./scripts/tasks/auditLevelBot";
 
-
 dotenv.config();
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -18,7 +17,6 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
-
 
 
 const config: HardhatUserConfig = {
@@ -111,7 +109,8 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: process.env.SEPOLIA_RPC,
       chainId: 11155111,
-      gasMultiplier: 1.5,
+      gas:"auto",
+      gasMultiplier: 3,
       accounts: {
         mnemonic: process.env.MNEMONIC_SEPOLIA ? process.env.MNEMONIC_SEPOLIA : "test test test test test test test test test test test junk",
         path: "m/44'/60'/0'/0",
@@ -132,3 +131,4 @@ export default config;
 
 task("mint-mock-usdt", "Mint mock USDT", mintMockUSDT);
 task("auto-audit", "auto audit level", auditLevelBot);
+

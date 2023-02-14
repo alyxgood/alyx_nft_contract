@@ -44,14 +44,14 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
 
     function _beforeTokenTransfer (address from,address to,uint256 amount)internal virtual override
     {
-//        address team = DBContract(DB_CONTRACT).TEAM_ADDR();
-//        if(from == team || to == team){
-//            return ;
-//        }
-//        if(from == address(0)){
-//            return ;
-//        }
-//        require(false,"can token can not transfer");
+        address team = DBContract(DB_CONTRACT).TEAM_ADDR();
+        if(from == team || to == team){
+            return ;
+        }
+        if(from == address(0) || (to == BLACK_HOLE)){
+            return ;
+        }
+        require(false,"can token can not transfer");
     }
 
 }
