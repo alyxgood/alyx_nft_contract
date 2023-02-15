@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 
 contract Swap is baseContract, ReentrancyGuardUpgradeable {
 
-    address public alyxAddress;
+    address public lynkAddress;
     event SwapEvent(address indexed account, uint256 amountIn,uint256 _amountOut);
 
 
@@ -27,22 +27,22 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
     function __Swap_init_unchained() private {
     }
 
-    function setALYXAddress(address _alyxAddress) external {
+    function setLYNKAddress(address _lynkAddress) external {
         require(_msgSender() == DBContract(DB_CONTRACT).operator());
-        alyxAddress = _alyxAddress;
+        lynkAddress = _lynkAddress;
     }
 
     function swap(uint256 _amountIn) external nonReentrant {
-        address lynkAddress = DBContract(DB_CONTRACT).LYNK_TOKEN();
-        require(IERC20Upgradeable(lynkAddress).balanceOf(_msgSender()) >= _amountIn, 'insufficient LRT.');
+        address lrtAddress = DBContract(DB_CONTRACT).LYNK_TOKEN();
+        require(IERC20Upgradeable(lrtAddress).balanceOf(_msgSender()) >= _amountIn, 'insufficient LRT.');
 
-        uint256 priceInALYX = DBContract(DB_CONTRACT).lynkPriceInALYX();
-        require(priceInALYX > 0, 'must init first.');
-        uint256 _amountOut = _amountIn * priceInALYX / 1 ether;
-        require(IERC20Upgradeable(alyxAddress).balanceOf(address(this)) >= _amountOut, 'insufficient LYNK.');
+        uint256 priceInLYNK = DBContract(DB_CONTRACT).lrtPriceInLYNK();
+        require(priceInLYNK > 0, 'must init first.');
+        uint256 _amountOut = _amountIn * priceInLYNK / 1 ether;
+        require(IERC20Upgradeable(lynkAddress).balanceOf(address(this)) >= _amountOut, 'insufficient LYNK.');
 
-        _pay(lynkAddress, _msgSender(), _amountIn);
-        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(alyxAddress), _msgSender(), _amountOut);
+        _pay(lrtAddress, _msgSender(), _amountIn);
+        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(lynkAddress), _msgSender(), _amountOut);
         emit SwapEvent(_msgSender(),_amountIn,_amountOut);
         // AddressUpgradeable.sendValue(payable(_msgSender()), _amountOut);
     }

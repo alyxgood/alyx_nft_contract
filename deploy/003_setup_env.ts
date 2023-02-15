@@ -396,11 +396,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await tx.wait()
     }
 
-    console.log(`fetching the lynkPriceInALYX...`)
-    const lynkPriceInALYX = await dbProxyAttached.lynkPriceInALYX()
-    if(!lynkPriceInALYX.eq(env.LYNK_PRICE_IN_ALYX)) {
-        console.log(`setup the lynkPriceInALYX...`)
-        tx = await dbProxyAttached.connect(users.operator).setLynkPriceInALYX(env.LYNK_PRICE_IN_ALYX)
+    console.log(`fetching the lrtPriceInLYNK...`)
+    const lrtPriceInLYNK = await dbProxyAttached.lrtPriceInLYNK()
+    if(!lrtPriceInLYNK.eq(env.LRT_PRICE_IN_LYNK)) {
+        console.log(`setup the lrtPriceInLYNK...`)
+        tx = await dbProxyAttached.connect(users.operator).setLRTPriceInLYNK(env.LRT_PRICE_IN_LYNK)
         await tx.wait()
     }
 
@@ -409,11 +409,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const swapFactory: Swap__factory = await hre.ethers.getContractFactory('Swap')
     const swapProxyAttached: Swap = await swapFactory.attach(deploymentsSwap.address)
     console.log(`fetching the alyx address..`)
-    const alyxAddress = (await deployments.get("ALYXToken_Proxy")).address
-    const alyxAddressFetched = await swapProxyAttached.alyxAddress()
-    if (alyxAddress.toLowerCase() !== alyxAddressFetched.toLowerCase()) {
+    const lynkAddress = (await deployments.get("ALYXToken_Proxy")).address
+    const lynkAddressFetched = await swapProxyAttached.lynkAddress()
+    if (lynkAddress.toLowerCase() !== lynkAddressFetched.toLowerCase()) {
         console.log(`setup the alyx address...`)
-        tx = await swapProxyAttached.connect(users.operator).setALYXAddress(alyxAddress)
+        tx = await swapProxyAttached.connect(users.operator).setLYNKAddress(lynkAddress)
         await tx.wait()
     }
 

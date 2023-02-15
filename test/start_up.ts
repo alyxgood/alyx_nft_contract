@@ -82,7 +82,7 @@ export interface ENV_FIX {
     COMMON_MINT_ENABLE: boolean,
     WL_NUM: string,
     EARLY_BIRD_MINT_WL: string[]
-    LYNK_PRICE_IN_ALYX: string
+    LRT_PRICE_IN_LYNK: string
     TEAM_ADDRESS: string
 }
 
@@ -170,7 +170,7 @@ export function get_env() {
     let COMMON_MINT_ENABLE: boolean
     let WL_NUM: string
     let EARLY_BIRD_MINT_WL: string[]
-    let LYNK_PRICE_IN_ALYX: string
+    let LRT_PRICE_IN_LYNK: string
     let TEAM_ADDRESS: string
 
     environment = process.env.environment ? process.env.environment : TEST_EVN  // prod / test
@@ -254,7 +254,7 @@ export function get_env() {
     COMMON_MINT_ENABLE = process.env.COMMON_MINT_ENABLE === 'true'
     WL_NUM = process.env.WL_NUM ? process.env.WL_NUM : '20'
     EARLY_BIRD_MINT_WL = process.env.EARLY_BIRD_MINT_WL ? process.env.EARLY_BIRD_MINT_WL.split(',') : [ethers.constants.AddressZero]
-    LYNK_PRICE_IN_ALYX = process.env.LYNK_PRICE_IN_ALYX ? process.env.LYNK_PRICE_IN_ALYX : '0'
+    LRT_PRICE_IN_LYNK = process.env.LRT_PRICE_IN_LYNK ? process.env.LRT_PRICE_IN_LYNK : '0'
     TEAM_ADDRESS = process.env.TEAM_ADDRESS ? process.env.TEAM_ADDRESS : ethers.constants.AddressZero
 
     return {
@@ -293,7 +293,7 @@ export function get_env() {
         COMMON_MINT_ENABLE,
         WL_NUM,
         EARLY_BIRD_MINT_WL,
-        LYNK_PRICE_IN_ALYX,
+        LRT_PRICE_IN_LYNK,
         TEAM_ADDRESS,
     }
 }

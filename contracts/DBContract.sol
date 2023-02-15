@@ -79,7 +79,7 @@ contract DBContract is OwnableUpgradeable {
     uint256 public wlNum;
     mapping(address => bool) public earlyBirdMintWlOf;
 
-    uint256 public lynkPriceInALYX;
+    uint256 public lrtPriceInLYNK;
 
     /**
      * @dev Throws if called by any account other than the operator.
@@ -316,8 +316,8 @@ contract DBContract is OwnableUpgradeable {
         duration = _duration;
     }
 
-    function setLynkPriceInALYX(uint256 _lynkPriceInALYX) external onlyOperator {
-        lynkPriceInALYX = _lynkPriceInALYX;
+    function setLRTPriceInLYNK(uint256 _lrtPriceInLYNK) external onlyOperator {
+        lrtPriceInLYNK = _lrtPriceInLYNK;
     }
 
     /**************************************************************************
