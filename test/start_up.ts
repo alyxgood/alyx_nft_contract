@@ -36,14 +36,14 @@ export interface CONTRACT_FIX {
     USDT: MockERC20,
     dbContract: DBContract,
     apToken: APToken,
-    LYNKToken: LRTToken,
+    LRTToken: LRTToken,
     LYNKNFT: LYNKNFT,
     sLYNKNFT: BNFT,
     lLYNKNFT: BNFT,
     user: User,
     staking: Staking,
     market: Market,
-    ALYXToken: LYNKToken
+    LYNKToken: LYNKToken
 }
 
 export interface ENV_FIX {
@@ -306,42 +306,42 @@ export async function set_up_fixture(fix_name: string) {
         USDT: (await deployments.get('mock_usdt')).address,
         DBContract: (await deployments.get('DBContract_Proxy')).address,
         APToken: (await deployments.get('APToken_Proxy')).address,
-        LYNKToken: (await deployments.get('LYNKToken_Proxy')).address,
+        LRTToken: (await deployments.get('LRTToken_Proxy')).address,
         LYNKNFT: (await deployments.get('LYNKNFT_Proxy')).address,
         sLYNKNFT: (await deployments.get('sLYNKNFT_Proxy')).address,
         lLYNKNFT: (await deployments.get('lLYNKNFT_Proxy')).address,
         User: (await deployments.get('User_Proxy')).address,
         Staking: (await deployments.get('Staking_Proxy')).address,
         Market: (await deployments.get('Market_Proxy')).address,
-        ALYXToken: (await deployments.get('ALYXToken_Proxy')).address,
+        LYNKToken: (await deployments.get('LYNKToken_Proxy')).address,
     };
 
 
     const USDT = <MockERC20> await (await ethers.getContractFactory("MockERC20")).attach(contracts.USDT)
     const dbContract = <DBContract> await (await ethers.getContractFactory('DBContract')).attach(contracts.DBContract)
     const apToken = <APToken> await (await ethers.getContractFactory('APToken')).attach(contracts.APToken)
-    const LYNKToken = <LRTToken> await (await ethers.getContractFactory('LRTToken')).attach(contracts.LYNKToken)
+    const LRTToken = <LRTToken> await (await ethers.getContractFactory('LRTToken')).attach(contracts.LRTToken)
     const LYNKNFT = <LYNKNFT> await (await ethers.getContractFactory('LYNKNFT')).attach(contracts.LYNKNFT)
     const sLYNKNFT = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.sLYNKNFT)
     const lLYNKNFT = <BNFT> await (await ethers.getContractFactory('BNFT')).attach(contracts.lLYNKNFT)
     const user = <User> await (await ethers.getContractFactory('User')).attach(contracts.User)
     const staking = <Staking> await (await ethers.getContractFactory('Staking')).attach(contracts.Staking)
     const market = <Market> await (await ethers.getContractFactory('Market')).attach(contracts.Market)
-    const ALYXToken = <LYNKToken> await (await ethers.getContractFactory('LYNKToken')).attach(contracts.ALYXToken)
+    const LYNKToken = <LYNKToken> await (await ethers.getContractFactory('LYNKToken')).attach(contracts.LYNKNFT)
 
 
     return {
         USDT,
         dbContract,
         apToken,
-        LYNKToken,
+        LRTToken,
         LYNKNFT,
         sLYNKNFT,
         lLYNKNFT,
         user,
         staking,
         market,
-        ALYXToken
+        LYNKToken
     };
 
 }
