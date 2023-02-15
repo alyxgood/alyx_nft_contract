@@ -417,6 +417,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await tx.wait()
     }
 
+    const oracleAddress = (await deployments.get("LynkOracle")).address
+    const oracleAddressFetched = await swapProxyAttached.oracleAddress()
+    if (oracleAddress.toLowerCase() !== oracleAddressFetched.toLowerCase()) {
+        console.log(`setup the oracle address...`)
+        tx = await swapProxyAttached.connect(users.operator).setOracleAddress(oracleAddress)
+        await tx.wait()
+    }
+
     // let APToken_Proxy_addr =  (await deployments.get('APToken_Proxy')).address;
     // let LRT_Token_Proxy_addr =  (await deployments.get('LYNKNFT_Proxy')).address;
     // const apToken = <APToken> await (await ethers.getContractFactory('APToken')).attach(APToken_Proxy_addr);

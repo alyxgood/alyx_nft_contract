@@ -5,17 +5,30 @@ import "./baseContract.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "./interfaces/IOracle.sol";
+import {SafeMath} from '@openzeppelin/contracts/utils/math/SafeMath.sol';
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 contract Swap is baseContract, ReentrancyGuardUpgradeable {
-
+    using SafeMath for uint256;
     address public lynkAddress;
+    address public oracleAddress;
+    uint256 public lynkPriceOne = 10**18;
     event SwapEvent(address indexed account, uint256 amountIn,uint256 _amountOut);
 
 
     constructor(address dbContract) baseContract(dbContract) {
 
+    }
+
+     modifier updatePrice {
+        _;
+        _updateCashPrice();
+    }
+
+    function _updateCashPrice() internal {
+        try IOracle(oracleAddress).update() {} catch {}
     }
 
     function __Swap_init() public initializer {
@@ -27,18 +40,42 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
     function __Swap_init_unchained() private {
     }
 
+
+    function setOracleAddress(address _oracleAddress) external {
+        require(_msgSender() == DBContract(DB_CONTRACT).operator());
+        oracleAddress = _oracleAddress;
+    }
+
     function setLYNKAddress(address _lynkAddress) external {
         require(_msgSender() == DBContract(DB_CONTRACT).operator());
         lynkAddress = _lynkAddress;
     }
 
-    function swap(uint256 _amountIn) external nonReentrant {
-        address lrtAddress = DBContract(DB_CONTRACT).LRT_TOKEN();
-        require(IERC20Upgradeable(lrtAddress).balanceOf(_msgSender()) >= _amountIn, 'insufficient LRT.');
+    function getSwapOut(uint256 _amountIn) public view returns(uint256) {
 
-        uint256 priceInLYNK = DBContract(DB_CONTRACT).lrtPriceInLYNK();
-        require(priceInLYNK > 0, 'must init first.');
-        uint256 _amountOut = _amountIn * priceInLYNK / 1 ether;
+        uint256 priceInLYNK = IOracle(oracleAddress).consult(lynkAddress, lynkPriceOne);
+
+        uint256 _amountOut = 0;
+
+        if(priceInLYNK>0){
+
+            _amountOut = _amountIn.mul(1e6).div(priceInLYNK);
+
+        }
+
+        return _amountOut;
+    }
+
+    function swap(uint256 _amountIn) external updatePrice nonReentrant {
+
+        address lrtAddress = DBContract(DB_CONTRACT).LRT_TOKEN();
+
+        require(IERC20Upgradeable(lrtAddress).balanceOf(_msgSender()) >= _amountIn, 'insufficient LRT.');
+    
+        uint256 _amountOut = getSwapOut(_amountIn);
+
+        require(_amountOut > 0, 'zero out');
+
         require(IERC20Upgradeable(lynkAddress).balanceOf(address(this)) >= _amountOut, 'insufficient LYNK.');
 
         _pay(lrtAddress, _msgSender(), _amountIn);
