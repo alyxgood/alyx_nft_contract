@@ -249,7 +249,7 @@ export function get_env() {
     EARLY_BIRD_MINT_START_ID = process.env.EARLY_BIRD_MINT_START_ID ? process.env.EARLY_BIRD_MINT_START_ID : '300000'
     EARLY_BIRD_MINT_END_ID = process.env.EARLY_BIRD_MINT_END_ID ? process.env.EARLY_BIRD_MINT_END_ID : '300200'
     EARLY_BIRD_MINT_PAYMENT = process.env.EARLY_BIRD_MINT_PAYMENT ? process.env.EARLY_BIRD_MINT_PAYMENT : '0x000000000000000000000000000000000000dEaD'
-    EARLY_BIRD_MINT_PRICE_IN_PAYMENT = ethers.utils.parseEther(process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT ? process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT : '5000').toString()
+    EARLY_BIRD_MINT_PRICE_IN_PAYMENT = ethers.utils.parseUnits(process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT ? process.env.EARLY_BIRD_MINT_PRICE_IN_PAYMENT : '5000', 6).toString()
     EARLY_BIRD_MINT_ENABLE = process.env.EARLY_BIRD_MINT_ENABLE === 'true'
     COMMON_MINT_ENABLE = process.env.COMMON_MINT_ENABLE === 'true'
     WL_NUM = process.env.WL_NUM ? process.env.WL_NUM : '20'
