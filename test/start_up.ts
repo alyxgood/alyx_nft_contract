@@ -175,7 +175,7 @@ export function get_env() {
 
     environment = process.env.environment ? process.env.environment : TEST_EVN  // prod / test
     USDT_ADDRESS = process.env.USDT_ADDRESS ? process.env.USDT_ADDRESS : '0x000000000000000000000000000000000000dEaD'
-    MINT_PRICES = (process.env.LYNKNFY_PRICES ? process.env.LYNKNFY_PRICES : '10,100,300').split(',')
+    MINT_PRICES = (process.env.MINT_PRICES ? process.env.MINT_PRICES : '10,100,300').split(',')
     MAX_MINT_PER_DAY_PER_ADDRESS = process.env.MAX_MINT_PER_DAY_PER_ADDRESS ? process.env.MAX_MINT_PER_DAY_PER_ADDRESS : '2'
     TOKEN_BASE_URI = process.env.TOKEN_BASE_URI ? process.env.TOKEN_BASE_URI : ''
     MAX_VA_ADD_PER_DAY_PER_TOKEN = process.env.MAX_VA_ADD_PER_DAY_PER_TOKEN ? process.env.MAX_VA_ADD_PER_DAY_PER_TOKEN : '20'
