@@ -5,6 +5,7 @@ import "./baseContract.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "./interfaces/IUser.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
@@ -41,7 +42,7 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
         uint256 _amountOut = _amountIn * priceInLYNK / 1 ether;
         require(IERC20Upgradeable(lynkAddress).balanceOf(address(this)) >= _amountOut, 'insufficient LYNK.');
 
-        _pay(lrtAddress, _msgSender(), _amountIn);
+        _pay(lrtAddress, _msgSender(), _amountIn,IUser.REV_TYPE.LRT_ADDR);
         SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(lynkAddress), _msgSender(), _amountOut);
         emit SwapEvent(_msgSender(),_amountIn,_amountOut);
         // AddressUpgradeable.sendValue(payable(_msgSender()), _amountOut);

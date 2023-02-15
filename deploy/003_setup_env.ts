@@ -4,6 +4,7 @@ import {APToken, DBContract, DBContract__factory, LRTToken, Swap, Swap__factory}
 import {Attribute, PROD_EVN} from "../constants/constants";
 import {Deployment} from "hardhat-deploy/dist/types";
 import {DeployFunction} from "hardhat-deploy/types";
+import {BigNumber} from "ethers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // @ts-ignore
@@ -278,6 +279,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         tx = await dbProxyAttached.connect(users.operator).setAchievementRewardDurationThreshold(env.DURATION)
         await tx.wait()
     }
+
+
+    for (let index = 0; index < 6; index++) {
+
+        if(env.REV_ADDR.length != 6){
+            console.error(`fetching REV_ADDR is error`)
+        }
+        console.log(`fetching REV_ADDR ${index}...`)
+        const reward = BigNumber.from(await dbProxyAttached.revADDR(index));
+        if (!reward.eq(env.REV_ADDR[index])) {
+            isMatch = false
+            break
+        }
+    }
+
+    if (!isMatch) {
+        console.log('setup REV_ADDR ...')
+        tx = await dbProxyAttached.connect(users.operator).setRevAddr(env.REV_ADDR)
+        await tx.wait()
+    }
+
 
     console.log(`fetching achievementRewardAmountsNum...`)
     parametersLength = (await dbProxyAttached.achievementRewardAmountsNum()).toNumber()

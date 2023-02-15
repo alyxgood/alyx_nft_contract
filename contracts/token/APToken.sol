@@ -34,7 +34,7 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         // only settle if length eq 3. {@link DBContract#setSellingPackage}
         // require(package.length == 3, 'APToken: unrecognized package.');
 
-        _pay(address(uint160(package[0])), _msgSender(), package[1]);
+        _pay(address(uint160(package[0])), _msgSender(), package[1],IUser.REV_TYPE.LYNK_ADDR);
         _mint(_msgSender(), package[2]);
     }
 

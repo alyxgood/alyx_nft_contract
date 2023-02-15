@@ -4,10 +4,14 @@ pragma solidity 0.8.9;
 import "./interfaces/IUser.sol";
 import "./interfaces/ILYNKNFT.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "./interfaces/IUser.sol";
+
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
+
 contract DBContract is OwnableUpgradeable {
+
 
     /**************************************************************************
      *****  Common fields  ****************************************************
@@ -80,6 +84,9 @@ contract DBContract is OwnableUpgradeable {
     mapping(address => bool) public earlyBirdMintWlOf;
 
     uint256 public lrtPriceInLYNK;
+
+
+    address[] public revADDR;
 
     /**
      * @dev Throws if called by any account other than the operator.
@@ -159,7 +166,7 @@ contract DBContract is OwnableUpgradeable {
         for (uint i = 0; i < _wls.length; i++) {
             earlyBirdMintWlOf[_wls[i]] = true;
             if (!IUser(USER_INFO).isValidUser(_wls[i])) {
-                IUser(USER_INFO).registerByEarlyPlan(_wls[i], rootAddress);   
+                IUser(USER_INFO).registerByEarlyPlan(_wls[i], rootAddress);
             }
         }
     }
@@ -464,4 +471,10 @@ contract DBContract is OwnableUpgradeable {
         return (earlyBirdMintPayment, earlyBirdMintPriceInPayment);
     }
 
+    function setRevAddr(address[] calldata _addr_ls) external onlyOperator {
+        require(_addr_ls.length ==  uint256(type(IUser.REV_TYPE).max), 'RevAddr length mismatch.');
+        for (uint i = 0; i < uint256(type(IUser.REV_TYPE).max); i++) {
+            revADDR[i] = _addr_ls[i];
+        }
+    }
 }

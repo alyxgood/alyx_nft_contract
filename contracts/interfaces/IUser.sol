@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 
 interface IUser {
-
+    enum REV_TYPE { MINT_NFT_ADDR, LRT_ADDR, AP_ADDR,LYNK_ADDR,UP_CA_ADDR,MARKET_ADDR,USDT_ADDR }
     enum Level {
         elite,
         epic,
