@@ -33,7 +33,7 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
     }
 
     function swap(uint256 _amountIn) external nonReentrant {
-        address lrtAddress = DBContract(DB_CONTRACT).LYNK_TOKEN();
+        address lrtAddress = DBContract(DB_CONTRACT).LRT_TOKEN();
         require(IERC20Upgradeable(lrtAddress).balanceOf(_msgSender()) >= _amountIn, 'insufficient LRT.');
 
         uint256 priceInLYNK = DBContract(DB_CONTRACT).lrtPriceInLYNK();

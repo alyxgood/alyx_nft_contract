@@ -98,9 +98,9 @@ contract User is IUser, baseContract {
             uint256 amount;
             // distribute social reward
             uint256 rate = DBContract(DB_CONTRACT).socialRewardRates(_refLevel);
-            amount = (_performance * (10 ** IERC20MetadataUpgradeable(DBContract(DB_CONTRACT).LYNK_TOKEN()).decimals()) * rate) / 1e18;
+            amount = (_performance * (10 ** IERC20MetadataUpgradeable(DBContract(DB_CONTRACT).LRT_TOKEN()).decimals()) * rate) / 1e18;
             userInfoOf[_refAddr].socialRev += amount;
-            IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_refAddr, amount);
+            IERC20Mintable(DBContract(DB_CONTRACT).LRT_TOKEN()).mint(_refAddr, amount);
             emit SocialRewardDistribute(_refAddr, _userAddr, amount);
 
             // distribute contribution reward
@@ -143,7 +143,7 @@ contract User is IUser, baseContract {
 
     function hookByClaimReward(address _userAddr, uint256 _rewardAmount) onlyStakingContract external {
         address curAddr = userInfoOf[_userAddr].refAddress;
-        address lynkAddr = DBContract(DB_CONTRACT).LYNK_TOKEN();
+        address lynkAddr = DBContract(DB_CONTRACT).LRT_TOKEN();
         uint256 maxInvitationLevel = DBContract(DB_CONTRACT).maxInvitationLevel();
         for (uint256 index; index < maxInvitationLevel; index++) {
             if (curAddr == address(0)) break;

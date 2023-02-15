@@ -14,7 +14,7 @@ contract DBContract is OwnableUpgradeable {
      **************************************************************************/
     address immutable public USDT_TOKEN;
 
-    address public LYNK_TOKEN;
+    address public LRT_TOKEN;
     address public AP_TOKEN;
     address public STAKING;
     address public USER_INFO;
@@ -398,7 +398,7 @@ contract DBContract is OwnableUpgradeable {
     function _setAddresses(address[] calldata _addresses) private {
         require(_addresses.length == 9, 'DBContract: addresses length mismatch.');
 
-        LYNK_TOKEN          = _addresses[0];
+        LRT_TOKEN           = _addresses[0];
         AP_TOKEN            = _addresses[1];
         STAKING             = _addresses[2];
         LYNKNFT             = _addresses[3];

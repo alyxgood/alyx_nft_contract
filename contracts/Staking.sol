@@ -124,7 +124,7 @@ contract Staking is baseContract, IERC721ReceiverUpgradeable {
         require(claimable > 0, 'Staking: cannot claim 0.');
 
         rewardOf[_msgSender()] = 0;
-        IERC20Mintable(DBContract(DB_CONTRACT).LYNK_TOKEN()).mint(_msgSender(), claimable);
+        IERC20Mintable(DBContract(DB_CONTRACT).LRT_TOKEN()).mint(_msgSender(), claimable);
 
         emit Claim(_msgSender(), claimable);
 

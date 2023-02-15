@@ -149,7 +149,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
     function _mintPrice(uint256 _tokenId, address _payment) private view returns (uint256) {
         require(
-            DBContract(DB_CONTRACT).LYNK_TOKEN() == _payment ||
+            DBContract(DB_CONTRACT).LRT_TOKEN() == _payment ||
             DBContract(DB_CONTRACT).USDT_TOKEN() == _payment,
             'LYNKNFT: unsupported payment.'
         );
@@ -243,7 +243,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         if (Attribute.charisma == _attr) {
             require(
                 _payment == DBContract(DB_CONTRACT).USDT_TOKEN() ||
-                _payment == DBContract(DB_CONTRACT).LYNK_TOKEN(),
+                _payment == DBContract(DB_CONTRACT).LRT_TOKEN(),
                 'LYNKNFT: unsupported payment.'
             );
         } else {
