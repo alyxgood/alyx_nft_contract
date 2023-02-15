@@ -211,6 +211,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         }
     )
 
+    await deploy('LynkOracle', {
+        from: users.owner1.address,
+        args: [],
+        log: true,
+        contract: "Oracle"
+    });
+
     await deploy(
         'Swap',
         {
