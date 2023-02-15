@@ -58,19 +58,19 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     //         DBContract(DB_CONTRACT).earlyBirdMintPayment()
     //     ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
     //     // earlyBirdWlCounter++;
-        
+
     //     _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress());
     // }
 
     function earlyBirdMint() external {
         require(
-            DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()) || 
+            DBContract(DB_CONTRACT).earlyBirdMintWlOf(_msgSender()) ||
             IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
                 'LYNKNFT: not a valid address.'
         );
         // require(earlyBirdWlCounter < DBContract(DB_CONTRACT).wlNum(), 'LYNKNFT: wl num limit.');
         // earlyBirdWlCounter++;
-        
+
         _earlyBirdMint(DBContract(DB_CONTRACT).rootAddress());
     }
 
@@ -81,7 +81,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
     //     IERC20PermitUpgradeable(
     //         DBContract(DB_CONTRACT).earlyBirdMintPayment()
     //     ).permit(_msgSender(), address(this), _amount, deadline, v, r, s);
-        
+
     //     _earlyBirdMint(_refAddress);
     // }
 
@@ -93,7 +93,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
                 'LYNKNFT: please call with earlyBirdMint.'
         );
         require(DBContract(DB_CONTRACT).earlyBirdMintWlOf(_refAddress), 'LYNKNFT: ref address not in the wl.');
-        
+
         _earlyBirdMint(_refAddress);
     }
 
@@ -173,11 +173,11 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
         require(!earlyBirdMintedOf[_msgSender()], 'LYNKNFT: already minted.');
         earlyBirdMintedOf[_msgSender()] = true;
-        
+
         address userContractAddress = DBContract(DB_CONTRACT).USER_INFO();
         // require(!IUser(userContractAddress).isValidUser(_msgSender()), 'LYNKNFT: already minted.');
         if (!IUser(userContractAddress).isValidUser(_msgSender())) {
-            IUser(userContractAddress).registerByEarlyPlan(_msgSender(), _refAddress);   
+            IUser(userContractAddress).registerByEarlyPlan(_msgSender(), _refAddress);
         }
 
         (uint256 _startId, uint256 _endId) = DBContract(DB_CONTRACT).earlyBirdMintIdRange();
@@ -188,7 +188,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         string memory _name = string(abi.encodePacked(StringsUpgradeable.toString(_earlyBirdCurrentId), ".lynk"));
 
         (address payment, uint256 price) = DBContract(DB_CONTRACT).earlyBirdMintPrice();
-        _pay(payment, _msgSender(), price);
+        _pay(payment, _msgSender(), price,IUser.REV_TYPE.USDT_ADDR);
 
         nftInfo[_earlyBirdCurrentId] = [ DBContract(DB_CONTRACT).earlyBirdInitCA(), 0, 0, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _earlyBirdCurrentId);
@@ -218,7 +218,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         mintInfoOf[_msgSender()].mintNumInDuration = mintInfo.mintNumInDuration + 1;
 
         uint256 mintPrice = _mintPrice(_tokenId, _payment);
-        _pay(_payment, _msgSender(), mintPrice);
+        _pay(_payment, _msgSender(), mintPrice,IUser.REV_TYPE.MINT_NFT_ADDR);
 
         (uint256 vitality, uint256 intellect) = _attributesGen(_msgSender());
         nftInfo[_tokenId] = [ 0, vitality, intellect, 0];
@@ -282,7 +282,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
         uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
         uint256 amount = _point * (10 ** decimal);
-        _pay(_payment, _msgSender(), amount);
+        _pay(_payment, _msgSender(), amount,IUser.REV_TYPE.UP_CA_ADDR);
 
         nftInfo[_tokenId][uint256(_attr)] += _point;
         emit Upgrade(_tokenId, _attr, _point);

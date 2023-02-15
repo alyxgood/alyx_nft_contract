@@ -34,7 +34,7 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         // only settle if length eq 3. {@link DBContract#setSellingPackage}
         // require(package.length == 3, 'APToken: unrecognized package.');
 
-        _pay(address(uint160(package[0])), _msgSender(), package[1]);
+        _pay(address(uint160(package[0])), _msgSender(), package[1],IUser.REV_TYPE.LYNK_ADDR);
         _mint(_msgSender(), package[2]);
     }
 
@@ -44,11 +44,12 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
 
     function _beforeTokenTransfer (address from,address to,uint256 amount)internal virtual override
     {
-        address team = DBContract(DB_CONTRACT).TEAM_ADDR();
-        if(from == team || to == team){
+
+        address target = DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.LRT_ADDR));
+        if(from == target || to == target){
             return ;
         }
-        if(from == address(0) || (to == BLACK_HOLE)){
+        if(from == address(0)){
             return ;
         }
         require(false,"can token can not transfer");

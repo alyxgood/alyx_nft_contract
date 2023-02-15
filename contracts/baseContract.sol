@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "./interfaces/IUser.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
@@ -56,10 +57,11 @@ abstract contract baseContract is ContextUpgradeable {
         __Context_init();
     }
 
-    function _pay(address _payment, address _payer, uint256 _amount) internal {
+    function _pay(address _payment, address _payer, uint256 _amount ,IUser.REV_TYPE _type) internal {
+        address target = DBContract(DB_CONTRACT).revADDR(uint256(_type));
         if (address(0) == _payment) {
             require(msg.value == _amount, 'baseContract: invalid value.');
-            AddressUpgradeable.sendValue(payable(DBContract(DB_CONTRACT).TEAM_ADDR()), _amount);
+            AddressUpgradeable.sendValue(payable(target), _amount);
             return;
         }
 
@@ -68,7 +70,7 @@ abstract contract baseContract is ContextUpgradeable {
             'baseContract: insufficient allowance'
         );
 
-        IERC20Upgradeable(_payment).safeTransferFrom(_payer, DBContract(DB_CONTRACT).TEAM_ADDR(), _amount);
+        IERC20Upgradeable(_payment).safeTransferFrom(_payer, target, _amount);
 
     }
     /**
