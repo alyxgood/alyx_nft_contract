@@ -281,6 +281,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 
 
+
+    console.log(env.REV_ADDR);
     for (let index = 0; index < 6; index++) {
 
         if(env.REV_ADDR.length != 6){
@@ -293,6 +295,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             break
         }
     }
+
 
     if (!isMatch) {
         console.log('setup REV_ADDR ...')
@@ -439,25 +442,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await tx.wait()
     }
 
-    // let APToken_Proxy_addr =  (await deployments.get('APToken_Proxy')).address;
-    // let LRT_Token_Proxy_addr =  (await deployments.get('LYNKNFT_Proxy')).address;
-    // const apToken = <APToken> await (await ethers.getContractFactory('APToken')).attach(APToken_Proxy_addr);
-    // const LRToken = <LRTToken> await (await ethers.getContractFactory('LRTToken')).attach(LRT_Token_Proxy_addr);
-    //
-    // let team_address = await dbProxyAttached.TEAM_ADDR();
-    // if(!await apToken.Wl(team_address))
-    // {
-    //     console.log(`setup apToken white list...`)
-    //     let tx = await apToken.connect(users.operator).setWL(team_address,true);
-    //     await tx.wait()
-    // }
-    //
-    // if(!await LRToken.Wl(team_address))
-    // {
-    //     console.log(`setup LRToken white list...`)
-    //     let tx = await LRToken.connect(users.operator).setWL(team_address,true);
-    //     await tx.wait()
-    // }
 }
 
 
