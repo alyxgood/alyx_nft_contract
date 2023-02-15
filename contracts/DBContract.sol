@@ -471,10 +471,17 @@ contract DBContract is OwnableUpgradeable {
         return (earlyBirdMintPayment, earlyBirdMintPriceInPayment);
     }
 
+    function revADDRNum() external view returns (uint256) {
+        return revADDR.length;
+    }
+
     function setRevAddr(address[] calldata _addr_ls) external onlyOperator {
+
+        delete revADDR;
+
         require(_addr_ls.length ==  6 , 'RevAddr length mismatch.');
         for (uint i = 0; i < 6; i++) {
-            revADDR[i] = _addr_ls[i];
+            revADDR.push(_addr_ls[i]);
         }
     }
 }

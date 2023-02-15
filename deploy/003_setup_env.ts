@@ -280,22 +280,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await tx.wait()
     }
 
-
-
-    console.log(env.REV_ADDR);
-    for (let index = 0; index < 6; index++) {
-
-        if(env.REV_ADDR.length != 6){
-            console.error(`fetching REV_ADDR is error`)
-        }
-        console.log(`fetching REV_ADDR ${index}...`)
-        const reward = BigNumber.from(await dbProxyAttached.revADDR(index));
-        if (!reward.eq(env.REV_ADDR[index])) {
-            isMatch = false
-            break
+    console.log(`fetching revADDRNum...`)
+    let length  = (await dbProxyAttached.revADDRNum()).toNumber()
+    isMatch = length == env.REV_ADDR.length
+    if(isMatch)
+    {
+        for (let index = 0; index < 6; index++) {
+            if(env.REV_ADDR.length != 6){
+                console.error(`fetching REV_ADDR is error`)
+            }
+            console.log(`fetching REV_ADDR ${index}...`)
+            const reward = BigNumber.from(await dbProxyAttached.revADDR(index));
+            if (!reward.eq(env.REV_ADDR[index])) {
+                isMatch = false
+                break
+            }
         }
     }
-
 
     if (!isMatch) {
         console.log('setup REV_ADDR ...')
