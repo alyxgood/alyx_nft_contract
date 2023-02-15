@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     if (env.environment !== PROD_EVN) {
         await deploy('mock_usdt', {
             from: deployer1,
-            args: ["MOCK USDT", "mUSDT", 18],
+            args: ["MOCK USDT", "mUSDT", 6],
             log: true,
             contract: "MockERC20"
         });
