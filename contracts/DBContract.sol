@@ -472,8 +472,8 @@ contract DBContract is OwnableUpgradeable {
     }
 
     function setRevAddr(address[] calldata _addr_ls) external onlyOperator {
-        require(_addr_ls.length ==  uint256(type(IUser.REV_TYPE).max), 'RevAddr length mismatch.');
-        for (uint i = 0; i < uint256(type(IUser.REV_TYPE).max); i++) {
+        require(_addr_ls.length ==  6 , 'RevAddr length mismatch.');
+        for (uint i = 0; i < 6; i++) {
             revADDR[i] = _addr_ls[i];
         }
     }
