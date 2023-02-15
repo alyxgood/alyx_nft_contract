@@ -438,7 +438,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const lynkAddress = (await deployments.get("LYNKToken_Proxy")).address
     const lynkAddressFetched = await swapProxyAttached.lynkAddress()
     if (lynkAddress.toLowerCase() !== lynkAddressFetched.toLowerCase()) {
-        console.log(`setup the alyx address...`)
+        console.log(`setup the LYNK address...`)
         tx = await swapProxyAttached.connect(users.operator).setLYNKAddress(lynkAddress)
         await tx.wait()
     }
