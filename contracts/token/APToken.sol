@@ -44,8 +44,9 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
 
     function _beforeTokenTransfer (address from,address to,uint256 amount)internal virtual override
     {
-
-        address target = DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.LRT_ADDR));
+        // avoid warming
+        amount = 0;
+        address target = DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.AP_ADDR));
         if(from == target || to == target){
             return ;
         }
