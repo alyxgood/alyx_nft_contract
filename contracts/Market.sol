@@ -125,10 +125,14 @@ contract Market is baseContract, IERC721ReceiverUpgradeable {
 
         if (listInfo.acceptToken == address(0)) {
             require(msg.value == listInfo.priceInAcceptToken, 'Market: value mismatch.');
-            AddressUpgradeable.sendValue(payable(DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.MARKET_ADDR))), fee);
+            if(fee > 0){
+                AddressUpgradeable.sendValue(payable(DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.MARKET_ADDR))), fee);
+            }
             AddressUpgradeable.sendValue(payable(listInfo.seller), listInfo.priceInAcceptToken - fee);
         } else {
-            IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.MARKET_ADDR)), fee);
+            if(fee>0){
+                IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.MARKET_ADDR)), fee);
+            }
             IERC20Upgradeable(listInfo.acceptToken).safeTransferFrom(_msgSender(), listInfo.seller, listInfo.priceInAcceptToken - fee);
         }
 
