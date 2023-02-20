@@ -5,6 +5,7 @@ import "./baseContract.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "./interfaces/IOracle.sol";
 import {SafeMath} from '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import "./interfaces/IUser.sol";
@@ -15,7 +16,6 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
     using SafeMath for uint256;
     address public lynkAddress;
     address public oracleAddress;
-    uint256 public lynkPriceOne = 10**18;
     event SwapEvent(address indexed account, uint256 amountIn,uint256 _amountOut);
 
 
@@ -52,9 +52,18 @@ contract Swap is baseContract, ReentrancyGuardUpgradeable {
         lynkAddress = _lynkAddress;
     }
 
+
+    function getLynkPrice() public view returns(uint256) {
+       
+        uint8 decimals = IERC20MetadataUpgradeable(lynkAddress).decimals();
+
+        return IOracle(oracleAddress).consult(lynkAddress,10**decimals);
+
+    }
+
     function getSwapOut(uint256 _amountIn) public view returns(uint256) {
 
-        uint256 priceInLYNK = IOracle(oracleAddress).consult(lynkAddress, lynkPriceOne);
+        uint256 priceInLYNK = getLynkPrice();
 
         uint256 _amountOut = 0;
 
