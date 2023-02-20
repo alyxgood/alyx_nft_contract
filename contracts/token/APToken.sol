@@ -24,7 +24,7 @@ contract APToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
 
     }
 
-    function mint(uint256 _indexPackage) external payable {
+    function mint(uint256 _indexPackage) external{
         require(
             IUser(DBContract(DB_CONTRACT).USER_INFO()).isValidUser(_msgSender()),
                 'APToken: not a valid user.'
