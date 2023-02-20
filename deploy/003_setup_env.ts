@@ -434,7 +434,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // @ts-ignore
     const swapFactory: Swap__factory = await hre.ethers.getContractFactory('Swap')
     const swapProxyAttached: Swap = await swapFactory.attach(deploymentsSwap.address)
-    console.log(`fetching the alyx address..`)
+    console.log(`fetching the LYNK address..`)
     const lynkAddress = (await deployments.get("LYNKToken_Proxy")).address
     const lynkAddressFetched = await swapProxyAttached.lynkAddress()
     if (lynkAddress.toLowerCase() !== lynkAddressFetched.toLowerCase()) {
