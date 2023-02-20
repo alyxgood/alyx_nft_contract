@@ -175,6 +175,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
         earlyBirdMintedOf[_msgSender()] = true;
 
         address userContractAddress = DBContract(DB_CONTRACT).USER_INFO();
+
         // require(!IUser(userContractAddress).isValidUser(_msgSender()), 'LYNKNFT: already minted.');
         if (!IUser(userContractAddress).isValidUser(_msgSender())) {
             IUser(userContractAddress).registerByEarlyPlan(_msgSender(), _refAddress);
@@ -189,7 +190,6 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
         (address payment, uint256 price) = DBContract(DB_CONTRACT).earlyBirdMintPrice();
         _pay(payment, _msgSender(), price,IUser.REV_TYPE.USDT_ADDR);
-
         nftInfo[_earlyBirdCurrentId] = [ DBContract(DB_CONTRACT).earlyBirdInitCA(), 0, 0, 0];
         ERC721Upgradeable._safeMint(_msgSender(), _earlyBirdCurrentId);
         emit Mint(_earlyBirdCurrentId, nftInfo[_earlyBirdCurrentId], _name, payment, price);

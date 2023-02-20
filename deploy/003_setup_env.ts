@@ -285,8 +285,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     isMatch = length == env.REV_ADDR.length
     if(isMatch)
     {
-        for (let index = 0; index < 6; index++) {
-            if(env.REV_ADDR.length != 6){
+        for (let index = 0; index < 7; index++) {
+            if(env.REV_ADDR.length != 7){
                 console.error(`fetching REV_ADDR is error`)
             }
             console.log(`fetching REV_ADDR ${index}...`)
