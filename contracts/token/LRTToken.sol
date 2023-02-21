@@ -25,17 +25,17 @@ contract LRTToken is ERC20PermitUpgradeable, baseContract, IERC20Mintable {
         _mint(account, amount);
     }
 
-    function _beforeTokenTransfer (address from,address to,uint256 amount)internal virtual override
+    function _beforeTokenTransfer (address from,address to,uint256 )internal virtual override
     {
-        // avoid warming
-        amount = 0;
-        address target = DBContract(DB_CONTRACT).revADDR(uint256(IUser.REV_TYPE.LRT_ADDR));
-        if(from == target || to == target){
-            return ;
-        }
+
         if(from == address(0)){
             return ;
         }
+        if(DBContract(DB_CONTRACT).isRevAddr(from) ||DBContract(DB_CONTRACT).isRevAddr(to)){
+            return ;
+        }
+
+
         require(false,"can token can not transfer");
     }
 

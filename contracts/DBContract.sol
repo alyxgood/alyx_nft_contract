@@ -475,6 +475,15 @@ contract DBContract is OwnableUpgradeable {
         return revADDR.length;
     }
 
+    function isRevAddr(address _adr) external view returns (bool) {
+        for (uint i = 0; i < revADDR.length;i++) {
+            if(revADDR[i] == _adr){
+                return true;
+            }
+        }
+        return false;
+    }
+
     function setRevAddr(address[] calldata _addr_ls) external onlyOperator {
 
         delete revADDR;
