@@ -282,7 +282,7 @@ contract LYNKNFT is ILYNKNFT, ERC721EnumerableUpgradeable, baseContract {
 
         uint256 decimal = IERC20MetadataUpgradeable(_payment).decimals();
         uint256 amount = _point * (10 ** decimal);
-        _pay(_payment, _msgSender(), amount,IUser.REV_TYPE.UP_CA_ADDR);
+        _pay(_payment, _msgSender(), amount,(Attribute.charisma == _attr) ? IUser.REV_TYPE.UP_CA_ADDR:IUser.REV_TYPE.AP_ADDR);
 
         nftInfo[_tokenId][uint256(_attr)] += _point;
         emit Upgrade(_tokenId, _attr, _point);
